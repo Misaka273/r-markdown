@@ -1,0 +1,446 @@
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useTheme } from './composables/useTheme'
+import { useDarkMode } from './composables/useDarkMode'
+import Editor from './components/Editor.vue'
+import Preview from './components/Preview.vue'
+import ThemePicker from './components/ThemePicker.vue'
+import DarkModeToggle from './components/DarkModeToggle.vue'
+
+const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
+const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
+
+// ── 拖动调整宽度 ──
+const previewWidth = ref(450)
+const isDragging = ref(false)
+let startX = 0
+let startWidth = 0
+
+function onDragStart(e: MouseEvent) {
+  isDragging.value = true
+  startX = e.clientX
+  startWidth = previewWidth.value
+  document.addEventListener('mousemove', onDragMove)
+  document.addEventListener('mouseup', onDragEnd)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+function onDragMove(e: MouseEvent) {
+  const delta = startX - e.clientX
+  const minW = 407
+  const maxW = 750
+  const newWidth = Math.min(Math.max(startWidth + delta, minW), maxW)
+  previewWidth.value = newWidth
+}
+
+function onDragEnd() {
+  isDragging.value = false
+  document.removeEventListener('mousemove', onDragMove)
+  document.removeEventListener('mouseup', onDragEnd)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
+
+const STORAGE_KEY = 'wechat-md-editor-content'
+const SAVE_TIME_KEY = 'wechat-md-editor-save-time'
+
+const DEMO_CONTENT = `---
+title: 功能全集：排版组件指南
+accent: Indigo V2 最新版
+badge: GUIDE
+subtitle: 这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。
+author: 官方文档
+date: 2026-03-10
+chips: 图片并排|窗口滚动|渐变文字
+---
+
+## 01 图片增强特性 :: IMAGES · 窗口化与并排
+
+这是本次更新的核心功能，解决了长图刷屏和多图堆叠的问题。
+
+### 01 指定窗口尺寸（限制高度 250px）
+
+![限高滚动测试](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg)[100% 250px]
+
+> 上方的图片被限制在 250px 高度内，读者可以手动滚动查看。
+
+### 02 多图横向滑动并排
+
+< ![图1](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg), ![图2](https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg), ![图3](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg) >
+
+> 使用尖括号和感叹号语法，多张图片横向排开。
+
+## 02 行内修饰与文字 :: STYLES · 渐变与强调
+
+- **渐变背景**：==这是 linear-gradient 渐变背景文字==，适合划重点。
+- **胶囊文字**：!!这是超圆角胶囊背景文字!!，适合做小标签。
+- **靛青强调**：^^这是 Indigo 加重强调文字^^，颜色更深。
+- **柔光重点**：::这是柔光蓝紫色文字重点::。
+- **经典修饰**：**粗体文字**、__下划线文字__、~~删除线文字~~。
+
+## 03 核心交互组件 :: COMPONENTS · 卡片与布局
+
+### 01 突发/重大更新卡片 (Breaking)
+
+<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观">
+这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。
+</breaking>
+
+### 02 提示与建议 (Callout)
+
+> [TIP] 操作小贴士
+> 使用 [TIP] 或 [NOTE] 可以快速生成带背景的提示框。
+
+### 03 横向步骤流 (Horizontal Steps)
+
+::: steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2"
+- 输入 | 往知识库里喂东西
+- 管理 | 让知识库有序运转
+- 输出 | 从知识库取素材做东西
+:::
+
+### 04 实践案例流 (Case Flow)
+
+- [案例 01] 品牌视觉升级：从绿色全面转向现代化的 Indigo 靛青色调。
+- [案例 02] 交互体验优化：图片窗口化功能让长文阅读更流畅。
+
+## 04 布局演示 :: LAYOUT · 对比与引导
+
+### 01 Before / After 对比
+
+<compare left-label="BEFORE" left-title="旧版绿色" right-label="AFTER" right-title="新版靛青">
+<left>
+![旧版](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg)[100% 120px]
+</left>
+<right>
+![新版](https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg)[100% 120px]
+</right>
+</compare>
+
+### 02 行动点召唤 (CTA)
+
+<cta label="GET STARTED" title="准备好开始你的创作了吗？" button="立即复制下方代码"></cta>
+
+## 写在最后 :: CONCLUSION · 结尾互动
+
+所有组件都支持公众号无损复制，您可以根据需要自由组合。
+
+: engage title="如果这份文档对你有帮助，欢迎点赞、推荐、转发！" label="THANKS FOR READING"
+`
+
+const saved = localStorage.getItem(STORAGE_KEY)
+const markdown = ref(saved !== null ? saved : DEMO_CONTENT)
+// Vue Vapor 组件 ref 类型不支持 InstanceType
+const previewRef = ref()
+const savedTime = localStorage.getItem(SAVE_TIME_KEY)
+const saveHint = ref(savedTime ? '已保存 ' + savedTime : '')
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+function onInput(value: string) {
+  markdown.value = value
+  saveHint.value = '输入中…'
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    localStorage.setItem(STORAGE_KEY, value)
+    const now = new Date()
+    const timeStr =
+      now.getFullYear() +
+      '-' +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(now.getDate()).padStart(2, '0') +
+      ' ' +
+      String(now.getHours()).padStart(2, '0') +
+      ':' +
+      String(now.getMinutes()).padStart(2, '0') +
+      ':' +
+      String(now.getSeconds()).padStart(2, '0')
+    localStorage.setItem(SAVE_TIME_KEY, timeStr)
+    saveHint.value = '已保存 ' + timeStr
+  }, 500)
+}
+
+function loadDemo() {
+  markdown.value = DEMO_CONTENT
+  localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
+  const now = new Date()
+  const timeStr =
+    now.getFullYear() +
+    '-' +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(now.getDate()).padStart(2, '0') +
+    ' ' +
+    String(now.getHours()).padStart(2, '0') +
+    ':' +
+    String(now.getMinutes()).padStart(2, '0') +
+    ':' +
+    String(now.getSeconds()).padStart(2, '0')
+  localStorage.setItem(SAVE_TIME_KEY, timeStr)
+  saveHint.value = '已保存 ' + timeStr
+}
+
+function handleCopyRichText() {
+  previewRef.value?.copyRichText()
+}
+
+function handleCopyHTML() {
+  previewRef.value?.copyHTML()
+}
+
+function handleSaveImage() {
+  previewRef.value?.saveAsImage()
+}
+
+// 编辑器滚动时，按比例同步预览面板
+let syncingPreview = false
+function handleEditorScroll(ratio: number) {
+  if (syncingEditor) return
+  syncingPreview = true
+  const previewScroll = document.querySelector('.preview-scroll') as HTMLElement
+  if (previewScroll) {
+    const maxScroll = previewScroll.scrollHeight - previewScroll.clientHeight
+    const target = ratio * maxScroll
+    // 值相同时不设置，避免触发 scroll 事件导致反馈循环
+    if (Math.abs(previewScroll.scrollTop - target) > 1) {
+      previewScroll.scrollTop = target
+    }
+  }
+  requestAnimationFrame(() => {
+    syncingPreview = false
+  })
+}
+
+// 预览面板滚动时，按比例同步编辑器
+let syncingEditor = false
+function handlePreviewScroll(ratio: number) {
+  if (syncingPreview) return
+  syncingEditor = true
+  const scroller = document.querySelector('.cm-scroller') as HTMLElement
+  if (scroller) {
+    const maxScroll = scroller.scrollHeight - scroller.clientHeight
+    const target = ratio * maxScroll
+    // 值相同时不设置，避免触发 scroll 事件导致反馈循环
+    if (Math.abs(scroller.scrollTop - target) > 1) {
+      scroller.scrollTop = target
+    }
+  }
+  requestAnimationFrame(() => {
+    syncingEditor = false
+  })
+}
+
+let previewScrollEl: HTMLElement | null = null
+function onPreviewScroll() {
+  if (syncingEditor) return
+  if (!previewScrollEl) previewScrollEl = document.querySelector('.preview-scroll')
+  if (!previewScrollEl) return
+  const maxScroll = previewScrollEl.scrollHeight - previewScrollEl.clientHeight
+  if (maxScroll > 0) {
+    handlePreviewScroll(previewScrollEl.scrollTop / maxScroll)
+  }
+}
+
+onMounted(() => {
+  previewScrollEl = document.querySelector('.preview-scroll')
+  previewScrollEl?.addEventListener('scroll', onPreviewScroll, { passive: true })
+})
+onBeforeUnmount(() => {
+  previewScrollEl?.removeEventListener('scroll', onPreviewScroll)
+})
+</script>
+
+<template>
+  <div class="flex flex-col h-screen">
+    <!-- Toolbar -->
+        <div class="toolbar flex items-center justify-between px-4 py-2 border-b shrink-0">
+      <div class="flex items-center">
+                <span class="flex items-center text-sm font-semibold tracking-tight" style="color: var(--text-primary)">
+          <svg viewBox="0 0 24 24" width="22" height="22" class="shrink-0 mr-1.5">
+            <rect width="24" height="24" rx="5" :fill="accent" />
+            <text
+              x="2.5"
+              y="17.5"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="white"
+            >
+              RM
+            </text>
+          </svg>
+          R-Markdown 编辑器
+          <span class="text-[0.55em] opacity-60 align-super ml-0.5">for 公众号</span>
+        </span>
+      </div>
+            <div class="flex items-center gap-1.5">
+        <button
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="loadDemo"
+        >
+          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          加载示例
+        </button>
+        <button
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="handleCopyHTML"
+        >
+          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+                    复制 HTML
+        </button>
+        <button
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="handleSaveImage"
+        >
+          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+          保存图片
+        </button>
+        <button
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
+          @click="handleCopyRichText"
+        >
+          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          复制富文本
+        </button>
+                <ThemePicker :themes="themes" :current-accent="accent" :custom-color="customColor" @select="setTheme" @custom-select="setCustomTheme" />
+        <DarkModeToggle :mode="darkMode" @select="setDarkMode" />
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Editor Panel -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Markdown 编辑
+          </span>
+          <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
+        </div>
+        <Editor
+          :model-value="markdown"
+          @update:model-value="onInput"
+          @scroll="handleEditorScroll"
+        />
+      </div>
+
+      <!-- Resize Handle -->
+      <div class="resize-handle" @mousedown="onDragStart"></div>
+
+      <!-- Preview Panel -->
+      <div class="flex flex-col overflow-hidden" :style="{ width: previewWidth + 'px' }">
+                <div class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+              <rect x="5" y="2" width="14" height="20" rx="2" />
+              <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
+            </svg>
+            公众号预览
+          </span>
+          <span class="panel-header-muted font-normal text-[11px]">实时渲染 · 可直接复制到公众号</span>
+        </div>
+        <Preview ref="previewRef" :markdown="markdown" :colors="colors" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+/* ── Toolbar ── */
+.toolbar {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+/* ── Panel Header ── */
+.panel-header {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.panel-header-muted {
+  color: var(--text-muted);
+}
+
+/* ── Resize Handle (pseudo-element needs real CSS) ── */
+.resize-handle {
+  width: 5px;
+  background: transparent;
+  cursor: col-resize;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  border-left: none;
+  border-right: none;
+}
+
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+    background: var(--text-muted);
+  border-radius: 1px;
+  transition:
+    background 0.2s,
+    width 0.2s;
+}
+
+.resize-handle:hover {
+  background: transparent;
+}
+
+.resize-handle:hover::after,
+.resize-handle:active::after {
+  background: var(--accent);
+  width: 3px;
+}
+
+/* ── Toast (animation needs real CSS) ── */
+.toast {
+  position: fixed;
+    top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  padding: 12px 24px;
+    background: var(--text-primary);
+  color: var(--bg-primary);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow:
+    rgba(0, 0, 0, 0.04) 0px 4px 18px,
+    rgba(0, 0, 0, 0.027) 0px 2px 8px;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+</style>

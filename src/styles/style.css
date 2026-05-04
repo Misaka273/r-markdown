@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+/* ── Theme CSS Variables ── */
+:root {
+  --accent: #6c5ce7;
+  --accent-dark: #5a4bd1;
+  --accent-light: #6c5ce726;
+  --accent-border: #6c5ce733;
+
+  /* ── Light Mode (default) ── */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f5f4;
+  --bg-editor: #ffffff;
+  --text-primary: rgba(0, 0, 0, 0.95);
+  --text-secondary: #615d59;
+  --text-muted: #a39e98;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --shadow-panel: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  /* Syntax highlighting - light */
+  --hl-tag: #0075de;
+  --hl-attr: #615d59;
+  --hl-str: #dd5b00;
+  --hl-bracket: #a39e98;
+  --hl-code-color: #615d59;
+  --hl-code-bg: rgba(0, 0, 0, 0.04);
+  --hl-link: #0075de;
+  --hl-directive: #391c57;
+  --hl-heading: rgba(0, 0, 0, 0.95);
+  --hl-sym: #a39e98;
+  --hl-placeholder: #a39e98;
+
+  /* Dropdown / popover */
+  --dropdown-bg: #ffffff;
+  --dropdown-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --dropdown-hover: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #242424;
+  --bg-editor: #1e1e1e;
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: #b0aaa4;
+  --text-muted: #6e6a65;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-panel: 0 2px 12px rgba(0, 0, 0, 0.3);
+
+  /* Syntax highlighting - dark */
+  --hl-tag: #61b4ff;
+  --hl-attr: #b0aaa4;
+  --hl-str: #f0a060;
+  --hl-bracket: #6e6a65;
+  --hl-code-color: #b0aaa4;
+  --hl-code-bg: rgba(255, 255, 255, 0.08);
+  --hl-link: #61b4ff;
+  --hl-directive: #c9a0ff;
+  --hl-heading: rgba(255, 255, 255, 0.92);
+  --hl-sym: #6e6a65;
+  --hl-placeholder: #6e6a65;
+
+  /* Dropdown / popover */
+  --dropdown-bg: #2a2a2a;
+  --dropdown-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --dropdown-hover: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Base Reset ── */
+body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* ── Syntax Highlighting (Notion warm style) ── */
+.hl-tag {
+  color: var(--hl-tag);
+}
+.hl-attr {
+  color: var(--hl-attr);
+}
+.hl-str {
+  color: var(--hl-str);
+}
+.hl-bracket {
+  color: var(--hl-bracket);
+}
+.hl-code {
+  color: var(--hl-code-color);
+  background: var(--hl-code-bg);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+.hl-link {
+  color: var(--hl-link);
+}
+.hl-directive {
+  color: var(--hl-directive);
+}
+.hl-heading {
+  color: var(--hl-heading);
+  font-weight: 700;
+}
+
+/* 去掉编辑器标题下划线 — CodeMirror defaultHighlightStyle 默认会给 heading 加 underline */
+.cm-heading {
+  text-decoration: none !important;
+}
+
+/* 去掉编辑器所有下划线 */
+.cm-heading,
+.cm-heading .cm-heading,
+.cm-meta,
+.cm-strong,
+.cm-emphasis,
+.cm-strikethrough,
+.cm-link,
+.cm-url,
+.cm-keyword,
+.cm-monospace,
+.cm-blockquote,
+.cm-list,
+.cm-formatting {
+  text-decoration: none !important;
+}
+
+/* 兜底：编辑器内所有元素都不带下划线 */
+.cm-editor * {
+  text-decoration: none !important;
+}
+.hl-sym {
+  color: var(--hl-sym);
+}
