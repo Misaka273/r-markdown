@@ -251,7 +251,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         i++
       }
       i++
-      html += `<section style="background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;overflow-x:auto;margin:14px 0px;font-size:12.5px;line-height:1.6"><code style="background:none;color:inherit;padding:0;font-size:inherit">${esc(code.trimEnd())}</code></section>`
+            html += `<section style="background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;overflow-x:auto;margin:14px 0px;font-size:12.5px;line-height:1.6"><code style="background:none;color:inherit;padding:0;font-size:inherit;white-space:pre">${esc(code.trimEnd())}</code></section>`
       continue
     }
 

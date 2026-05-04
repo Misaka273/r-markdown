@@ -100,13 +100,14 @@ export function parseBadges(
     .split('|')
     .map((s) => s.trim())
     .filter(Boolean)
-  const tone = attrs.tone || 'dark'
+    const tone = attrs.tone || 'accent'
   const colors: Record<string, { bg: string; color: string; border: string }> = {
     green: { bg: '#f0faf4', color: '#27ae60', border: '#38ef7d' },
     yellow: { bg: '#fff8f0', color: '#f5a623', border: '#f5a623' },
     dark: { bg: '#2a2a4a', color: '#e0e0e0', border: t.accent },
+    accent: { bg: t.accent, color: '#ffffff', border: t.accent },
   }
-  const c = colors[tone] || colors.dark
+  const c = colors[tone] || colors.accent
   let html = `<section style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0px">`
   items.forEach((item) => {
     html += `<span style="display:inline-block;padding:0 5px;border-radius:20px;font-size:14px;font-weight:600;background:${c.bg};color:${c.color};border:1px solid ${c.border}">${leaf(item)}</span>`
