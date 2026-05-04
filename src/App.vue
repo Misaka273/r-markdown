@@ -119,6 +119,48 @@ chips: 图片并排|窗口滚动|渐变文字
 
 <cta label="GET STARTED" title="准备好开始你的创作了吗？" button="立即复制下方代码"></cta>
 
+## 05 其他组件用法 :: MISC · 标签与代码
+
+### 01 彩色标签徽章 (Badges)
+
+::: badges tone="accent"
+Vue|TypeScript|Vite|Tailwind
+:::
+
+> 使用 \`tone\` 属性切换风格：\`accent\`（主题色）、\`green\`（绿色）、\`yellow\`（黄色）、\`dark\`（深色）。
+
+### 02 代码块 (Code Block)
+
+\`\`\`javascript
+// 一个简单的 Vue 组件示例
+import { ref } from 'vue'
+
+const count = ref(0)
+
+function increment() {
+  count.value++
+  console.log('Count:', count.value)
+}
+\`\`\`
+
+> 代码块会保留原始格式，包括换行和缩进，适合展示代码片段。
+
+### 03 居中强调语 (Statement)
+
+::: statement
+这是一段居中的强调文字，适合用来突出核心观点或结论。
+:::
+
+> Statement 组件会将文字居中显示，字号较大且加粗，非常适合用作文章中的金句或核心观点。
+
+### 04 引导文字段 (Lead)
+
+::: lead
+Lead 组件会生成一段带有左侧边框的引导文字，适合用来引入话题或提供背景信息。它的视觉效果比普通段落更突出，但又不会像 Statement 那样过于正式。
+:::
+
+> Lead 组件的左侧边框颜色会跟随主题色变化，非常适合用作文章的引言或过渡段落。
+
 ## 写在最后 :: CONCLUSION · 结尾互动
 
 所有组件都支持公众号无损复制，您可以根据需要自由组合。
