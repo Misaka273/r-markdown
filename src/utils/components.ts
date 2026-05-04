@@ -28,7 +28,7 @@ export function renderFrontMatter(
   if (meta.chips) {
     html += `<section style="margin:0px;padding:14px 0px 0px;font-size:0px;line-height:1.8">`
     meta.chips.split('|').forEach((c) => {
-            html += `<span style="display:inline-block;margin:0px 8px 6px 0px;font-size:10px;color:rgb(51,65,85);font-weight:700;letter-spacing:0.02em;white-space:nowrap"><span style="color:${t.accent};margin-right:2px;font-weight:900">${leaf('#')}</span>${leaf(c.trim())}</span>`
+      html += `<span style="display:inline-block;margin:0px 8px 6px 0px;font-size:10px;color:rgb(51,65,85);font-weight:700;letter-spacing:0.02em;white-space:nowrap"><span style="color:${t.accent};margin-right:2px;font-weight:900">${leaf('#')}</span>${leaf(c.trim())}</span>`
     })
     html += `</section>`
   }

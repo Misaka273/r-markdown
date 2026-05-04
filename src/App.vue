@@ -47,11 +47,8 @@ const SAVE_TIME_KEY = 'wechat-md-editor-save-time'
 
 const DEMO_CONTENT = `---
 title: 功能全集：排版组件指南
-accent: Indigo V2 最新版
 badge: GUIDE
 subtitle: 这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。
-author: 官方文档
-date: 2026-03-10
 chips: 图片并排|窗口滚动|渐变文字
 ---
 
@@ -254,9 +251,12 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex flex-col h-screen">
     <!-- Toolbar -->
-        <div class="toolbar flex items-center justify-between px-4 py-2 border-b shrink-0">
+    <div class="toolbar flex items-center justify-between px-4 py-2 border-b shrink-0">
       <div class="flex items-center">
-                <span class="flex items-center text-sm font-semibold tracking-tight" style="color: var(--text-primary)">
+        <span
+          class="flex items-center text-sm font-semibold tracking-tight"
+          style="color: var(--text-primary)"
+        >
           <svg viewBox="0 0 24 24" width="22" height="22" class="shrink-0 mr-1.5">
             <rect width="24" height="24" rx="5" :fill="accent" />
             <text
@@ -274,12 +274,15 @@ onBeforeUnmount(() => {
           <span class="text-[0.55em] opacity-60 align-super ml-0.5">for 公众号</span>
         </span>
       </div>
-            <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1.5">
         <button
           class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="loadDemo"
         >
-          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
             <line x1="16" y1="13" x2="8" y2="13" />
@@ -291,17 +294,23 @@ onBeforeUnmount(() => {
           class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleCopyHTML"
         >
-          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
             <polyline points="16 18 22 12 16 6" />
             <polyline points="8 6 2 12 8 18" />
           </svg>
-                    复制 HTML
+          复制 HTML
         </button>
         <button
           class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleSaveImage"
         >
-          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <circle cx="8.5" cy="8.5" r="1.5" />
             <path d="M21 15l-5-5L5 21" />
@@ -312,13 +321,22 @@ onBeforeUnmount(() => {
           class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
           @click="handleCopyRichText"
         >
-          <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
             <rect x="9" y="9" width="13" height="13" rx="2" />
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
           </svg>
           复制富文本
         </button>
-                <ThemePicker :themes="themes" :current-accent="accent" :custom-color="customColor" @select="setTheme" @custom-select="setCustomTheme" />
+        <ThemePicker
+          :themes="themes"
+          :current-accent="accent"
+          :custom-color="customColor"
+          @select="setTheme"
+          @custom-select="setCustomTheme"
+        />
         <DarkModeToggle :mode="darkMode" @select="setDarkMode" />
       </div>
     </div>
@@ -327,9 +345,14 @@ onBeforeUnmount(() => {
     <div class="flex flex-1 overflow-hidden">
       <!-- Editor Panel -->
       <div class="flex-1 flex flex-col overflow-hidden">
-                <div class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0">
+        <div
+          class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
+        >
           <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <svg
+              class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+              viewBox="0 0 24 24"
+            >
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
@@ -349,15 +372,22 @@ onBeforeUnmount(() => {
 
       <!-- Preview Panel -->
       <div class="flex flex-col overflow-hidden" :style="{ width: previewWidth + 'px' }">
-                <div class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0">
+        <div
+          class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
+        >
           <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <svg
+              class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+              viewBox="0 0 24 24"
+            >
               <rect x="5" y="2" width="14" height="20" rx="2" />
               <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
             </svg>
             公众号预览
           </span>
-          <span class="panel-header-muted font-normal text-[11px]">实时渲染 · 可直接复制到公众号</span>
+          <span class="panel-header-muted font-normal text-[11px]"
+            >实时渲染 · 可直接复制到公众号</span
+          >
         </div>
         <Preview ref="previewRef" :markdown="markdown" :colors="colors" />
       </div>
@@ -404,7 +434,7 @@ onBeforeUnmount(() => {
   left: 50%;
   transform: translateX(-50%);
   width: 2px;
-    background: var(--text-muted);
+  background: var(--text-muted);
   border-radius: 1px;
   transition:
     background 0.2s,
@@ -424,11 +454,11 @@ onBeforeUnmount(() => {
 /* ── Toast (animation needs real CSS) ── */
 .toast {
   position: fixed;
-    top: 24px;
+  top: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(-100px);
   padding: 12px 24px;
-    background: var(--text-primary);
+  background: var(--text-primary);
   color: var(--bg-primary);
   border-radius: 8px;
   font-size: 14px;

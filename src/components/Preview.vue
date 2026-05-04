@@ -86,7 +86,7 @@ async function saveAsImage() {
 
   saving.value = true
 
-      try {
+  try {
     const dataUrl = await toPng(el, {
       pixelRatio: 2,
       skipFonts: true,
@@ -134,11 +134,41 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
 </script>
 
 <template>
-        <div class="preview-scroll" style="height:100%;overflow-y:auto;padding:16px;scrollbar-width:none;-webkit-overflow-scrolling:auto;overscroll-behavior:contain">
-    <div class="phone-frame" style="width:100%;max-width:700px;flex-shrink:0;background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.12);overflow:hidden;margin:0 auto">
+  <div
+    class="preview-scroll"
+    style="
+      height: 100%;
+      overflow-y: auto;
+      padding: 16px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: auto;
+      overscroll-behavior: contain;
+    "
+  >
+    <div
+      class="phone-frame"
+      style="
+        width: 100%;
+        max-width: 700px;
+        flex-shrink: 0;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+        margin: 0 auto;
+      "
+    >
       <div
         ref="previewRef"
-        style="padding:20px 20px 20px;color:#333;font-size:15px;line-height:1.8;word-wrap:break-word;overflow-wrap:break-word;background-color:#fff"
+        style="
+          padding: 20px 20px 20px;
+          color: #333;
+          font-size: 15px;
+          line-height: 1.8;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          background-color: #fff;
+        "
       ></div>
     </div>
   </div>

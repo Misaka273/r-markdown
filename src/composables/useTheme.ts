@@ -78,7 +78,7 @@ export function useTheme() {
     rgb: hexToRgb(accent.value),
   }))
 
-    function setTheme(a: string, d: string) {
+  function setTheme(a: string, d: string) {
     accent.value = a
     accentDark.value = d
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ accent: a, dark: d }))
@@ -112,5 +112,14 @@ export function useTheme() {
   // 初始化 CSS 变量
   applyCssVars(accent.value, accentDark.value)
 
-    return { accent, accentDark, colors, setTheme, setCustomTheme, customColor, themes: THEMES, lightenHex }
+  return {
+    accent,
+    accentDark,
+    colors,
+    setTheme,
+    setCustomTheme,
+    customColor,
+    themes: THEMES,
+    lightenHex,
+  }
 }

@@ -42,7 +42,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
   // 阅读路线
   if (h2List.length > 1) {
     html += `<section style="margin:0px 0px 30px"><section>`
-        html += `<section style="display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:14px;gap:12px"><section style="flex-shrink:0"><p style="margin:0px;padding:0px 0px 6px;font-size:10px;color:rgb(100,116,139);text-transform:uppercase;letter-spacing:2.8px;font-weight:800;white-space:nowrap">${leaf('READING PATH')}</p><p style="margin:0px;font-size:16px;line-height:1.35;color:rgb(17,24,39);font-weight:800">${leaf('阅读路线')}</p></section><p style="margin:0px;font-size:10px;color:rgb(148,163,184);white-space:nowrap">${leaf(h2List.length + ' 个章节')}</p></section>`
+    html += `<section style="display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:14px;gap:12px"><section style="flex-shrink:0"><p style="margin:0px;padding:0px 0px 6px;font-size:10px;color:rgb(100,116,139);text-transform:uppercase;letter-spacing:2.8px;font-weight:800;white-space:nowrap">${leaf('READING PATH')}</p><p style="margin:0px;font-size:16px;line-height:1.35;color:rgb(17,24,39);font-weight:800">${leaf('阅读路线')}</p></section><p style="margin:0px;font-size:10px;color:rgb(148,163,184);white-space:nowrap">${leaf(h2List.length + ' 个章节')}</p></section>`
     html += `<section style="padding:14px 12px 12px;border:1px solid rgb(229,231,235);border-radius:13px;background:linear-gradient(rgb(255,255,255) 0%,rgb(248,250,252) 100%);box-shadow:rgba(15,23,42,0.04) 0px 12px 30px;overflow-x:auto;white-space:nowrap;font-size:0px">`
     h2List.forEach((t2, idx) => {
       const label = t2
@@ -51,7 +51,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         .replace(/^\d+\s*/, '')
       const num = String(idx + 1).padStart(2, '0')
       const isActive = idx === 0
-            html += `<section style="display:inline-flex;vertical-align:middle;align-items:center">`
+      html += `<section style="display:inline-flex;vertical-align:middle;align-items:center">`
       html += `<section style="display:inline-block;vertical-align:top;width:126px;white-space:normal;text-align:center">`
       html += `<section style="display:flex;justify-content:center;margin-bottom:10px">`
       html += `<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:${isActive ? t.accent : 'rgb(255,255,255)'};color:${isActive ? 'rgb(255,255,255)' : 'rgb(17,24,39)'};border:1px solid ${isActive ? t.accent : 'rgb(219,227,238)'};font-size:11px;font-weight:900;letter-spacing:1.2px;white-space:nowrap">${leaf(num)}</span>`
@@ -183,7 +183,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       }
       html += `<section style="margin:16px 0px;display:flex;flex-direction:column;gap:10px">`
       cases.forEach((c) => {
-                html += `<section style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgb(250,251,254);border-radius:10px;border:1px solid rgb(238,238,238)"><section style="flex-shrink:0;font-size:11px;font-weight:700;color:${t.accent};background:${t.light};padding:3px 10px;border-radius:6px;white-space:nowrap">${leaf(c.badge)}</section><section style="font-size:14px;color:rgb(85,85,85);line-height:1.6">${inlineFormat(c.text, t)}</section></section>`
+        html += `<section style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgb(250,251,254);border-radius:10px;border:1px solid rgb(238,238,238)"><section style="flex-shrink:0;font-size:11px;font-weight:700;color:${t.accent};background:${t.light};padding:3px 10px;border-radius:6px;white-space:nowrap">${leaf(c.badge)}</section><section style="font-size:14px;color:rgb(85,85,85);line-height:1.6">${inlineFormat(c.text, t)}</section></section>`
       })
       html += `</section>`
       continue
