@@ -78,7 +78,7 @@ export function parseMarkdown(md, t) {
                 i++;
             }
             i++;
-            html += `<section><p style="text-align:center;font-size:18px;font-weight:700;color:rgb(51,65,85);padding:20px 0px;line-height:1.6">${inlineFormat(text, t)}</p></section>`;
+                        html += `<section style="margin:20px 0px"><p style="text-align:center;font-size:18px;font-weight:700;color:rgb(51,65,85);line-height:1.6">${inlineFormat(text, t)}</p></section>`;
             continue;
         }
         // ::: badges
