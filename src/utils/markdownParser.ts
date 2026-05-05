@@ -331,7 +331,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     }
 
     // 普通段落
-          html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;letter-spacing:0.5px;overflow-wrap:break-word">${inlineFormat(line, t)}</p></section>`
+          html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">${inlineFormat(line, t)}</p></section>`
     i++
   }
 
