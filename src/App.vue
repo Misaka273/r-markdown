@@ -232,40 +232,66 @@ function handleSaveImage() {
   previewRef.value?.saveAsImage()
 }
 
-// 编辑器滚动时，按比例同步预览面板
-let syncLock = false
-function handleEditorScroll(ratio: number) {
-  if (syncLock) return
-  syncLock = true
-  const previewScroll = document.querySelector('.preview-scroll') as HTMLElement
-  if (previewScroll) {
-    const maxScroll = previewScroll.scrollHeight - previewScroll.clientHeight
-    const target = ratio * maxScroll
-    if (Math.abs(previewScroll.scrollTop - target) > 1) {
-      previewScroll.scrollTop = target
+// 滚动同步：rAF 节流 + 防重入，每帧最多同步一次
+let pendingRatio: number | null = null
+let syncSource: 'editor' | 'preview' | null = null
+let rafId = 0
+let isFlushing = false
+
+function flushSync() {
+  rafId = 0
+  if (pendingRatio === null || syncSource === null) return
+  const ratio = pendingRatio
+  const src = syncSource
+  pendingRatio = null
+  syncSource = null
+
+  isFlushing = true
+  if (src === 'editor') {
+    const previewScroll = document.querySelector('.preview-scroll') as HTMLElement
+    if (previewScroll) {
+      const maxScroll = previewScroll.scrollHeight - previewScroll.clientHeight
+      const target = ratio * maxScroll
+      if (Math.abs(previewScroll.scrollTop - target) > 1) {
+        previewScroll.scrollTop = target
+      }
+    }
+  } else {
+    const scroller = document.querySelector('.cm-scroller') as HTMLElement
+    if (scroller) {
+      const maxScroll = scroller.scrollHeight - scroller.clientHeight
+      const target = ratio * maxScroll
+      if (Math.abs(scroller.scrollTop - target) > 1) {
+        scroller.scrollTop = target
+      }
     }
   }
-  setTimeout(() => { syncLock = false }, 50)
+  isFlushing = false
+}
+
+function scheduleSync() {
+  if (!rafId) rafId = requestAnimationFrame(flushSync)
+}
+
+// 编辑器滚动时，按比例同步预览面板
+function handleEditorScroll(ratio: number) {
+  if (isFlushing) return
+  syncSource = 'editor'
+  pendingRatio = ratio
+  scheduleSync()
 }
 
 // 预览面板滚动时，按比例同步编辑器
 function handlePreviewScroll(ratio: number) {
-  if (syncLock) return
-  syncLock = true
-  const scroller = document.querySelector('.cm-scroller') as HTMLElement
-  if (scroller) {
-    const maxScroll = scroller.scrollHeight - scroller.clientHeight
-    const target = ratio * maxScroll
-    if (Math.abs(scroller.scrollTop - target) > 1) {
-      scroller.scrollTop = target
-    }
-  }
-  setTimeout(() => { syncLock = false }, 50)
+  if (isFlushing) return
+  syncSource = 'preview'
+  pendingRatio = ratio
+  scheduleSync()
 }
 
 let previewScrollEl: HTMLElement | null = null
 function onPreviewScroll() {
-  if (syncLock) return
+  if (isFlushing) return
   if (!previewScrollEl) previewScrollEl = document.querySelector('.preview-scroll')
   if (!previewScrollEl) return
   const maxScroll = previewScrollEl.scrollHeight - previewScrollEl.clientHeight
