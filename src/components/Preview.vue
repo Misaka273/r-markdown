@@ -140,8 +140,8 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
       height: 100%;
       overflow-y: auto;
       padding: 16px;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: auto;
+            scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
     "
   >

@@ -233,46 +233,39 @@ function handleSaveImage() {
 }
 
 // 编辑器滚动时，按比例同步预览面板
-let syncingPreview = false
+let syncLock = false
 function handleEditorScroll(ratio: number) {
-  if (syncingEditor) return
-  syncingPreview = true
+  if (syncLock) return
+  syncLock = true
   const previewScroll = document.querySelector('.preview-scroll') as HTMLElement
   if (previewScroll) {
     const maxScroll = previewScroll.scrollHeight - previewScroll.clientHeight
     const target = ratio * maxScroll
-    // 值相同时不设置，避免触发 scroll 事件导致反馈循环
     if (Math.abs(previewScroll.scrollTop - target) > 1) {
       previewScroll.scrollTop = target
     }
   }
-  requestAnimationFrame(() => {
-    syncingPreview = false
-  })
+  setTimeout(() => { syncLock = false }, 50)
 }
 
 // 预览面板滚动时，按比例同步编辑器
-let syncingEditor = false
 function handlePreviewScroll(ratio: number) {
-  if (syncingPreview) return
-  syncingEditor = true
+  if (syncLock) return
+  syncLock = true
   const scroller = document.querySelector('.cm-scroller') as HTMLElement
   if (scroller) {
     const maxScroll = scroller.scrollHeight - scroller.clientHeight
     const target = ratio * maxScroll
-    // 值相同时不设置，避免触发 scroll 事件导致反馈循环
     if (Math.abs(scroller.scrollTop - target) > 1) {
       scroller.scrollTop = target
     }
   }
-  requestAnimationFrame(() => {
-    syncingEditor = false
-  })
+  setTimeout(() => { syncLock = false }, 50)
 }
 
 let previewScrollEl: HTMLElement | null = null
 function onPreviewScroll() {
-  if (syncingEditor) return
+  if (syncLock) return
   if (!previewScrollEl) previewScrollEl = document.querySelector('.preview-scroll')
   if (!previewScrollEl) return
   const maxScroll = previewScrollEl.scrollHeight - previewScrollEl.clientHeight
