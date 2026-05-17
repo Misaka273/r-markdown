@@ -113,6 +113,38 @@ const scrollToFeatures = () => {
 const navRef = ref<HTMLElement | null>(null)
 const highlightStyle = ref<{ left: string; width: string; opacity: string }>({ left: '0px', width: '0px', opacity: '0' })
 
+// ── Logo 打字机效果 ──
+const logoTextRef = ref<HTMLElement | null>(null)
+const logoFullText = 'R-Markdown'
+let logoTypingTimer: ReturnType<typeof setTimeout> | null = null
+
+function onLogoEnter() {
+  const el = logoTextRef.value
+  if (!el) return
+  if (logoTypingTimer) clearTimeout(logoTypingTimer)
+  el.textContent = ''
+  el.classList.add('typing-cursor')
+  let i = 0
+  function typeNext() {
+    if (i < logoFullText.length) {
+      el.textContent += logoFullText[i]
+      i++
+      logoTypingTimer = setTimeout(typeNext, 60)
+    } else {
+      logoTypingTimer = setTimeout(() => el.classList.remove('typing-cursor'), 400)
+    }
+  }
+  typeNext()
+}
+
+function onLogoLeave() {
+  const el = logoTextRef.value
+  if (!el) return
+  if (logoTypingTimer) clearTimeout(logoTypingTimer)
+  el.classList.remove('typing-cursor')
+  el.textContent = logoFullText
+}
+
 function onNavEnter(e: MouseEvent, _key: string) {
   const el = e.currentTarget as HTMLElement
   const nav = navRef.value
@@ -225,12 +257,12 @@ const features = [
     <!-- Header -->
     <header class="sticky top-0 z-50 bg-[rgba(245,245,247,0.8)] backdrop-blur-xl">
             <div class="mx-auto max-w-[1100px] flex items-center px-8 py-3.5">
-        <router-link to="/" class="flex items-center gap-2.5 no-underline shrink-0">
-          <svg viewBox="0 0 24 24" width="26" height="26">
+                                        <router-link to="/" class="flex items-center gap-2.5 no-underline shrink-0 logo-link" @mouseenter="onLogoEnter" @mouseleave="onLogoLeave">
+          <svg class="logo-icon" viewBox="0 0 24 24" width="26" height="26">
             <rect width="24" height="24" rx="6" fill="#6c5ce7" />
             <text x="3" y="17" font-family="Arial" font-size="10.5" font-weight="bold" fill="white">RM</text>
           </svg>
-          <span class="text-[17px] font-bold text-[#111] tracking-tight">R-Markdown</span>
+          <span ref="logoTextRef" class="text-[17px] font-bold text-[#111] tracking-tight logo-text">R-Markdown</span>
         </router-link>
                                                                                                                                                                                                                                                                                                                                                                                                                                 <nav ref="navRef" class="nav-pill relative flex items-center rounded-full bg-black/5 px-0.5 py-0.5 ml-auto" @mouseleave="onNavLeave">
                                                                                                                                             <div class="nav-highlight absolute top-0.5 bottom-0.5 rounded-full bg-black/8 transition-all duration-300 ease-out" :style="highlightStyle"></div>
@@ -367,6 +399,27 @@ const features = [
 
 .nav-pill {
   overflow: hidden;
+}
+
+/* Logo 打字机效果 */
+.logo-link {
+  cursor: pointer;
+}
+.logo-text {
+  display: inline-block;
+  min-width: 0;
+}
+.typing-cursor::after {
+  content: '|';
+  display: inline-block;
+  margin-left: 1px;
+  font-weight: 400;
+  color: #6c5ce7;
+  animation: blink-cursor 0.6s step-end infinite;
+}
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 @keyframes blink {
