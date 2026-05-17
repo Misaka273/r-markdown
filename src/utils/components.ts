@@ -17,7 +17,7 @@ export function renderFrontMatter(
   const readMin = Math.max(1, Math.ceil(charCount / 400))
   let html = `<section style="margin:0px 0px 30px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)">`
   html += `<section style="padding:20px;background:rgba(255,255,255,0.92)">`
-  html += `<div class="tableWrapper"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><colgroup><col><col style="width:90px;"></colgroup><tbody><tr>`
+  html += `<div class="tableWrapper"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%;margin-bottom:0"><colgroup><col><col style="width:90px;"></colgroup><tbody><tr>`
   html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left">`
   if (meta.badge)
     html += `<p style="margin:0px;padding:0px 0px 10px;font-size:10px;color:${t.accent};letter-spacing:2.4px;text-transform:uppercase;font-weight:800">${leaf(meta.badge)}</p>`
