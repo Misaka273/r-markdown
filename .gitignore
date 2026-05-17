@@ -8,6 +8,9 @@ dist/
 *.vue.js
 *.vue.js.map
 
+# TypeScript compiled JS files (keep only .ts sources)
+src/**/*.js
+
 # IDE
 .vscode/
 .idea/
