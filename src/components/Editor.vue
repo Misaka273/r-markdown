@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { EditorView, keymap, placeholder as ph } from '@codemirror/view'
 import { EditorState } from '@codemirror/state'
-import { defaultKeymap, indentWithTab } from '@codemirror/commands'
+import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import {
@@ -167,7 +167,8 @@ onMounted(async () => {
       autocompletion(),
       rectangularSelection(),
       highlightSelectionMatches(),
-      keymap.of([...defaultKeymap, ...searchKeymap, indentWithTab]),
+      history(),
+      keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
       markdown({ codeLanguages: languages }),
       syntaxHighlighting(warmHighlight),
       warmTheme,
