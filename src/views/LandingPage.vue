@@ -211,7 +211,7 @@ const features = [
           </svg>
           <span class="text-[17px] font-bold text-[#111] tracking-tight">R-Markdown</span>
         </router-link>
-        <nav class="nav-pill relative flex items-center rounded-full bg-black/5 px-1.5 py-1 mx-auto">
+                <nav class="nav-pill relative flex items-center rounded-full bg-black/5 px-1.5 py-1 ml-auto mr-3">
           <a href="javascript:void(0)" class="nav-link inline-flex items-center gap-1.5 rounded-2xl px-4 py-1.5 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]" @click="scrollToFeatures">
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
             功能
