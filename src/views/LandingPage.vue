@@ -2,6 +2,10 @@
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { parseMarkdown } from '@/utils/markdownParser'
 import type { ThemeColors } from '@/composables/useTheme'
+import { useDarkMode } from '@/composables/useDarkMode'
+import DarkModeToggle from '@/components/DarkModeToggle.vue'
+
+const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
 
 const visible = ref(false)
 const featuresVisible = ref(false)
@@ -278,59 +282,61 @@ const features = [
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
             功能
           </a>
-                              <span class="w-1 h-1 rounded-full bg-black/20 relative z-10 mx-1"></span>
+                                        <span class="w-1 h-1 rounded-full bg-black/20 relative z-10 mx-1"></span>
           <a href="https://github.com/RobocopMao/r-markdown" target="_blank" rel="noopener noreferrer" class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]" @mouseenter="onNavEnter($event, 'github')">
             <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor"><path d="M10 0C4.477 0 0 4.477 0 10c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.167 20 14.418 20 10c0-5.523-4.477-10-10-10z"/></svg>
             GitHub
           </a>
+          <span class="w-1 h-1 rounded-full bg-black/20 relative z-10 mx-1"></span>
+          <DarkModeToggle :mode="darkMode" @select="setDarkMode" />
         </nav>
       </div>
     </header>
 
-    <!-- Hero -->
+        <!-- Hero -->
     <section class="px-8 pt-[100px] pb-20">
       <div class="mx-auto max-w-[1100px]">
-        <h1 class="text-[clamp(56px,8vw,92px)] font-black leading-[1.1] tracking-[-2px] text-[#111] m-0 mb-8">
+        <h1 class="hero-title text-[clamp(56px,8vw,92px)] font-black leading-[1.1] tracking-[-2px] text-[#111] m-0 mb-8">
           写 Markdown，<br>
           发<span class="text-[#6c5ce7]">公众号</span>。
         </h1>
-        <p class="text-2xl font-semibold text-black/80 m-0 mb-5 tracking-tight">
+        <p class="hero-subtitle text-2xl font-semibold text-black/80 m-0 mb-5 tracking-tight">
           R-Markdown — 最简洁的公众号 Markdown 排版工具
         </p>
-        <p class="text-[19px] leading-relaxed text-black/[0.55] m-0">
+        <p class="hero-desc text-[19px] leading-relaxed text-black/[0.55] m-0">
           左侧写 Markdown，右侧实时预览排版效果，<br>
           一键复制粘贴到公众号编辑器，告别繁琐排版。<br>
           <span class="text-[#6c5ce7]">为你，也为每一个认真写内容的人。</span>
         </p>
-                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-10 px-10 py-4 bg-[#6c5ce7] text-white text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]">
+        <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-10 px-10 py-4 bg-[#6c5ce7] text-white text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]">
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
           打开编辑器
         </router-link>
-        <p class="mt-4 ml-4 text-[15px] text-black/[0.55]">开源免费，点击即用</p>
+        <p class="hero-hint mt-4 ml-4 text-[15px] text-black/[0.55]">开源免费，点击即用</p>
       </div>
     </section>
 
-                <!-- Preview -->
+                                <!-- Preview -->
     <section id="demo-preview" class="px-8 pb-20">
       <div class="mx-auto max-w-[1100px]">
-        <div class="rounded-2xl border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div class="preview-card rounded-2xl border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden">
           <!-- Title bar -->
-          <div class="flex items-center gap-2 px-5 py-3 bg-[#f5f5f7] border-b border-black/[0.06]">
+          <div class="preview-titlebar flex items-center gap-2 px-5 py-3 bg-[#f5f5f7] border-b border-black/[0.06]">
             <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
             <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
             <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
             <span class="ml-3 text-[13px] text-[#999] font-medium">R-Markdown Editor</span>
           </div>
           <!-- Editor body -->
-                                                  <div class="flex h-[530px]">
+          <div class="preview-body flex h-[530px]">
             <!-- Left: Markdown source (typing animation) -->
-            <div class="flex-[5] border-r border-black/[0.06] bg-[#fafafa] p-8 font-mono text-[15px] leading-[1.9] text-[#444] overflow-hidden">
+            <div class="preview-editor flex-[5] border-r border-black/[0.06] bg-[#fafafa] p-8 font-mono text-[15px] leading-[1.9] text-[#444] overflow-hidden">
               <div class="text-[#999] text-[12px] mb-3 select-none">Markdown</div>
               <pre class="whitespace-pre-wrap break-words m-0 font-inherit text-inherit"><span v-for="(line, i) in typedMd.split('\n')" :key="i"><template v-for="(segment, j) in renderMdLine(line)" :key="j"><span v-if="segment.type === 'key'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'bold'" class="font-bold text-[#111]">{{ segment.text }}</span><span v-else-if="segment.type === 'accent'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'accentText'" class="text-[#444]">{{ segment.text }}</span><span v-else-if="segment.type === 'gradient'" class="text-[#333]">{{ segment.text }}</span><span v-else class="text-[#666]">{{ segment.text }}</span></template><span v-if="!typingDone && i === typedMd.split('\n').length - 1" class="inline-block w-[2px] h-[1.1em] bg-[#6c5ce7] align-middle ml-[1px] animate-blink"></span>
 </span></pre>
             </div>
-            <!-- Right: Live preview -->
-            <div class="flex-[3] bg-white p-8">
+                        <!-- Right: Live preview -->
+            <div class="preview-panel flex-[3] bg-white p-8">
               <div class="text-[#999] text-[12px] mb-4 select-none">预览</div>
               <div ref="previewRef" class="preview-content"></div>
             </div>
@@ -339,16 +345,16 @@ const features = [
       </div>
     </section>
 
-    <!-- Features -->
+        <!-- Features -->
     <section id="features" class="px-8 py-20 transition-all duration-800" :class="featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'">
       <div class="mx-auto max-w-[1100px]">
-        <h2 class="text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">功能</h2>
-        <p class="text-[19px] text-[#888] m-0 mb-12">一切为了更专注的写作体验</p>
-                        <div class="grid grid-cols-3 gap-5">
+        <h2 class="features-title text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">功能</h2>
+        <p class="features-subtitle text-[19px] text-[#888] m-0 mb-12">一切为了更专注的写作体验</p>
+        <div class="grid grid-cols-3 gap-5">
           <div
             v-for="(f, i) in features"
             :key="i"
-            class="bg-white rounded-2xl px-8 pt-9 pb-8 border border-black/[0.04] opacity-0 translate-y-7 transition-all duration-600 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
+            class="feature-card bg-white rounded-2xl px-8 pt-9 pb-8 border border-black/[0.04] opacity-0 translate-y-7 transition-all duration-600 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
             :class="featuresVisible ? '!opacity-100 !translate-y-0' : ''"
             :style="{ transitionDelay: `${i * 0.1}s` }"
           >
@@ -360,22 +366,22 @@ const features = [
       </div>
     </section>
 
-    <!-- CTA -->
-    <section class="px-8 pt-20 pb-[100px] text-center">
+        <!-- CTA -->
+    <section class="cta-section px-8 pt-20 pb-[100px] text-center">
       <div class="mx-auto max-w-[600px]">
         <h2 class="text-[36px] font-extrabold tracking-tight text-[#111] m-0 mb-2">开始写作</h2>
         <p class="text-[17px] text-[#888] m-0 mb-8">无需注册，打开即用</p>
-                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 bg-[#6c5ce7] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[#5a4bd1] hover:-translate-y-px">
+        <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 bg-[#6c5ce7] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[#5a4bd1] hover:-translate-y-px">
           打开编辑器
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
         </router-link>
       </div>
-        </section>
+    </section>
 
     <!-- 公众号反馈 -->
     <section class="px-8 pb-20">
-      <div class="mx-auto max-w-[600px] bg-white rounded-2xl border border-black/[0.06] px-10 py-10 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-                <p class="text-[17px] text-[#555] m-0 mb-2">编辑器为个人公众号写作自用，可能会不定期更新</p>
+      <div class="feedback-card mx-auto max-w-[600px] bg-white rounded-2xl border border-black/[0.06] px-10 py-10 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+        <p class="text-[17px] text-[#555] m-0 mb-2">编辑器为个人公众号写作自用，可能会不定期更新</p>
         <p class="text-[17px] text-[#555] m-0 mb-6">使用中遇到问题或有建议？欢迎关注公众号反馈</p>
         <img src="/wechat-qr.png" alt="微信公众号二维码" class="w-[280px] rounded-xl" />
         <p class="text-[13px] text-[#999] mt-4 m-0">微信搜索「<span class="text-[#6c5ce7] font-medium">五味杂陈杂货铺</span>」</p>
@@ -442,5 +448,104 @@ const features = [
 
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
+}
+</style>
+
+<style>
+/* ── 深色模式（非 scoped，确保优先级） ── */
+[data-theme='dark'] .landing {
+  background: #111114;
+}
+[data-theme='dark'] header {
+  background: rgba(17, 17, 20, 0.8) !important;
+}
+[data-theme='dark'] .logo-text {
+  color: #f0f0f0;
+}
+[data-theme='dark'] .nav-pill {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+[data-theme='dark'] .nav-link {
+  color: #aaa !important;
+}
+[data-theme='dark'] .nav-link:hover {
+  color: #f0f0f0 !important;
+}
+[data-theme='dark'] .nav-highlight {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+[data-theme='dark'] .hero-title {
+  color: #f0f0f0;
+}
+[data-theme='dark'] .hero-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+}
+[data-theme='dark'] .hero-desc {
+  color: rgba(255, 255, 255, 0.55);
+}
+[data-theme='dark'] .hero-hint {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Preview card */
+[data-theme='dark'] .preview-card {
+  background: #1a1a1e;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+[data-theme='dark'] .preview-titlebar {
+  background: #222226 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+[data-theme='dark'] .preview-editor {
+  background: #1e1e22 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #ccc;
+}
+[data-theme='dark'] .preview-panel {
+  background: #1a1a1e !important;
+}
+
+/* Features */
+[data-theme='dark'] .features-title {
+  color: #f0f0f0;
+}
+[data-theme='dark'] .features-subtitle {
+  color: #666;
+}
+[data-theme='dark'] .feature-card {
+  background: #1a1a1e;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme='dark'] .feature-card h3 {
+  color: #f0f0f0;
+}
+[data-theme='dark'] .feature-card p {
+  color: #999;
+}
+
+/* CTA */
+[data-theme='dark'] .cta-section h2 {
+  color: #f0f0f0;
+}
+[data-theme='dark'] .cta-section p {
+  color: #666;
+}
+
+/* Feedback */
+[data-theme='dark'] .feedback-card {
+  background: #1a1a1e;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .feedback-card p {
+  color: #aaa;
+}
+
+/* Footer */
+[data-theme='dark'] footer {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme='dark'] footer p {
+  color: #555;
 }
 </style>

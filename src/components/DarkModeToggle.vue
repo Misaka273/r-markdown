@@ -184,3 +184,17 @@ if (typeof document !== 'undefined') {
   font-weight: 600;
 }
 </style>
+
+<style>
+/* Dark mode overrides for DarkModeToggle dropdown */
+[data-theme='dark'] .dark-mode-menu {
+  background: #2a2a2e !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+[data-theme='dark'] .dark-mode-option {
+  color: #ccc !important;
+}
+[data-theme='dark'] .dark-mode-option:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+</style>
