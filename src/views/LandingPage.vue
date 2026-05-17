@@ -117,11 +117,14 @@ const highlightStyle = ref<{ left: string; width: string; opacity: string }>({ l
 const logoTextRef = ref<HTMLElement | null>(null)
 const logoFullText = 'R-Markdown'
 let logoTypingTimer: ReturnType<typeof setTimeout> | null = null
+let logoTyping = false
 
 function onLogoEnter() {
+  if (logoTyping) return
   const el = logoTextRef.value
   if (!el) return
   if (logoTypingTimer) clearTimeout(logoTypingTimer)
+  logoTyping = true
   el.textContent = ''
   el.classList.add('typing-cursor')
   let i = 0
@@ -131,7 +134,10 @@ function onLogoEnter() {
       i++
       logoTypingTimer = setTimeout(typeNext, 60)
     } else {
-      logoTypingTimer = setTimeout(() => el.classList.remove('typing-cursor'), 400)
+      logoTypingTimer = setTimeout(() => {
+        el.classList.remove('typing-cursor')
+        logoTyping = false
+      }, 400)
     }
   }
   typeNext()
@@ -141,6 +147,7 @@ function onLogoLeave() {
   const el = logoTextRef.value
   if (!el) return
   if (logoTypingTimer) clearTimeout(logoTypingTimer)
+  logoTyping = false
   el.classList.remove('typing-cursor')
   el.textContent = logoFullText
 }
