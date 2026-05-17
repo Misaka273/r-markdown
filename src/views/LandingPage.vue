@@ -128,14 +128,15 @@ function onLogoEnter() {
   el.textContent = ''
   el.classList.add('typing-cursor')
   let i = 0
+  const elRef = el
   function typeNext() {
     if (i < logoFullText.length) {
-      el.textContent += logoFullText[i]
+      elRef.textContent += logoFullText[i]
       i++
       logoTypingTimer = setTimeout(typeNext, 60)
     } else {
       logoTypingTimer = setTimeout(() => {
-        el.classList.remove('typing-cursor')
+        elRef.classList.remove('typing-cursor')
         logoTyping = false
       }, 400)
     }
