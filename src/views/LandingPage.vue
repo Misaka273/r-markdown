@@ -144,10 +144,10 @@ function onLogoEnter() {
 }
 
 function onLogoLeave() {
+  if (logoTyping) return
   const el = logoTextRef.value
   if (!el) return
   if (logoTypingTimer) clearTimeout(logoTypingTimer)
-  logoTyping = false
   el.classList.remove('typing-cursor')
   el.textContent = logoFullText
 }
