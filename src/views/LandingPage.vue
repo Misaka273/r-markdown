@@ -232,8 +232,8 @@ const features = [
           </svg>
           <span class="text-[17px] font-bold text-[#111] tracking-tight">R-Markdown</span>
         </router-link>
-                                                                                                                                                                                                                                                                                    <nav ref="navRef" class="nav-pill relative flex items-center rounded-full bg-black/5 px-2 py-0.5 ml-auto" @mouseleave="onNavLeave">
-                                                                                <div class="nav-highlight absolute top-0.5 bottom-0.5 rounded-full bg-black/8 transition-all duration-300 ease-out" :style="highlightStyle"></div>
+                                                                                                                                                                                                                                                                                                        <nav ref="navRef" class="nav-pill relative flex items-center rounded-full bg-black/5 px-1.5 py-1 ml-auto" @mouseleave="onNavLeave">
+                                                                                                    <div class="nav-highlight absolute top-1 bottom-1 rounded-full bg-black/8 transition-all duration-300 ease-out" :style="highlightStyle"></div>
           <a href="javascript:void(0)" class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]" @mouseenter="onNavEnter($event, 'features')" @click="scrollToFeatures">
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
             功能
