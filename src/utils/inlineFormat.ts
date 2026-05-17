@@ -6,7 +6,7 @@ export function inlineFormat(text: string, t: ThemeColors): string {
   text = text.replace(
     /==([^=]+)==/g,
     (_m, p1: string) =>
-      `<span style="background:linear-gradient(120deg,rgba(${t.rgb},0.1) 0%,rgba(${t.rgb},0.16) 100%);color:${t.accent};padding:0px 6px;border-radius:4px;font-weight:700">${leaf(p1)}</span>`,
+            `<span style="background:linear-gradient(120deg,rgba(${t.rgb},0.1) 0%,rgba(${t.rgb},0.16) 100%);padding:0px 6px;border-radius:4px;font-weight:700">${leaf(p1)}</span>`,
   )
   // !!胶囊文字!!
   text = text.replace(

@@ -15,7 +15,7 @@ chips: 成熟|减法|社交
 ---
 
 我慢慢学会了一件事：
-**不是所有关系** 都值得你拼命维护。
+不是所有关系都值得你拼命维护。
 那些让你觉得 ::累:: 的社交，其实早该放下了。
 ==真正的成熟，是懂得给自己做减法。==`
 
@@ -321,11 +321,11 @@ const features = [
             <span class="ml-3 text-[13px] text-[#999] font-medium">R-Markdown Editor</span>
           </div>
           <!-- Editor body -->
-          <div class="flex min-h-[480px]">
+                                                  <div class="flex h-[530px]">
             <!-- Left: Markdown source (typing animation) -->
             <div class="flex-[5] border-r border-black/[0.06] bg-[#fafafa] p-8 font-mono text-[15px] leading-[1.9] text-[#444] overflow-hidden">
               <div class="text-[#999] text-[12px] mb-3 select-none">Markdown</div>
-              <pre class="whitespace-pre-wrap break-words m-0 font-inherit text-inherit"><span v-for="(line, i) in typedMd.split('\n')" :key="i"><template v-for="(segment, j) in renderMdLine(line)" :key="j"><span v-if="segment.type === 'key'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'bold'" class="font-bold text-[#111]">{{ segment.text }}</span><span v-else-if="segment.type === 'accent'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'accentText'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'gradient'" class="text-[#333]">{{ segment.text }}</span><span v-else class="text-[#666]">{{ segment.text }}</span></template><span v-if="!typingDone && i === typedMd.split('\n').length - 1" class="inline-block w-[2px] h-[1.1em] bg-[#6c5ce7] align-middle ml-[1px] animate-blink"></span>
+              <pre class="whitespace-pre-wrap break-words m-0 font-inherit text-inherit"><span v-for="(line, i) in typedMd.split('\n')" :key="i"><template v-for="(segment, j) in renderMdLine(line)" :key="j"><span v-if="segment.type === 'key'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'bold'" class="font-bold text-[#111]">{{ segment.text }}</span><span v-else-if="segment.type === 'accent'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'accentText'" class="text-[#444]">{{ segment.text }}</span><span v-else-if="segment.type === 'gradient'" class="text-[#333]">{{ segment.text }}</span><span v-else class="text-[#666]">{{ segment.text }}</span></template><span v-if="!typingDone && i === typedMd.split('\n').length - 1" class="inline-block w-[2px] h-[1.1em] bg-[#6c5ce7] align-middle ml-[1px] animate-blink"></span>
 </span></pre>
             </div>
             <!-- Right: Live preview -->
@@ -374,6 +374,7 @@ const features = [
     <!-- 公众号反馈 -->
     <section class="px-8 pb-20">
       <div class="mx-auto max-w-[600px] bg-white rounded-2xl border border-black/[0.06] px-10 py-10 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+                <p class="text-[17px] text-[#555] m-0 mb-2">编辑器为个人公众号写作自用，可能会不定期更新</p>
         <p class="text-[17px] text-[#555] m-0 mb-6">使用中遇到问题或有建议？欢迎关注公众号反馈</p>
         <img src="/wechat-qr.png" alt="微信公众号二维码" class="w-[280px] rounded-xl" />
         <p class="text-[13px] text-[#999] mt-4 m-0">微信搜索「<span class="text-[#6c5ce7] font-medium">五味杂陈杂货铺</span>」</p>
@@ -383,7 +384,8 @@ const features = [
     <!-- Footer -->
     <footer class="px-8 py-6 border-t border-black/[0.06]">
       <div class="mx-auto max-w-[1100px] text-center">
-                <p class="text-[13px] text-[#bbb]">© 2026 R-Markdown · Markdown to WeChat</p>
+                        <p class="text-[13px] text-[#bbb]">© 2026 R-Markdown · Markdown to WeChat</p>
+        <p class="text-[12px] text-[#ccc] mt-1">网站使用AI辅助生成</p>
       </div>
     </footer>
   </div>
