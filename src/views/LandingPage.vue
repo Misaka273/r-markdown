@@ -1,10 +1,159 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { parseMarkdown } from '@/utils/markdownParser'
+import type { ThemeColors } from '@/composables/useTheme'
 
 const visible = ref(false)
+const featuresVisible = ref(false)
+
+// ── 打字动画 ──
+const demoMd = `---
+title: 三十几岁以后，我学会了一件事
+badge: 成长感悟
+subtitle: 不是所有关系都值得维护
+chips: 成熟|减法|社交
+---
+
+我慢慢学会了一件事：
+**不是所有关系** 都值得你拼命维护。
+那些让你觉得 ::累:: 的社交，其实早该放下了。
+==真正的成熟，是懂得给自己做减法。==`
+
+const typedMd = ref('')
+const typingDone = ref(false)
+const previewRef = ref<HTMLElement>()
+let typingTimer: ReturnType<typeof setTimeout> | null = null
+let charIndex = 0
+
+const demoColors: ThemeColors = {
+  accent: '#6c5ce7',
+  dark: '#5a4bd1',
+  light: '#f0edff',
+  border: '#e5e7eb',
+  rgb: '108,92,231',
+}
+
+function typeNextChar() {
+  if (charIndex < demoMd.length) {
+    typedMd.value += demoMd[charIndex]
+    charIndex++
+    // 换行稍慢，模拟真实输入节奏
+    const delay = demoMd[charIndex - 1] === '\n' ? 80 : 30
+    typingTimer = setTimeout(typeNextChar, delay)
+  } else {
+    typingDone.value = true
+    // 打完后停顿，然后重新开始
+    typingTimer = setTimeout(() => {
+      typedMd.value = ''
+      charIndex = 0
+      typingDone.value = false
+      typingTimer = setTimeout(typeNextChar, 800)
+    }, 3000)
+  }
+}
+
+function updatePreview() {
+  if (previewRef.value) {
+    previewRef.value.innerHTML = parseMarkdown(typedMd.value, demoColors)
+  }
+}
+
+// 监听 typedMd 变化，实时更新右侧预览
+watch(typedMd, () => {
+  updatePreview()
+})
+
 onMounted(() => {
   requestAnimationFrame(() => { visible.value = true })
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          featuresVisible.value = true
+          observer.disconnect()
+        }
+      })
+    },
+    { threshold: 0.1 }
+  )
+
+  setTimeout(() => {
+    const el = document.getElementById('features')
+    if (el) observer.observe(el)
+  }, 100)
+
+  // 预览区域可见时启动打字动画
+  const previewObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && charIndex === 0) {
+          typingTimer = setTimeout(typeNextChar, 600)
+          previewObserver.disconnect()
+        }
+      })
+    },
+    { threshold: 0.2 }
+  )
+  setTimeout(() => {
+    const el = document.getElementById('demo-preview')
+    if (el) previewObserver.observe(el)
+  }, 100)
 })
+
+onBeforeUnmount(() => {
+  if (typingTimer) clearTimeout(typingTimer)
+})
+
+const scrollToFeatures = () => {
+  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+// ── 左侧语法高亮 ──
+function renderMdLine(line: string): Array<{ type: string; text: string }> {
+  const segments: Array<{ type: string; text: string }> = []
+  // frontmatter key: value
+  const fmMatch = line.match(/^(\w+):\s*(.*)/)
+  if (fmMatch && !line.startsWith('---')) {
+    segments.push({ type: 'key', text: fmMatch[1] + ': ' })
+    segments.push({ type: 'normal', text: fmMatch[2] })
+    return segments
+  }
+  if (line.trim() === '---') {
+    segments.push({ type: 'accent', text: line })
+    return segments
+  }
+  // bold **text**
+  let remaining = line
+  const boldRe = /\*\*(.+?)\*\*/g
+  let lastIdx = 0
+  let m: RegExpExecArray | null
+  while ((m = boldRe.exec(remaining)) !== null) {
+    if (m.index > lastIdx) segments.push({ type: 'normal', text: remaining.slice(lastIdx, m.index) })
+    segments.push({ type: 'bold', text: m[1] })
+    lastIdx = m.index + m[0].length
+  }
+  if (segments.length > 0) {
+    if (lastIdx < remaining.length) segments.push({ type: 'normal', text: remaining.slice(lastIdx) })
+    return segments
+  }
+  // ::accent:: and ==gradient==
+  if (line.includes('::') || line.includes('==')) {
+    const parts = line.split(/(::.*?::|==.*?==)/g)
+    for (const p of parts) {
+      if (p.startsWith('::') && p.endsWith('::')) {
+        segments.push({ type: 'accentText', text: p })
+      } else if (p.startsWith('==') && p.endsWith('==')) {
+        segments.push({ type: 'gradient', text: p })
+      } else {
+        segments.push({ type: 'normal', text: p })
+      }
+    }
+    return segments
+  }
+  segments.push({ type: 'normal', text: line })
+  return segments
+}
 
 const features = [
   {
@@ -28,101 +177,95 @@ const features = [
     desc: '渐变文字、柔光重点、步骤流、对比卡片等丰富组件，让文章更出彩。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M16 32V20l6 6 6-6v12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    title: '图片窗口化',
-    desc: '长图限制高度可滚动，多图横向并排滑动，告别刷屏式图片堆叠。',
+    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M16 32V20l6 6 6-6v12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 32h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    title: '保存为图片',
+    desc: '一键将排版好的文章导出为高清长图，方便分享到朋友圈或其他平台。',
   },
   {
     icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M15 15h18v18H15z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15V12h6v3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     title: '本地存储',
     desc: '所有内容自动保存在浏览器本地，无需登录注册，打开即用。',
   },
+  {
+    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M16 32V20l6 6 6-6v12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 32h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+            title: '复制 HTML',
+    desc: '一键复制排版后的 HTML 源码，方便嵌入网页、博客或其他平台使用。',
+  },
+  {
+    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M18 16l-6 8 6 8M30 16l6 8-6 8M26 13l-4 22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        title: '语法示例',
+    desc: '语法简单易上手，编辑器内置示例一键加载，边写边学零门槛。',
+  },
 ]
 </script>
 
 <template>
-  <div class="landing" :class="{ visible }">
+    <div class="landing min-w-[960px]" :class="{ 'opacity-100 translate-y-0': visible, 'opacity-0 translate-y-3': !visible }">
     <!-- Header -->
-    <header class="landing-header">
-      <div class="header-inner">
-        <div class="logo">
-          <svg viewBox="0 0 24 24" width="28" height="28">
-            <rect width="24" height="24" rx="5" fill="#576B95" />
-            <text x="2.5" y="17.5" font-family="Arial" font-size="11" font-weight="bold" fill="white">RM</text>
+    <header class="sticky top-0 z-50 bg-[rgba(245,245,247,0.8)] backdrop-blur-xl">
+      <div class="mx-auto max-w-[1100px] flex items-center justify-between px-8 py-3.5">
+                <router-link to="/" class="flex items-center gap-2.5 no-underline">
+          <svg viewBox="0 0 24 24" width="26" height="26">
+            <rect width="24" height="24" rx="6" fill="#6c5ce7" />
+            <text x="3" y="17" font-family="Arial" font-size="10.5" font-weight="bold" fill="white">RM</text>
           </svg>
-          <span class="logo-text">R-Markdown</span>
-        </div>
-        <nav class="header-nav">
-          <a href="#features" class="nav-link">功能</a>
-          <a href="#editor" class="nav-link">编辑器</a>
+          <span class="text-[17px] font-bold text-[#111] tracking-tight">R-Markdown</span>
+        </router-link>
+                <nav class="nav-pill relative flex items-center rounded-full bg-black/5 px-1.5 py-1">
+          <a href="javascript:void(0)" class="nav-link inline-flex items-center gap-1.5 rounded-2xl px-4 py-1.5 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]" @click="scrollToFeatures">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+            功能
+          </a>
         </nav>
       </div>
     </header>
 
     <!-- Hero -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-badge">Markdown → 公众号排版</div>
-        <h1 class="hero-title">
+    <section class="px-8 pt-[100px] pb-20">
+      <div class="mx-auto max-w-[1100px]">
+        <h1 class="text-[clamp(56px,8vw,92px)] font-black leading-[1.1] tracking-[-2px] text-[#111] m-0 mb-8">
           写 Markdown，<br>
-          <span class="hero-highlight">发公众号</span>
+          发<span class="text-[#6c5ce7]">公众号</span>。
         </h1>
-        <p class="hero-subtitle">
-          专为公众号创作者打造的 Markdown 排版工具。<br>
-          左侧写 Markdown，右侧实时预览，一键复制到公众号编辑器。
+        <p class="text-2xl font-semibold text-black/80 m-0 mb-5 tracking-tight">
+          R-Markdown — 最简洁的公众号 Markdown 排版工具
         </p>
-        <div class="hero-actions">
-          <a href="/editor" class="btn btn-primary">
-            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M13 2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z"/>
-              <polyline points="13 2 13 7 18 7"/>
-              <line x1="10" y1="11" x2="10" y2="17"/>
-              <polyline points="7 14 10 11 13 14"/>
-            </svg>
-            打开编辑器
-          </a>
-          <a href="#features" class="btn btn-ghost">了解更多</a>
-        </div>
-        <p class="hero-hint">无需安装 · 免费使用 · 浏览器本地存储</p>
+        <p class="text-[19px] leading-relaxed text-black/[0.55] m-0">
+          左侧写 Markdown，右侧实时预览排版效果，<br>
+          一键复制粘贴到公众号编辑器，告别繁琐排版。<br>
+          <span class="text-[#6c5ce7]">为你，也为每一个认真写内容的人。</span>
+        </p>
+                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-10 px-10 py-4 bg-[#6c5ce7] text-white text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
+          打开编辑器
+        </router-link>
+        <p class="mt-4 ml-4 text-[15px] text-black/[0.55]">开源免费，点击即用</p>
       </div>
     </section>
 
-    <!-- Preview Mockup -->
-    <section class="mockup-section">
-      <div class="mockup-inner">
-        <div class="mockup-window">
-          <div class="mockup-titlebar">
-            <div class="mockup-dots">
-              <span></span><span></span><span></span>
-            </div>
-            <span class="mockup-title">R-Markdown Editor</span>
+                <!-- Preview -->
+    <section id="demo-preview" class="px-8 pb-20">
+      <div class="mx-auto max-w-[1100px]">
+        <div class="rounded-2xl border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden">
+          <!-- Title bar -->
+          <div class="flex items-center gap-2 px-5 py-3 bg-[#f5f5f7] border-b border-black/[0.06]">
+            <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
+            <span class="ml-3 text-[13px] text-[#999] font-medium">R-Markdown Editor</span>
           </div>
-          <div class="mockup-body">
-            <div class="mockup-editor-side">
-              <div class="mockup-line"><span class="ml-kw">---</span></div>
-              <div class="mockup-line"><span class="ml-key">title:</span> <span class="ml-str">我的公众号文章</span></div>
-              <div class="mockup-line"><span class="ml-kw">---</span></div>
-              <div class="mockup-line"></div>
-              <div class="mockup-line"><span class="ml-h2">## 文章标题</span></div>
-              <div class="mockup-line"></div>
-              <div class="mockup-line"><span class="ml-text">这里是正文内容，</span><span class="ml-bold">**支持加粗**</span></div>
-              <div class="mockup-line"><span class="ml-text">还有</span><span class="ml-gradient">==渐变文字==</span><span class="ml-text">效果</span></div>
-              <div class="mockup-line"></div>
-              <div class="mockup-line"><span class="ml-img">![图片描述](url)</span></div>
+          <!-- Editor body -->
+          <div class="flex min-h-[480px]">
+            <!-- Left: Markdown source (typing animation) -->
+            <div class="flex-[5] border-r border-black/[0.06] bg-[#fafafa] p-8 font-mono text-[15px] leading-[1.9] text-[#444] overflow-hidden">
+              <div class="text-[#999] text-[12px] mb-3 select-none">Markdown</div>
+              <pre class="whitespace-pre-wrap break-words m-0 font-inherit text-inherit"><span v-for="(line, i) in typedMd.split('\n')" :key="i"><template v-for="(segment, j) in renderMdLine(line)" :key="j"><span v-if="segment.type === 'key'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'bold'" class="font-bold text-[#111]">{{ segment.text }}</span><span v-else-if="segment.type === 'accent'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'accentText'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'gradient'" class="text-[#333]">{{ segment.text }}</span><span v-else class="text-[#666]">{{ segment.text }}</span></template><span v-if="!typingDone && i === typedMd.split('\n').length - 1" class="inline-block w-[2px] h-[1.1em] bg-[#6c5ce7] align-middle ml-[1px] animate-blink"></span>
+</span></pre>
             </div>
-            <div class="mockup-divider"></div>
-            <div class="mockup-preview-side">
-              <div class="mockup-phone-frame">
-                <div class="mockup-phone-notch"></div>
-                <div class="mockup-phone-content">
-                  <div class="mockup-article-title">我的公众号文章</div>
-                  <div class="mockup-article-body">
-                    <div class="mockup-article-text">这里是正文内容，<strong>支持加粗</strong></div>
-                    <div class="mockup-article-text">还有<span class="mockup-gradient-text">渐变文字</span>效果</div>
-                    <div class="mockup-article-img"></div>
-                  </div>
-                </div>
-              </div>
+            <!-- Right: Live preview -->
+            <div class="flex-[3] bg-white p-8">
+              <div class="text-[#999] text-[12px] mb-4 select-none">预览</div>
+              <div ref="previewRef" class="preview-content"></div>
             </div>
           </div>
         </div>
@@ -130,408 +273,98 @@ const features = [
     </section>
 
     <!-- Features -->
-    <section id="features" class="features-section">
-      <div class="features-inner">
-        <h2 class="section-title">为什么选择 R-Markdown</h2>
-        <p class="section-subtitle">专为公众号创作者设计，让排版不再是负担</p>
-        <div class="features-grid">
-          <div v-for="(f, i) in features" :key="i" class="feature-card">
-            <div class="feature-icon" v-html="f.icon"></div>
-            <h3 class="feature-title">{{ f.title }}</h3>
-            <p class="feature-desc">{{ f.desc }}</p>
+    <section id="features" class="px-8 py-20 transition-all duration-800" :class="featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'">
+      <div class="mx-auto max-w-[1100px]">
+        <h2 class="text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">功能</h2>
+        <p class="text-[19px] text-[#888] m-0 mb-12">一切为了更专注的写作体验</p>
+                        <div class="grid grid-cols-3 gap-5">
+          <div
+            v-for="(f, i) in features"
+            :key="i"
+            class="bg-white rounded-2xl px-8 pt-9 pb-8 border border-black/[0.04] opacity-0 translate-y-7 transition-all duration-600 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
+            :class="featuresVisible ? '!opacity-100 !translate-y-0' : ''"
+            :style="{ transitionDelay: `${i * 0.1}s` }"
+          >
+            <div class="w-10 h-10 text-[#6c5ce7] mb-4.5 [&_svg]:w-full [&_svg]:h-full" v-html="f.icon"></div>
+            <h3 class="text-lg font-bold text-[#111] m-0 mb-2">{{ f.title }}</h3>
+            <p class="text-base leading-[1.65] text-[#888] m-0">{{ f.desc }}</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- CTA -->
-    <section class="cta-section">
-      <div class="cta-inner">
-        <h2 class="cta-title">开始你的创作</h2>
-        <p class="cta-subtitle">打开编辑器，写下第一篇公众号文章</p>
-        <a href="/editor" class="btn btn-primary btn-lg">
-          立即使用
-          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="10" x2="15" y2="10"/>
-            <polyline points="11 6 15 10 11 14"/>
-          </svg>
-        </a>
+    <section class="px-8 pt-20 pb-[100px] text-center">
+      <div class="mx-auto max-w-[600px]">
+        <h2 class="text-[36px] font-extrabold tracking-tight text-[#111] m-0 mb-2">开始写作</h2>
+        <p class="text-[17px] text-[#888] m-0 mb-8">无需注册，打开即用</p>
+                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 bg-[#6c5ce7] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[#5a4bd1] hover:-translate-y-px">
+          打开编辑器
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
+        </router-link>
+      </div>
+        </section>
+
+    <!-- 公众号反馈 -->
+    <section class="px-8 pb-20">
+      <div class="mx-auto max-w-[600px] bg-white rounded-2xl border border-black/[0.06] px-10 py-10 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+        <p class="text-[17px] text-[#555] m-0 mb-6">使用中遇到问题或有建议？欢迎关注公众号反馈</p>
+        <img src="/wechat-qr.png" alt="微信公众号二维码" class="w-[280px] rounded-xl" />
+        <p class="text-[13px] text-[#999] mt-4 m-0">微信搜索「<span class="text-[#6c5ce7] font-medium">五味杂陈杂货铺</span>」</p>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="landing-footer">
-      <div class="footer-inner">
-        <span class="footer-text">© 2026 R-Markdown · 公众号 Markdown 排版工具</span>
+    <footer class="px-8 py-6 border-t border-black/[0.06]">
+      <div class="mx-auto max-w-[1100px] text-center">
+                <p class="text-[13px] text-[#bbb]">© 2026 R-Markdown · Markdown to WeChat</p>
       </div>
     </footer>
   </div>
 </template>
 
 <style scoped>
-/* ── Base ── */
 .landing {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #1a1a2e;
-  background: #fff;
   min-height: 100vh;
+  background: #f5f5f7;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.cta-btn {
+  box-shadow: 0 0 20px 2px rgba(108, 92, 231, 0.15);
+  transition: all 0.3s ease;
+}
+.cta-btn:hover {
+  box-shadow: 0 0 30px 6px rgba(108, 92, 231, 0.3);
+}
+
+.nav-pill {
+  overflow: hidden;
+}
+.nav-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(108, 92, 231, 0.08);
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
-.landing.visible {
+.nav-pill:hover::before {
   opacity: 1;
-  transform: translateY(0);
+  box-shadow: 0 0 20px 4px rgba(108, 92, 231, 0.12);
 }
 
-/* ── Header ── */
-.landing-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
-.header-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 32px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-text {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-}
-.header-nav {
-  display: flex;
-  gap: 28px;
-}
-.nav-link {
-  font-size: 14px;
-  color: #555;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.nav-link:hover {
-  color: #576B95;
+.animate-blink {
+  animation: blink 1s step-end infinite;
 }
 
-/* ── Hero ── */
-.hero {
-  padding: 140px 32px 60px;
-  text-align: center;
-}
-.hero-inner {
-  max-width: 720px;
-  margin: 0 auto;
-}
-.hero-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 20px;
-  background: rgba(87, 107, 149, 0.08);
-  color: #576B95;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  margin-bottom: 28px;
-}
-.hero-title {
-  font-size: 52px;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -1.5px;
-  margin: 0 0 24px;
-}
-.hero-highlight {
-  background: linear-gradient(135deg, #576B95, #7B68EE);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.hero-subtitle {
-  font-size: 18px;
-  line-height: 1.7;
-  color: #666;
-  margin: 0 0 40px;
-}
-.hero-actions {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-.hero-hint {
-  font-size: 13px;
-  color: #999;
-  margin: 0;
-}
-
-/* ── Buttons ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 28px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.2s;
-  cursor: pointer;
-  border: none;
-}
-.btn-primary {
-  background: #576B95;
-  color: #fff;
-  box-shadow: 0 2px 12px rgba(87, 107, 149, 0.3);
-}
-.btn-primary:hover {
-  background: #4a5d82;
-  box-shadow: 0 4px 20px rgba(87, 107, 149, 0.4);
-  transform: translateY(-1px);
-}
-.btn-ghost {
-  background: transparent;
-  color: #555;
-  border: 1.5px solid #ddd;
-}
-.btn-ghost:hover {
-  border-color: #576B95;
-  color: #576B95;
-}
-.btn-lg {
-  padding: 14px 36px;
-  font-size: 16px;
-  border-radius: 12px;
-}
-
-/* ── Mockup ── */
-.mockup-section {
-  padding: 20px 32px 80px;
-}
-.mockup-inner {
-  max-width: 960px;
-  margin: 0 auto;
-}
-.mockup-window {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
-}
-.mockup-titlebar {
-  background: #f5f5f5;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid #e5e5e5;
-}
-.mockup-dots {
-  display: flex;
-  gap: 6px;
-}
-.mockup-dots span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ddd;
-}
-.mockup-dots span:nth-child(1) { background: #ff5f57; }
-.mockup-dots span:nth-child(2) { background: #febc2e; }
-.mockup-dots span:nth-child(3) { background: #28c840; }
-.mockup-title {
-  font-size: 12px;
-  color: #888;
-}
-.mockup-body {
-  display: flex;
-  background: #fafafa;
-  min-height: 340px;
-}
-.mockup-editor-side {
-  flex: 1;
-  padding: 20px 24px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 13px;
-  line-height: 1.8;
-}
-.mockup-divider {
-  width: 1px;
-  background: #e5e5e5;
-}
-.mockup-preview-side {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-.mockup-line {
-  height: 22px;
-}
-.ml-kw { color: #999; }
-.ml-key { color: #576B95; }
-.ml-str { color: #e06c75; }
-.ml-h2 { color: #1a1a2e; font-weight: 700; font-size: 14px; }
-.ml-text { color: #444; }
-.ml-bold { color: #1a1a2e; font-weight: 700; }
-.ml-gradient { color: #7B68EE; }
-.ml-img { color: #576B95; opacity: 0.6; }
-
-/* Phone mockup */
-.mockup-phone-frame {
-  width: 200px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  border: 1px solid #eee;
-}
-.mockup-phone-notch {
-  height: 20px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #eee;
-}
-.mockup-phone-content {
-  padding: 16px;
-}
-.mockup-article-title {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: #1a1a2e;
-}
-.mockup-article-body {
-  font-size: 11px;
-  line-height: 1.7;
-  color: #555;
-}
-.mockup-article-text {
-  margin-bottom: 6px;
-}
-.mockup-article-text strong {
-  color: #1a1a2e;
-}
-.mockup-gradient-text {
-  background: linear-gradient(135deg, #576B95, #7B68EE);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 600;
-}
-.mockup-article-img {
-  margin-top: 10px;
-  height: 60px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #e8eaf6, #c5cae9);
-}
-
-/* ── Features ── */
-.features-section {
-  padding: 80px 32px;
-  background: #f8f9fc;
-}
-.features-inner {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-.section-title {
-  text-align: center;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin: 0 0 12px;
-}
-.section-subtitle {
-  text-align: center;
-  font-size: 16px;
-  color: #888;
-  margin: 0 0 48px;
-}
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-.feature-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 28px 24px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.25s, transform 0.25s;
-}
-.feature-card:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
-  transform: translateY(-2px);
-}
-.feature-icon {
-  width: 44px;
-  height: 44px;
-  color: #576B95;
-  margin-bottom: 16px;
-}
-.feature-icon :deep(svg) {
-  width: 100%;
-  height: 100%;
-}
-.feature-title {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0 0 8px;
-}
-.feature-desc {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #777;
-  margin: 0;
-}
-
-/* ── CTA ── */
-.cta-section {
-  padding: 100px 32px;
-  text-align: center;
-}
-.cta-inner {
-  max-width: 600px;
-  margin: 0 auto;
-}
-.cta-title {
-  font-size: 36px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin: 0 0 12px;
-}
-.cta-subtitle {
-  font-size: 16px;
-  color: #888;
-  margin: 0 0 36px;
-}
-
-/* ── Footer ── */
-.landing-footer {
-  padding: 24px 32px;
-  border-top: 1px solid #f0f0f0;
-}
-.footer-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  text-align: center;
-}
-.footer-text {
-  font-size: 13px;
-  color: #aaa;
+.preview-content :deep(section) {
+  transition: opacity 0.15s ease;
 }
 </style>

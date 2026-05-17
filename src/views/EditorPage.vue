@@ -311,10 +311,7 @@ onBeforeUnmount(() => {
     <!-- Toolbar -->
     <div class="toolbar flex items-center justify-between px-4 py-2 border-b shrink-0">
       <div class="flex items-center">
-        <span
-          class="flex items-center text-sm font-semibold tracking-tight"
-          style="color: var(--text-primary)"
-        >
+                <router-link to="/" class="flex items-center text-sm font-semibold tracking-tight no-underline" style="color: var(--text-primary)">
           <svg viewBox="0 0 24 24" width="22" height="22" class="shrink-0 mr-1.5">
             <rect width="24" height="24" rx="5" :fill="accent" />
             <text
@@ -330,7 +327,7 @@ onBeforeUnmount(() => {
           </svg>
           R-Markdown 编辑器
           <span class="text-[0.55em] opacity-60 align-super ml-0.5">for 公众号</span>
-        </span>
+                </router-link>
       </div>
       <div class="flex items-center gap-1.5">
         <button

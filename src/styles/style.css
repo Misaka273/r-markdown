@@ -74,10 +74,9 @@ body {
     'Segoe UI',
     system-ui,
     sans-serif;
-  background: var(--bg-primary);
+    background: var(--bg-primary);
   color: var(--text-primary);
-  height: 100vh;
-  overflow: hidden;
+  height: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
