@@ -78,7 +78,7 @@ export function parseMarkdown(md, t) {
                 i++;
             }
             i++;
-                        html += `<section style="margin:20px 0px"><p style="text-align:center;font-size:18px;font-weight:700;color:rgb(51,65,85);line-height:1.6">${inlineFormat(text, t)}</p></section>`;
+            html += `<section style="margin:20px 0px"><p style="text-align:center;font-size:18px;font-weight:700;color:rgb(51,65,85);line-height:1.6">${inlineFormat(text, t)}</p></section>`;
             continue;
         }
         // ::: badges
@@ -304,7 +304,7 @@ export function parseMarkdown(md, t) {
             i++;
             continue;
         }
-                // 普通段落
+        // 普通段落
         html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">${inlineFormat(line, t)}</p></section>`;
         i++;
     }
