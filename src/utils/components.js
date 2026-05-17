@@ -1,10 +1,8 @@
-import type { ThemeColors } from '../composables/useTheme'
-
 function renderFrontMatter(
   meta
   fullText
   t
-): string {
+){
   var cleanText = fullText
     ? fullText
         .replace(/---[\s\S]*?---\s*/, '')
@@ -42,14 +40,14 @@ function renderFrontMatter(
 }
 
 function parseSteps(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var i = start
   var attrs = parseAttrs(lines[i])
   i++
-  var steps: { name: string; desc: string }[] = []
+  var steps: { name; desc }[] = []
   while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
     var m = lines[i].match(/^-\s*(.+)\s*\|\s*(.+)/)
     if (m) steps.push({ name: m[1].trim(), desc: m[2].trim() })
@@ -81,10 +79,10 @@ function parseSteps(
 }
 
 function parseBadges(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var i = start
   var attrs = parseAttrs(lines[i])
   i++
@@ -115,10 +113,10 @@ function parseBadges(
 }
 
 function parseCtaBlock(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var i = start
   var attrs = parseAttrs(lines[i])
   i++
@@ -136,10 +134,10 @@ function parseCtaBlock(
 }
 
 function parseBreaking(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var i = start
   var openMatch = lines[i].match(/<breaking\s*(.*)>/)
   var attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -172,10 +170,10 @@ function parseBreaking(
 }
 
 function parseCtaInline(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var attrs = parseAttrs(lines[start])
   var html = `<section style="margin:24px 0px;padding:32px 24px;background:linear-gradient(135deg,${t.accent},${t.dark});border-radius:16px;text-align:center;color:rgb(255,255,255)">`
   if (attrs.label)
@@ -189,10 +187,10 @@ function parseCtaInline(
 }
 
 function parseCompare(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var i = start
   var attrs = parseAttrs(lines[i])
   i++
@@ -241,10 +239,10 @@ function parseCompare(
 }
 
 function parseCallout(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var i = start
   var m = lines[i].match(/>\s*\[(TIP|NOTE|WARNING|CAUTION|IMPORTANT)\]\s*(.*)/)
   var type = m ? m[1] : 'NOTE'
@@ -288,10 +286,10 @@ function parseCallout(
 }
 
 function parseEngage(
-  lines: string[],
+  lines[],
   start
   t
-): { html: string; next: number } {
+){
   var attrs = parseAttrs(lines[start])
   var html = `<section style="margin:48px 0px 28px;width:677px;max-width:100%;box-sizing:border-box;overflow:hidden;text-align:center;padding:32px 24px;border-radius:14px;background:rgba(${t.rgb},0.05);border:1px dashed rgba(229,231,235,0.9)">`
   if (attrs.title)
@@ -307,9 +305,9 @@ function parseEngage(
   return { html, next: start + 1 }
 }
 
-function parseGallery(lines: string[], start: { html: string; next: number } {
+function parseGallery(lines[], start: { html; next } {
   var i = start
-  var imgs: { alt: string; src: string }[] = []
+  var imgs: { alt; src }[] = []
   var re = /!\[([^\]]*)\]\(([^)]+)\)/g
   var m: RegExpExecArray | null
   while ((m = re.exec(lines[i])) !== null) {
