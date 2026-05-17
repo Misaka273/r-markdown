@@ -25,10 +25,10 @@ export function renderFrontMatter(
     html += `<p style="margin:0px;font-size:28px;font-weight:900;color:rgb(17,24,39);line-height:1.2;letter-spacing:-0.5px;word-break:break-all">${leaf(meta.title)}</p>`
   if (meta.subtitle)
     html += `<p style="margin:0px;padding:10px 0px 0px;font-size:14px;color:rgb(71,85,105);line-height:1.7;font-weight:400">${leaf(meta.subtitle)}</p>`
-  if (meta.chips) {
+    if (meta.chips) {
     html += `<section style="margin:0px;padding:14px 0px 0px;font-size:0px;line-height:1.8">`
     meta.chips.split('|').forEach((c) => {
-      html += `<span style="display:inline-block;margin:0px 8px 6px 0px;font-size:10px;color:rgb(51,65,85);font-weight:700;letter-spacing:0.02em;white-space:nowrap"><span style="color:${t.accent};margin-right:2px;font-weight:900">${leaf('#')}</span>${leaf(c.trim())}</span>`
+      html += `<span style="display:inline-block;margin:0px 8px 6px 0px;font-size:10px;color:${t.accent};font-weight:700;letter-spacing:0.02em;white-space:nowrap">${leaf('#' + c.trim())}</span>`
     })
     html += `</section>`
   }
@@ -160,10 +160,10 @@ export function parseBreaking(
     html += `<p style="margin:0px 0px 8px;font-size:22px;font-weight:800;color:rgb(26,26,26);line-height:1.4">${leaf(attrs.title)}</p>`
   if (attrs.subtitle)
     html += `<p style="margin:0px 0px 12px;font-size:14px;color:rgb(102,102,102)">${leaf(attrs.subtitle)}</p>`
-  if (attrs.chips) {
+    if (attrs.chips) {
     html += `<section style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">`
     attrs.chips.split('|').forEach((c) => {
-      html += `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(255,255,255,0.8);color:${t.accent};border:1px solid ${t.border}">${leaf(c.trim())}</span>`
+      html += `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(255,255,255,0.8);color:${t.accent};border:1px solid ${t.border}">${leaf('#' + c.trim())}</span>`
     })
     html += `</section>`
   }
