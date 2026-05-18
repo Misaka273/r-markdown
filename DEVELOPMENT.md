@@ -261,6 +261,15 @@ style: 调整深色模式下卡片边框颜色
 
 示例：`v0.1.3-20260518`
 
+### ⚠️ 推送规则（强制）
+
+**只有用户主动提出推送代码时，才执行 `git push`。** 无论哪个分支（main / develop / 功能分支），AI 不得自行决定推送。
+
+- 提交（commit）可以在开发过程中自动执行
+- 推送（push）必须等用户明确说"推送"、"push"、"推到线上"等指令后才执行
+- 合并（merge）到 main 分支也需要用户确认后才执行
+- 删除远程 tag 同理，需用户确认
+
 ### 发布流程
 
 ```bash
@@ -268,18 +277,20 @@ style: 调整深色模式下卡片边框颜色
 git add .
 git commit -m "feat: xxx"
 
-# 2. 合并到 main
+# 2. 用户确认后合并到 main
 git checkout main
 git merge develop
+
+# 3. 用户确认后推送 main
 git push origin main
 
-# 3. 删除旧 tag 并重新打 tag
+# 4. 用户确认后删除旧 tag 并重新打 tag
 git tag -d v0.1.x-xxxxxx
 git push origin :refs/tags/v0.1.x-xxxxxx
 git tag v0.1.x-xxxxxx
 git push origin v0.1.x-xxxxxx
 
-# 4. 推送 develop
+# 5. 用户确认后推送 develop
 git checkout develop
 git push origin develop
 ```
