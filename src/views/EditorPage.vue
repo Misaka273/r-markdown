@@ -58,7 +58,7 @@ chips: 图片并排|窗口滚动|渐变文字
 
 ### 01 指定窗口尺寸（限制高度 250px）
 
-![限高滚动测试](https://robocopmao.github.io/r-markdown/banner1.webp)[100% 250px]
+![限高滚动测试](https://robocopmao.github.io/r-markdown/banner4.webp)[100% 250px]
 
 > 上方的图片被限制在 250px 高度内，读者可以手动滚动查看。
 
