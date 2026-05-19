@@ -382,8 +382,8 @@ const features = [
       <div class="feedback-card mx-auto max-w-[600px] bg-white rounded-2xl border border-black/[0.06] px-10 py-10 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
         <p class="text-[17px] text-[#555] m-0 mb-2">编辑器为个人公众号写作自用，可能会不定期更新</p>
         <p class="text-[17px] text-[#555] m-0 mb-6">使用中遇到问题或有建议？欢迎关注公众号反馈</p>
-                <img src="/wechat-qr.png" alt="微信公众号二维码" class="qr-light w-[280px] rounded-xl" />
-        <img src="/wechat-qr-dark.png" alt="微信公众号二维码" class="qr-dark w-[280px] rounded-xl" />
+                <img src="/wechat-qr.jpg" alt="微信公众号二维码" class="qr-light w-[280px] rounded-xl" />
+        <img src="/wechat-qr-dark.jpg" alt="微信公众号二维码" class="qr-dark w-[280px] rounded-xl" />
         <p class="text-[13px] text-[#999] mt-4 m-0">微信搜索「<span class="text-[#6c5ce7] font-medium">五味杂陈杂货铺</span>」</p>
       </div>
     </section>
