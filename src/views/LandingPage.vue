@@ -109,6 +109,14 @@ onBeforeUnmount(() => {
   if (typingTimer) clearTimeout(typingTimer)
 })
 
+// ── 预加载编辑器页面 ──
+let editorPreloaded = false
+function preloadEditor() {
+  if (editorPreloaded) return
+  editorPreloaded = true
+  import('../views/EditorPage.vue')
+}
+
 const scrollToFeatures = () => {
   document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
 }
@@ -307,7 +315,7 @@ const features = [
           一键复制粘贴到公众号编辑器，告别繁琐排版。<br>
           <span class="text-[#6c5ce7]">为你，也为每一个认真写内容的人。</span>
         </p>
-        <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-10 px-10 py-4 bg-[#6c5ce7] text-white text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]">
+                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-10 px-10 py-4 bg-[#6c5ce7] text-white text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]" @mouseenter="preloadEditor">
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
           打开编辑器
         </router-link>
