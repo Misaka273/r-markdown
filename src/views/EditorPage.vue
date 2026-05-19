@@ -58,13 +58,13 @@ chips: 图片并排|窗口滚动|渐变文字
 
 ### 01 指定窗口尺寸（限制高度 250px）
 
-![限高滚动测试](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg)[100% 250px]
+![限高滚动测试](https://robocopmao.github.io/r-markdown/banner1.webp)[100% 250px]
 
 > 上方的图片被限制在 250px 高度内，读者可以手动滚动查看。
 
 ### 02 多图横向滑动并排
 
-< ![图1](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg), ![图2](https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg), ![图3](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg) >
+< ![图1](https://robocopmao.github.io/r-markdown/banner1.webp), ![图2](https://robocopmao.github.io/r-markdown/banner2.webp), ![图3](https://robocopmao.github.io/r-markdown/banner3.webp) >
 
 > 使用尖括号和感叹号语法，多张图片横向排开。
 
@@ -108,10 +108,10 @@ chips: 图片并排|窗口滚动|渐变文字
 
 <compare left-label="BEFORE" left-title="旧版绿色" right-label="AFTER" right-title="新版靛青">
 <left>
-![旧版](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg)[100% 120px]
+![旧版](https://robocopmao.github.io/r-markdown/banner1.webp)[100% 120px]
 </left>
 <right>
-![新版](https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg)[100% 120px]
+![新版](https://robocopmao.github.io/r-markdown/banner2.webp)[100% 120px]
 </right>
 </compare>
 
