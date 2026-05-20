@@ -142,7 +142,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (typingTimer) clearTimeout(typingTimer)
-  cloudCanvasRef.value?._cleanup?.()
+    cloudCleanup?.()
 })
 
 // ── 预加载编辑器页面 ──
@@ -160,6 +160,7 @@ const scrollToFeatures = () => {
 // ── Canvas 云朵光晕 ──
 const cloudCanvasRef = ref<HTMLCanvasElement | null>(null)
 let cloudRaf = 0
+let cloudCleanup: (() => void) | null = null
 
 interface CloudOrb {
   x: number; y: number; r: number
@@ -174,12 +175,15 @@ function getCloudColors(isDark: boolean): string[] {
 }
 
 function initCloudCanvas() {
-  const canvas = cloudCanvasRef.value
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
+  const rawCanvas = cloudCanvasRef.value
+  if (!rawCanvas) return
+  const rawCtx = rawCanvas.getContext('2d')
+  if (!rawCtx) return
+  // 闭包内使用非空引用，避免 TS 严格模式报错
+  const canvas = rawCanvas
+  const ctx = rawCtx
 
-    const CANVAS_H = 1320 // 固定高度，覆盖 header + hero 区域
+  const CANVAS_H = 1320 // 固定高度，覆盖 header + hero 区域
 
   function resize() {
     const dpr = window.devicePixelRatio || 1
@@ -196,7 +200,7 @@ function initCloudCanvas() {
   const W = () => canvas.width / (window.devicePixelRatio || 1)
   const H = () => CANVAS_H
 
-    const colors = () => getCloudColors(darkMode.value === 'dark')
+  const colors = () => getCloudColors(darkMode.value === 'dark')
 
   // 简易多层 sin 噪声 —— 每次页面加载种子不同，轨迹就不同
   const seed = Math.random() * 1000
@@ -250,17 +254,10 @@ function initCloudCanvas() {
   }
   draw()
 
-  // 存储清理函数
-  canvas._cleanup = () => {
+    // 存储清理函数
+  cloudCleanup = () => {
     cancelAnimationFrame(cloudRaf)
     window.removeEventListener('resize', resize)
-  }
-}
-
-// 扩展类型
-declare module 'vue' {
-  interface HTMLAttributes {
-    _cleanup?: () => void
   }
 }
 
