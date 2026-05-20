@@ -212,9 +212,9 @@ function initCloudCanvas() {
   }
 
   // 每次随机初始位置
-  const orbs: CloudOrb[] = Array.from({ length: 4 }, (_, i) => ({
+    const orbs: CloudOrb[] = Array.from({ length: 4 }, (_, i) => ({
     x: 0.15 + Math.random() * 0.7,
-    y: 0.1 + Math.random() * 0.6,
+    y: 0.1 + Math.random() * 0.55,
     r: 240 + Math.random() * 80,
     vx: (Math.random() - 0.5) * 0.12,
     vy: (Math.random() - 0.5) * 0.08,
@@ -234,11 +234,12 @@ function initCloudCanvas() {
       // 噪声驱动漂移
       o.x += noise(t, i, 'x') * 0.0004
       o.y += noise(t, i, 'y') * 0.0003
-      // 边界回弹
+            // 边界回弹（底部保留 250px 不进入）
+      const yMax = (CANVAS_H - 250) / CANVAS_H
       if (o.x < -0.15) o.x = -0.15
       if (o.x > 1.15) o.x = 1.15
       if (o.y < -0.15) o.y = -0.15
-      if (o.y > 1.15) o.y = 1.15
+      if (o.y > yMax) o.y = yMax
 
       const cx = o.x * w, cy = o.y * h
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, o.r)
