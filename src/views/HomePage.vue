@@ -10,6 +10,40 @@ const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
 const visible = ref(false)
 const featuresVisible = ref(false)
 
+// ── 预览卡片 3D 倾斜 ──
+const previewCardRef = ref<HTMLElement>()
+const cardRotate = ref({ x: 0, y: 0 })
+const cardGlow = ref({ x: 50, y: 50, opacity: 0 })
+const cardSmooth = ref(true) // 进入和首次移动用过渡，之后去掉
+let cardRaf = 0
+
+function onCardMouseMove(e: MouseEvent) {
+  const card = previewCardRef.value
+  if (!card) return
+  const rect = card.getBoundingClientRect()
+  const x = (e.clientX - rect.left) / rect.width
+  const y = (e.clientY - rect.top) / rect.height
+  const tiltX = (y - 0.5) * -16
+  const tiltY = (x - 0.5) * 16
+  cardRotate.value = { x: tiltX, y: tiltY }
+  cardGlow.value = { x: x * 100, y: y * 100, opacity: 1 }
+  // 首次移动后关闭过渡，后续实时跟随
+  if (cardSmooth.value) cardSmooth.value = false
+}
+
+function onCardMouseEnter() {
+  cardSmooth.value = true
+}
+
+function onCardMouseLeave() {
+  if (cardRaf) cancelAnimationFrame(cardRaf)
+  cardRaf = requestAnimationFrame(() => {
+    cardRotate.value = { x: 0, y: 0 }
+    cardGlow.value = { ...cardGlow.value, opacity: 0 }
+    cardSmooth.value = true
+  })
+}
+
 // ── 打字动画 ──
 const demoMd = `---
 title: 三十几岁以后，我学会了一件事
@@ -69,6 +103,7 @@ watch(typedMd, () => {
 
 onMounted(() => {
   requestAnimationFrame(() => { visible.value = true })
+  initCloudCanvas()
 
   const observer = new IntersectionObserver(
     (entries) => {
@@ -107,6 +142,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (typingTimer) clearTimeout(typingTimer)
+  cloudCanvasRef.value?._cleanup?.()
 })
 
 // ── 预加载编辑器页面 ──
@@ -119,6 +155,113 @@ function preloadEditor() {
 
 const scrollToFeatures = () => {
   document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+// ── Canvas 云朵光晕 ──
+const cloudCanvasRef = ref<HTMLCanvasElement | null>(null)
+let cloudRaf = 0
+
+interface CloudOrb {
+  x: number; y: number; r: number
+  vx: number; vy: number
+  color: string
+}
+
+function getCloudColors(isDark: boolean): string[] {
+  return isDark
+    ? ['rgba(108,92,231,0.18)', 'rgba(168,130,255,0.15)', 'rgba(108,92,231,0.12)', 'rgba(168,130,255,0.10)']
+    : ['rgba(108,92,231,0.22)', 'rgba(168,130,255,0.18)', 'rgba(108,92,231,0.15)', 'rgba(168,130,255,0.12)']
+}
+
+function initCloudCanvas() {
+  const canvas = cloudCanvasRef.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+    const CANVAS_H = 1320 // 固定高度，覆盖 header + hero 区域
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1
+    const w = canvas.parentElement?.getBoundingClientRect().width || window.innerWidth
+    canvas.width = w * dpr
+    canvas.height = CANVAS_H * dpr
+    canvas.style.width = w + 'px'
+    canvas.style.height = CANVAS_H + 'px'
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
+  resize()
+  window.addEventListener('resize', resize)
+
+  const W = () => canvas.width / (window.devicePixelRatio || 1)
+  const H = () => CANVAS_H
+
+    const colors = () => getCloudColors(darkMode.value === 'dark')
+
+  // 简易多层 sin 噪声 —— 每次页面加载种子不同，轨迹就不同
+  const seed = Math.random() * 1000
+  function noise(t: number, i: number, axis: 'x' | 'y') {
+    const s = axis === 'x' ? seed : seed + 500
+    return Math.sin(t * 0.0007 + i * 1.7 + s) * 0.4
+      + Math.sin(t * 0.0013 + i * 2.3 + s * 0.7) * 0.3
+      + Math.sin(t * 0.0003 + i * 3.1 + s * 1.3) * 0.3
+  }
+
+  // 每次随机初始位置
+  const orbs: CloudOrb[] = Array.from({ length: 4 }, (_, i) => ({
+    x: 0.15 + Math.random() * 0.7,
+    y: 0.1 + Math.random() * 0.6,
+    r: 240 + Math.random() * 80,
+    vx: (Math.random() - 0.5) * 0.12,
+    vy: (Math.random() - 0.5) * 0.08,
+    color: '',
+  }))
+
+  let t = 0
+  function draw() {
+    const w = W(), h = H()
+    if (w === 0 || h === 0) { cloudRaf = requestAnimationFrame(draw); return }
+
+    ctx.clearRect(0, 0, w, h)
+    const c = colors()
+
+    for (let i = 0; i < orbs.length; i++) {
+      const o = orbs[i]
+      // 噪声驱动漂移
+      o.x += noise(t, i, 'x') * 0.0004
+      o.y += noise(t, i, 'y') * 0.0003
+      // 边界回弹
+      if (o.x < -0.15) o.x = -0.15
+      if (o.x > 1.15) o.x = 1.15
+      if (o.y < -0.15) o.y = -0.15
+      if (o.y > 1.15) o.y = 1.15
+
+      const cx = o.x * w, cy = o.y * h
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, o.r)
+      grad.addColorStop(0, c[i])
+      grad.addColorStop(0.6, c[i].replace(/[\d.]+\)$/, '0.04)'))
+      grad.addColorStop(1, 'transparent')
+      ctx.fillStyle = grad
+      ctx.fillRect(0, 0, w, h)
+    }
+
+    t++
+    cloudRaf = requestAnimationFrame(draw)
+  }
+  draw()
+
+  // 存储清理函数
+  canvas._cleanup = () => {
+    cancelAnimationFrame(cloudRaf)
+    window.removeEventListener('resize', resize)
+  }
+}
+
+// 扩展类型
+declare module 'vue' {
+  interface HTMLAttributes {
+    _cleanup?: () => void
+  }
 }
 
 // ── 导航栏滑动高亮 ──
@@ -259,9 +402,9 @@ const features = [
     title: '本地存储',
     desc: '所有内容自动保存在浏览器本地，无需登录注册，打开即用。',
   },
-  {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M16 32V20l6 6 6-6v12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 32h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
-            title: '复制 HTML',
+      {
+    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><rect x="16" y="16" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M22 16v-2a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M20 24h8M20 28h5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    title: '复制 HTML',
     desc: '一键复制排版后的 HTML 源码，方便嵌入网页、博客或其他平台使用。',
   },
   {
@@ -273,9 +416,13 @@ const features = [
 </script>
 
 <template>
-    <div class="landing min-w-[960px]" :class="{ 'opacity-100 translate-y-0': visible, 'opacity-0 translate-y-3': !visible }">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-[rgba(245,245,247,0.8)] backdrop-blur-xl">
+        <div class="landing min-w-[960px] relative" :class="{ 'opacity-100 translate-y-0': visible, 'opacity-0 translate-y-3': !visible }">
+
+        <!-- Cloud canvas – spans header + hero for seamless transition -->
+                <canvas ref="cloudCanvasRef" class="absolute top-0 left-0 w-full pointer-events-none" style="z-index:0; height: 1320px;"></canvas>
+
+        <!-- Header -->
+    <header class="header-blur sticky top-0 z-50 backdrop-blur-xl">
             <div class="mx-auto max-w-[1100px] flex items-center px-8 py-3.5">
                                         <router-link to="/" class="flex items-center gap-2.5 no-underline shrink-0 logo-link" @mouseenter="onLogoEnter" @mouseleave="onLogoLeave">
           <svg class="logo-icon" viewBox="0 0 24 24" width="26" height="26">
@@ -300,9 +447,9 @@ const features = [
       </div>
     </header>
 
-        <!-- Hero -->
-    <section class="px-8 pt-[100px] pb-20">
-      <div class="mx-auto max-w-[1100px]">
+                                <!-- Hero -->
+                                                                <section class="hero-section relative px-8 pt-[100px] pb-20 overflow-hidden">
+      <div class="mx-auto max-w-[1100px] relative" style="z-index:1;">
         <h1 class="hero-title text-[clamp(56px,8vw,92px)] font-black leading-[1.1] tracking-[-2px] text-[#111] m-0 mb-8">
           写 Markdown，<br>
           发<span class="text-[#6c5ce7]">公众号</span>。
@@ -316,7 +463,7 @@ const features = [
           <span class="text-[#6c5ce7]">为你，也为每一个认真写内容的人。</span>
         </p>
                 <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-10 px-10 py-4 bg-[#6c5ce7] text-white text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]" @mouseenter="preloadEditor">
-          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
+                    <svg class="cta-arrow" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
           打开编辑器
         </router-link>
         <p class="hero-hint mt-4 ml-4 text-[15px] text-black/[0.55]">开源免费，点击即用</p>
@@ -326,7 +473,26 @@ const features = [
                                 <!-- Preview -->
     <section id="demo-preview" class="px-8 pb-20">
       <div class="mx-auto max-w-[1100px]">
-        <div class="preview-card rounded-2xl border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden">
+                <div
+          ref="previewCardRef"
+                    class="preview-card relative rounded-2xl border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden"
+          style="transform-style: preserve-3d; perspective: 1000px; will-change: transform;"
+          :style="{
+            transform: `rotateX(${cardRotate.x}deg) rotateY(${cardRotate.y}deg) scale(${cardRotate.x || cardRotate.y ? 1.02 : 1})`,
+                                    transition: cardSmooth ? 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)' : 'none'
+          }"
+                    @mouseenter="onCardMouseEnter"
+          @mousemove="onCardMouseMove"
+          @mouseleave="onCardMouseLeave"
+        >
+          <!-- Mouse-follow glow -->
+          <div
+            class="pointer-events-none absolute inset-0 z-50 transition-opacity duration-300"
+            :style="{
+              background: `radial-gradient(circle 300px at ${cardGlow.x}% ${cardGlow.y}%, rgba(108,92,231,0.12), transparent)`,
+              opacity: cardGlow.opacity
+            }"
+          ></div>
           <!-- Title bar -->
           <div class="preview-titlebar flex items-center gap-2 px-5 py-3 bg-[#f5f5f7] border-b border-black/[0.06]">
             <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
@@ -357,17 +523,17 @@ const features = [
       <div class="mx-auto max-w-[1100px]">
         <h2 class="features-title text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">功能</h2>
         <p class="features-subtitle text-[19px] text-[#888] m-0 mb-12">一切为了更专注的写作体验</p>
-        <div class="grid grid-cols-3 gap-5">
+                <div class="grid grid-cols-3 gap-5">
           <div
             v-for="(f, i) in features"
             :key="i"
-            class="feature-card bg-white rounded-2xl px-8 pt-9 pb-8 border border-black/[0.04] opacity-0 translate-y-7 transition-all duration-600 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-0.5"
-            :class="featuresVisible ? '!opacity-100 !translate-y-0' : ''"
-            :style="{ transitionDelay: `${i * 0.1}s` }"
+            class="feature-card group bg-white rounded-2xl px-8 pt-9 pb-8 border border-black/[0.04] opacity-0 translate-y-8 scale-95 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:shadow-[0_8px_30px_rgba(108,92,231,0.1)] hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6c5ce7]/20"
+            :class="featuresVisible ? '!opacity-100 !translate-y-0 !scale-100' : ''"
+            :style="{ transitionDelay: `${i * 0.12}s` }"
           >
-            <div class="w-10 h-10 text-[#6c5ce7] mb-4.5 [&_svg]:w-full [&_svg]:h-full" v-html="f.icon"></div>
-            <h3 class="text-lg font-bold text-[#111] m-0 mb-2">{{ f.title }}</h3>
-            <p class="text-base leading-[1.65] text-[#888] m-0">{{ f.desc }}</p>
+            <div class="w-10 h-10 text-[#6c5ce7] mb-4.5 [&_svg]:w-full [&_svg]:h-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" v-html="f.icon"></div>
+            <h3 class="text-lg font-bold text-[#111] m-0 mb-2 transition-colors duration-300 group-hover:text-[#6c5ce7]">{{ f.title }}</h3>
+            <p class="text-base leading-[1.65] text-[#888] m-0 transition-colors duration-300 group-hover:text-[#666]">{{ f.desc }}</p>
           </div>
         </div>
       </div>
@@ -378,9 +544,9 @@ const features = [
       <div class="mx-auto max-w-[600px]">
         <h2 class="text-[36px] font-extrabold tracking-tight text-[#111] m-0 mb-2">开始写作</h2>
         <p class="text-[17px] text-[#888] m-0 mb-8">无需注册，打开即用</p>
-        <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 bg-[#6c5ce7] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[#5a4bd1] hover:-translate-y-px">
+                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 bg-[#6c5ce7] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[#5a4bd1] hover:-translate-y-px">
           打开编辑器
-          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
+          <svg class="cta-arrow" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
         </router-link>
       </div>
     </section>
@@ -410,6 +576,7 @@ const features = [
 .landing {
   min-height: 100vh;
   background: #f5f5f7;
+  --cloud-bg: #f5f5f7;
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
@@ -454,8 +621,53 @@ const features = [
   animation: blink 1s step-end infinite;
 }
 
+/* CTA arrow animation */
+.cta-arrow {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cta-btn:hover .cta-arrow {
+  transform: translateX(4px);
+}
+
+/* Header blur with gradient fade */
+.header-blur {
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 245, 247, 0.98) 0%,
+    rgba(245, 245, 247, 0.6) 70%,
+    rgba(245, 245, 247, 0) 100%
+  );
+}
+
+/* Hero canvas cloud – rendered via <canvas>, no CSS needed */
+
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
+}
+
+/* Feature cards – light mode */
+.feature-card {
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(108,92,231,0.04), transparent);
+  transition: left 0.6s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.feature-card:hover::before {
+  left: 100%;
+}
+.feature-card > * {
+  position: relative;
+  z-index: 1;
 }
 </style>
 
@@ -463,6 +675,7 @@ const features = [
 /* ── 深色模式（非 scoped，确保优先级） ── */
 [data-theme='dark'] .landing {
   background: #111114;
+  --cloud-bg: #111114;
 }
 [data-theme='dark'] header {
   background: rgba(17, 17, 20, 0.8) !important;
@@ -524,6 +737,13 @@ const features = [
 [data-theme='dark'] .feature-card {
   background: #1a1a1e;
   border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme='dark'] .feature-card:hover {
+  border-color: rgba(108,92,231,0.3);
+  box-shadow: 0 8px 30px rgba(108,92,231,0.08);
+}
+[data-theme='dark'] .feature-card::before {
+  background: linear-gradient(90deg, transparent, rgba(108,92,231,0.06), transparent);
 }
 [data-theme='dark'] .feature-card h3 {
   color: #f0f0f0;

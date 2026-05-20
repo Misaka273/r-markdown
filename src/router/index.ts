@@ -6,7 +6,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'landing',
-      component: () => import('../views/LandingPage.vue'),
+      component: () => import('../views/HomePage.vue'),
     },
     {
       path: '/editor',
