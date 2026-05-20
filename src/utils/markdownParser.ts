@@ -32,38 +32,11 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     html += renderFrontMatter(meta, md, t)
   }
 
-  // 收集 h2
+    // 收集 h2（用于 <reading-path> 标签）
   const h2List: string[] = []
-  for (let j = i; j < lines.length; j++) {
+  for (let j = 0; j < lines.length; j++) {
     const h2m = lines[j].match(/^##\s+(.+)/)
     if (h2m) h2List.push(h2m[1])
-  }
-
-  // 阅读路线
-  if (h2List.length > 1) {
-    html += `<section style="margin:0px 0px 30px"><section>`
-    html += `<section style="display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:14px;gap:12px"><section style="flex-shrink:0"><p style="margin:0px;padding:0px 0px 6px;font-size:10px;color:rgb(100,116,139);text-transform:uppercase;letter-spacing:2.8px;font-weight:800;white-space:nowrap">${leaf('READING PATH')}</p><p style="margin:0px;font-size:16px;line-height:1.35;color:rgb(17,24,39);font-weight:800">${leaf('阅读路线')}</p></section><p style="margin:0px;font-size:10px;color:rgb(148,163,184);white-space:nowrap">${leaf(h2List.length + ' 个章节')}</p></section>`
-    html += `<section style="padding:14px 12px 12px;border:1px solid rgb(229,231,235);border-radius:13px;background:linear-gradient(rgb(255,255,255) 0%,rgb(248,250,252) 100%);box-shadow:rgba(15,23,42,0.04) 0px 12px 30px;overflow-x:auto;white-space:nowrap;font-size:0px">`
-    h2List.forEach((t2, idx) => {
-      const label = t2
-        .replace(/::.*/, '')
-        .trim()
-        .replace(/^\d+\s*/, '')
-      const num = String(idx + 1).padStart(2, '0')
-      const isActive = idx === 0
-      html += `<section style="display:inline-flex;vertical-align:middle;align-items:center">`
-      html += `<section style="display:inline-block;vertical-align:top;width:126px;white-space:normal;text-align:center">`
-      html += `<section style="display:flex;justify-content:center;margin-bottom:10px">`
-      html += `<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:${isActive ? t.accent : 'rgb(255,255,255)'};color:${isActive ? 'rgb(255,255,255)' : 'rgb(17,24,39)'};border:1px solid ${isActive ? t.accent : 'rgb(219,227,238)'};font-size:11px;font-weight:900;letter-spacing:1.2px;white-space:nowrap">${leaf(num)}</span>`
-      html += `</section>`
-      html += `<p style="margin:0px;font-size:13px;line-height:1.55;color:${isActive ? 'rgb(17,24,39)' : 'rgb(31,41,55)'};font-weight:800;letter-spacing:0.05px;white-space:normal;word-break:break-all">${leaf(label)}</p>`
-      html += `</section>`
-      if (idx < h2List.length - 1) {
-        html += `<span style="display:inline-block;vertical-align:middle;width:32px;height:1px;line-height:1px;margin:0px 8px;background:linear-gradient(90deg,rgba(148,163,184,0.35),rgba(148,163,184,0.85));color:transparent;overflow:hidden">${leaf('-')}</span>`
-      }
-      html += `</section>`
-    })
-    html += `</section></section></section>`
   }
 
   while (i < lines.length) {
@@ -138,11 +111,47 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       i = r.next
       continue
     }
-    // <compare>
+        // <compare>
     if (/^<compare\b/.test(line)) {
       const r = parseCompare(lines, i, t)
       html += r.html
       i = r.next
+      continue
+    }
+    // <reading-path> 或 <reading-path />
+    if (/^<reading-path\s*\/?>/.test(line) || /^<reading-path>/.test(line)) {
+      // 渲染阅读路线组件
+      if (h2List.length > 1) {
+        html += `<section style="margin:0px 0px 30px"><section>`
+        html += `<section style="display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:14px;gap:12px"><section style="flex-shrink:0"><p style="margin:0px;padding:0px 0px 6px;font-size:10px;color:rgb(100,116,139);text-transform:uppercase;letter-spacing:2.8px;font-weight:800;white-space:nowrap">${leaf('READING PATH')}</p><p style="margin:0px;font-size:16px;line-height:1.35;color:rgb(17,24,39);font-weight:800">${leaf('阅读路线')}</p></section><p style="margin:0px;font-size:10px;color:rgb(148,163,184);white-space:nowrap">${leaf(h2List.length + ' 个章节')}</p></section>`
+        html += `<section style="padding:14px 12px 12px;border:1px solid rgb(229,231,235);border-radius:13px;background:linear-gradient(rgb(255,255,255) 0%,rgb(248,250,252) 100%);box-shadow:rgba(15,23,42,0.04) 0px 12px 30px;overflow-x:auto;white-space:nowrap;font-size:0px">`
+        h2List.forEach((t2, idx) => {
+          const label = t2
+            .replace(/::.*/, '')
+            .trim()
+            .replace(/^\d+\s*/, '')
+          const num = String(idx + 1).padStart(2, '0')
+          const isActive = idx === 0
+          html += `<section style="display:inline-flex;vertical-align:middle;align-items:center">`
+          html += `<section style="display:inline-block;vertical-align:top;width:126px;white-space:normal;text-align:center">`
+          html += `<section style="display:flex;justify-content:center;margin-bottom:10px">`
+          html += `<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:${isActive ? t.accent : 'rgb(255,255,255)'};color:${isActive ? 'rgb(255,255,255)' : 'rgb(17,24,39)'};border:1px solid ${isActive ? t.accent : 'rgb(219,227,238)'};font-size:11px;font-weight:900;letter-spacing:1.2px;white-space:nowrap">${leaf(num)}</span>`
+          html += `</section>`
+          html += `<p style="margin:0px;font-size:13px;line-height:1.55;color:${isActive ? 'rgb(17,24,39)' : 'rgb(31,41,55)'};font-weight:800;letter-spacing:0.05px;white-space:normal;word-break:break-all">${leaf(label)}</p>`
+          html += `</section>`
+          if (idx < h2List.length - 1) {
+            html += `<span style="display:inline-block;vertical-align:middle;width:32px;height:1px;line-height:1px;margin:0px 8px;background:linear-gradient(90deg,rgba(148,163,184,0.35),rgba(148,163,184,0.85));color:transparent;overflow:hidden">${leaf('-')}</span>`
+          }
+          html += `</section>`
+        })
+        html += `</section></section></section>`
+      }
+      // 跳过闭合标签（如果有）
+      if (/^<reading-path>/.test(line) && i + 1 < lines.length && /^<\/reading-path>/.test(lines[i + 1])) {
+        i += 2
+      } else {
+        i++
+      }
       continue
     }
     // < ![
