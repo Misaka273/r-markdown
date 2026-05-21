@@ -10,6 +10,21 @@ import DarkModeToggle from '../components/DarkModeToggle.vue'
 const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
 const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
 
+// ── 移动端 Tab 切换 ──
+const mobileTab = ref<'editor' | 'preview'>('editor')
+const isMobile = ref(window.innerWidth < 768)
+
+function onResize() {
+  isMobile.value = window.innerWidth < 768
+}
+
+onMounted(() => {
+  window.addEventListener('resize', onResize)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+})
+
 // ── 拖动调整宽度 ──
 const previewWidth = ref(450)
 const isDragging = ref(false)
@@ -276,6 +291,7 @@ function scheduleSync() {
 
 function handleEditorScroll(ratio: number) {
   if (isFlushing) return
+  if (isMobile.value && mobileTab.value !== 'editor') return
   syncSource = 'editor'
   pendingRatio = ratio
   scheduleSync()
@@ -310,9 +326,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="flex flex-col h-screen">
-    <!-- Toolbar -->
+        <!-- Toolbar -->
     <div class="toolbar flex items-center justify-between px-4 py-2 border-b shrink-0">
-      <div class="flex items-center">
+      <div class="flex items-center min-w-0">
                 <router-link to="/" class="flex items-center text-sm font-semibold tracking-tight no-underline" style="color: var(--text-primary)">
           <svg viewBox="0 0 24 24" width="22" height="22" class="shrink-0 mr-1.5">
             <rect width="24" height="24" rx="5" :fill="accent" />
@@ -327,11 +343,13 @@ onBeforeUnmount(() => {
               RM
             </text>
           </svg>
-          R-Markdown 编辑器
-          <span class="text-[0.55em] opacity-60 align-super ml-0.5">for 公众号</span>
+          <span class="hidden sm:inline">R-Markdown 编辑器</span>
+          <span class="sm:hidden">R-Markdown</span>
+          <span class="text-[0.55em] opacity-60 align-super ml-0.5 hidden sm:inline">for 公众号</span>
                 </router-link>
       </div>
       <div class="flex items-center gap-1.5">
+        <!-- 移动端：只显示核心按钮 -->
         <button
           class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="loadDemo"
@@ -345,10 +363,11 @@ onBeforeUnmount(() => {
             <line x1="16" y1="13" x2="8" y2="13" />
             <line x1="16" y1="17" x2="8" y2="17" />
           </svg>
-          加载示例
+          <span class="hidden sm:inline">加载示例</span>
+          <span class="sm:hidden">示例</span>
         </button>
         <button
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleCopyHTML"
         >
           <svg
@@ -361,7 +380,7 @@ onBeforeUnmount(() => {
           复制 HTML
         </button>
         <button
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleSaveImage"
         >
           <svg
@@ -385,7 +404,8 @@ onBeforeUnmount(() => {
             <rect x="9" y="9" width="13" height="13" rx="2" />
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
           </svg>
-          复制富文本
+          <span class="hidden sm:inline">复制富文本</span>
+          <span class="sm:hidden">复制</span>
         </button>
         <ThemePicker
           :themes="themes"
@@ -399,9 +419,43 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Main Layout -->
+    <!-- 移动端：Tab 切换栏 -->
+    <div class="flex md:hidden shrink-0 border-b" style="background: var(--bg-primary)">
+      <button
+        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[13px] font-medium border-none cursor-pointer transition-all duration-200"
+        :style="{
+          background: mobileTab === 'editor' ? 'var(--accent-light)' : 'transparent',
+          color: mobileTab === 'editor' ? 'var(--accent)' : 'var(--text-secondary)',
+          borderBottom: mobileTab === 'editor' ? '2px solid var(--accent)' : '2px solid transparent'
+        }"
+        @click="mobileTab = 'editor'"
+      >
+        <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+        编辑
+      </button>
+      <button
+        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[13px] font-medium border-none cursor-pointer transition-all duration-200"
+        :style="{
+          background: mobileTab === 'preview' ? 'var(--accent-light)' : 'transparent',
+          color: mobileTab === 'preview' ? 'var(--accent)' : 'var(--text-secondary)',
+          borderBottom: mobileTab === 'preview' ? '2px solid var(--accent)' : '2px solid transparent'
+        }"
+        @click="mobileTab = 'preview'"
+      >
+        <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+          <rect x="5" y="2" width="14" height="20" rx="2" />
+          <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
+        </svg>
+        预览
+      </button>
+    </div>
+
     <div class="flex flex-1 overflow-hidden">
       <!-- Editor Panel -->
-      <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="flex flex-col overflow-hidden flex-1 min-w-0" :class="{ 'hidden md:flex': mobileTab !== 'editor' }">
         <div
           class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
         >
@@ -424,11 +478,11 @@ onBeforeUnmount(() => {
         />
       </div>
 
-      <!-- Resize Handle -->
-      <div class="resize-handle" @mousedown="onDragStart"></div>
+      <!-- Resize Handle (仅桌面端) -->
+      <div class="resize-handle hidden md:block" @mousedown="onDragStart"></div>
 
       <!-- Preview Panel -->
-      <div class="flex flex-col overflow-hidden" :style="{ width: previewWidth + 'px' }">
+            <div class="flex flex-col overflow-hidden flex-1 md:flex-none" :class="{ 'hidden md:flex': mobileTab !== 'preview' }" :style="isMobile ? {} : { width: previewWidth + 'px' }">
         <div
           class="panel-header flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
         >
@@ -442,7 +496,7 @@ onBeforeUnmount(() => {
             </svg>
             公众号预览
           </span>
-          <span class="panel-header-muted font-normal text-[11px]"
+          <span class="panel-header-muted font-normal text-[11px] hidden sm:inline"
             >实时渲染 · 可直接复制到公众号</span
           >
         </div>
