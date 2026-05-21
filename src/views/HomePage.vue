@@ -62,6 +62,7 @@ const typingDone = ref(false)
 const previewRef = ref<HTMLElement>()
 let typingTimer: ReturnType<typeof setTimeout> | null = null
 let charIndex = 0
+let typingPaused = false
 
 const demoColors: ThemeColors = {
   accent: '#6c5ce7',
@@ -72,16 +73,18 @@ const demoColors: ThemeColors = {
 }
 
 function typeNextChar() {
+  if (typingPaused) return
   if (charIndex < demoMd.length) {
     typedMd.value += demoMd[charIndex]
     charIndex++
     // 换行稍慢，模拟真实输入节奏
     const delay = demoMd[charIndex - 1] === '\n' ? 80 : 30
     typingTimer = setTimeout(typeNextChar, delay)
-  } else {
+    } else {
     typingDone.value = true
     // 打完后停顿，然后重新开始
     typingTimer = setTimeout(() => {
+      if (typingPaused) { typingTimer = null; return }
       typedMd.value = ''
       charIndex = 0
       typingDone.value = false
@@ -123,7 +126,7 @@ onMounted(() => {
     if (el) observer.observe(el)
   }, 100)
 
-  // 预览区域可见时启动打字动画
+    // 预览区域可见时启动打字动画
   const previewObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -138,6 +141,34 @@ onMounted(() => {
   setTimeout(() => {
     const el = document.getElementById('demo-preview')
     if (el) previewObserver.observe(el)
+  }, 100)
+
+  // 预览卡片滚出可视区域时暂停打字，滚回来时恢复
+  const typingPauseObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (charIndex === 0) return // 还没开始打字，不管
+        if (entry.isIntersecting) {
+          // 滚回来了，恢复打字
+          if (typingPaused) {
+            typingPaused = false
+            if (!typingTimer) typingTimer = setTimeout(typeNextChar, 100)
+          }
+        } else {
+          // 滚出去了，暂停打字
+          typingPaused = true
+          if (typingTimer) {
+            clearTimeout(typingTimer)
+            typingTimer = null
+          }
+        }
+      })
+    },
+    { threshold: 0 }
+  )
+  setTimeout(() => {
+    const el = document.getElementById('demo-preview')
+    if (el) typingPauseObserver.observe(el)
   }, 100)
 })
 
