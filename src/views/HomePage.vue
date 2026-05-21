@@ -415,14 +415,14 @@ const features = [
 </script>
 
 <template>
-        <div class="landing min-w-[960px] relative" :class="{ 'opacity-100 translate-y-0': visible, 'opacity-0 translate-y-3': !visible }">
+                <div class="landing relative" :class="{ 'opacity-100 translate-y-0': visible, 'opacity-0 translate-y-3': !visible }">
 
         <!-- Cloud canvas – spans header + hero for seamless transition -->
                 <canvas ref="cloudCanvasRef" class="absolute top-0 left-0 w-full pointer-events-none" style="z-index:0; height: 1320px;"></canvas>
 
         <!-- Header -->
     <header class="header-blur sticky top-0 z-50 backdrop-blur-xl">
-            <div class="mx-auto max-w-[1100px] flex items-center px-8 py-3.5">
+                        <div class="mx-auto max-w-[1100px] flex items-center px-4 sm:px-8 py-3.5">
                                         <router-link to="/" class="flex items-center gap-2.5 no-underline shrink-0 logo-link" @mouseenter="onLogoEnter" @mouseleave="onLogoLeave">
           <svg class="logo-icon" viewBox="0 0 24 24" width="26" height="26">
             <rect width="24" height="24" rx="6" fill="#6c5ce7" />
@@ -430,7 +430,7 @@ const features = [
           </svg>
           <span ref="logoTextRef" class="text-[17px] font-bold text-[#111] tracking-tight logo-text">R-Markdown</span>
         </router-link>
-                                                                                                                                                                                                                                                                                                                                                                                                                                <nav ref="navRef" class="nav-pill relative flex items-center rounded-full bg-black/5 px-0.5 py-0.5 ml-auto" @mouseleave="onNavLeave">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <nav ref="navRef" class="nav-pill relative hidden sm:flex items-center rounded-full bg-black/5 px-0.5 py-0.5 ml-auto" @mouseleave="onNavLeave">
                                                                                                                                             <div class="nav-highlight absolute top-0.5 bottom-0.5 rounded-full bg-black/8 transition-all duration-300 ease-out" :style="highlightStyle"></div>
           <a href="javascript:void(0)" class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]" @mouseenter="onNavEnter($event, 'features')" @click="scrollToFeatures">
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
@@ -447,30 +447,30 @@ const features = [
     </header>
 
                                 <!-- Hero -->
-                                                                <section class="hero-section relative px-8 pt-[100px] pb-20 overflow-hidden">
+                                                                                                                                <section class="hero-section relative px-4 sm:px-8 pt-16 sm:pt-[100px] pb-12 sm:pb-20 overflow-hidden">
       <div class="mx-auto max-w-[1100px] relative" style="z-index:1;">
-        <h1 class="hero-title text-[clamp(56px,8vw,92px)] font-black leading-[1.1] tracking-[-2px] text-[#111] m-0 mb-8">
+                <h1 class="hero-title text-[clamp(36px,8vw,92px)] font-black leading-[1.1] tracking-[-2px] text-[#111] m-0 mb-6 sm:mb-8">
           写 Markdown，<br>
           发<span class="text-[#6c5ce7]">公众号</span>。
         </h1>
-        <p class="hero-subtitle text-2xl font-semibold text-black/80 m-0 mb-5 tracking-tight">
+                <p class="hero-subtitle text-lg sm:text-2xl font-semibold text-black/80 m-0 mb-4 sm:mb-5 tracking-tight">
           R-Markdown — 最简洁的公众号 Markdown 排版工具
         </p>
-        <p class="hero-desc text-[19px] leading-relaxed text-black/[0.55] m-0">
-          左侧写 Markdown，右侧实时预览排版效果，<br>
-          一键复制粘贴到公众号编辑器，告别繁琐排版。<br>
+                <p class="hero-desc text-base sm:text-[19px] leading-relaxed text-black/[0.55] m-0">
+          左侧写 Markdown，右侧实时预览排版效果，<br class="hidden sm:block">
+          一键复制粘贴到公众号编辑器，告别繁琐排版。<br class="hidden sm:block">
           <span class="text-[#6c5ce7]">为你，也为每一个认真写内容的人。</span>
         </p>
-                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-10 px-10 py-4 bg-[#6c5ce7] text-white text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]" @mouseenter="preloadEditor">
+                                <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 mt-8 sm:mt-10 px-8 sm:px-10 py-3.5 sm:py-4 bg-[#6c5ce7] text-white text-base sm:text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[#5a4bd1] hover:-translate-y-px active:scale-[0.97]" @mouseenter="preloadEditor">
                     <svg class="cta-arrow" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
           打开编辑器
         </router-link>
-        <p class="hero-hint mt-4 ml-4 text-[15px] text-black/[0.55]">开源免费，点击即用</p>
+                <p class="hero-hint mt-3 sm:mt-4 ml-4 text-[13px] sm:text-[15px] text-black/[0.55]">开源免费，点击即用</p>
       </div>
     </section>
 
                                 <!-- Preview -->
-    <section id="demo-preview" class="px-8 pb-20">
+        <section id="demo-preview" class="px-4 sm:px-8 pb-12 sm:pb-20">
       <div class="mx-auto max-w-[1100px]">
                 <div
           ref="previewCardRef"
@@ -492,23 +492,23 @@ const features = [
               opacity: cardGlow.opacity
             }"
           ></div>
-          <!-- Title bar -->
-          <div class="preview-titlebar flex items-center gap-2 px-5 py-3 bg-[#f5f5f7] border-b border-black/[0.06]">
+                    <!-- Title bar -->
+          <div class="preview-titlebar hidden sm:flex items-center gap-2 px-5 py-3 bg-[#f5f5f7] border-b border-black/[0.06]">
             <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
             <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
             <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
             <span class="ml-3 text-[13px] text-[#999] font-medium">R-Markdown Editor</span>
           </div>
-          <!-- Editor body -->
-          <div class="preview-body flex h-[530px]">
+                    <!-- Editor body -->
+          <div class="preview-body flex flex-col sm:flex-row h-auto sm:h-[530px]">
             <!-- Left: Markdown source (typing animation) -->
-            <div class="preview-editor flex-[5] border-r border-black/[0.06] bg-[#fafafa] p-8 font-mono text-[15px] leading-[1.9] text-[#444] overflow-hidden">
+            <div class="preview-editor flex-[5] sm:border-r border-b sm:border-b-0 border-black/[0.06] bg-[#fafafa] p-4 sm:p-8 font-mono text-[13px] sm:text-[15px] leading-[1.9] text-[#444] overflow-hidden max-h-[250px] sm:max-h-none">
               <div class="text-[#999] text-[12px] mb-3 select-none">Markdown</div>
               <pre class="whitespace-pre-wrap break-words m-0 font-inherit text-inherit"><span v-for="(line, i) in typedMd.split('\n')" :key="i"><template v-for="(segment, j) in renderMdLine(line)" :key="j"><span v-if="segment.type === 'key'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'bold'" class="font-bold text-[#111]">{{ segment.text }}</span><span v-else-if="segment.type === 'accent'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'accentText'" class="text-[#444]">{{ segment.text }}</span><span v-else-if="segment.type === 'gradient'" class="text-[#333]">{{ segment.text }}</span><span v-else class="text-[#666]">{{ segment.text }}</span></template><span v-if="!typingDone && i === typedMd.split('\n').length - 1" class="inline-block w-[2px] h-[1.1em] bg-[#6c5ce7] align-middle ml-[1px] animate-blink"></span>
 </span></pre>
             </div>
-                        <!-- Right: Live preview -->
-            <div class="preview-panel flex-[3] bg-white p-8">
+                                    <!-- Right: Live preview -->
+            <div class="preview-panel flex-[3] bg-white p-4 sm:p-8">
               <div class="text-[#999] text-[12px] mb-4 select-none">预览</div>
               <div ref="previewRef" class="preview-content"></div>
             </div>
@@ -518,15 +518,15 @@ const features = [
     </section>
 
         <!-- Features -->
-    <section id="features" class="px-8 py-20 transition-all duration-800" :class="featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'">
+        <section id="features" class="px-4 sm:px-8 py-12 sm:py-20 transition-all duration-800" :class="featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'">
       <div class="mx-auto max-w-[1100px]">
-        <h2 class="features-title text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">功能</h2>
-        <p class="features-subtitle text-[19px] text-[#888] m-0 mb-12">一切为了更专注的写作体验</p>
-                <div class="grid grid-cols-3 gap-5">
+                <h2 class="features-title text-[28px] sm:text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">功能</h2>
+        <p class="features-subtitle text-base sm:text-[19px] text-[#888] m-0 mb-8 sm:mb-12">一切为了更专注的写作体验</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           <div
             v-for="(f, i) in features"
             :key="i"
-            class="feature-card group bg-white rounded-2xl px-8 pt-9 pb-8 border border-black/[0.04] opacity-0 translate-y-8 scale-95 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:shadow-[0_8px_30px_rgba(108,92,231,0.1)] hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6c5ce7]/20"
+                        class="feature-card group bg-white rounded-2xl px-5 sm:px-8 pt-7 sm:pt-9 pb-6 sm:pb-8 border border-black/[0.04] opacity-0 translate-y-8 scale-95 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:shadow-[0_8px_30px_rgba(108,92,231,0.1)] hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6c5ce7]/20"
             :class="featuresVisible ? '!opacity-100 !translate-y-0 !scale-100' : ''"
             :style="{ transitionDelay: `${i * 0.12}s` }"
           >
@@ -539,10 +539,10 @@ const features = [
     </section>
 
         <!-- CTA -->
-    <section class="cta-section px-8 pt-20 pb-[100px] text-center">
+        <section class="cta-section px-4 sm:px-8 pt-12 sm:pt-20 pb-16 sm:pb-[100px] text-center">
       <div class="mx-auto max-w-[600px]">
-        <h2 class="text-[36px] font-extrabold tracking-tight text-[#111] m-0 mb-2">开始写作</h2>
-        <p class="text-[17px] text-[#888] m-0 mb-8">无需注册，打开即用</p>
+                <h2 class="text-[26px] sm:text-[36px] font-extrabold tracking-tight text-[#111] m-0 mb-2">开始写作</h2>
+        <p class="text-base sm:text-[17px] text-[#888] m-0 mb-6 sm:mb-8">无需注册，打开即用</p>
                 <router-link to="/editor" class="cta-btn inline-flex items-center gap-2 bg-[#6c5ce7] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[#5a4bd1] hover:-translate-y-px">
           打开编辑器
           <svg class="cta-arrow" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M12 5l5 5-5 5"/></svg>
@@ -551,18 +551,18 @@ const features = [
     </section>
 
     <!-- 公众号反馈 -->
-    <section class="px-8 pb-20">
-      <div class="feedback-card mx-auto max-w-[600px] bg-white rounded-2xl border border-black/[0.06] px-10 py-10 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+        <section class="px-4 sm:px-8 pb-12 sm:pb-20">
+              <div class="feedback-card mx-auto max-w-[600px] bg-white rounded-2xl border border-black/[0.06] px-6 sm:px-10 py-8 sm:py-10 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
         <p class="text-[17px] text-[#555] m-0 mb-2">编辑器为个人公众号写作自用，可能会不定期更新</p>
         <p class="text-[17px] text-[#555] m-0 mb-6">使用中遇到问题或有建议？欢迎关注公众号反馈</p>
-                <img src="/wechat-qr.jpg" alt="微信公众号二维码" class="qr-light w-[280px] rounded-xl" />
-        <img src="/wechat-qr-dark.jpg" alt="微信公众号二维码" class="qr-dark w-[280px] rounded-xl" />
+                                <img src="/wechat-qr.jpg" alt="微信公众号二维码" class="qr-light w-[200px] sm:w-[280px] rounded-xl" />
+        <img src="/wechat-qr-dark.jpg" alt="微信公众号二维码" class="qr-dark w-[200px] sm:w-[280px] rounded-xl" />
         <p class="text-[13px] text-[#999] mt-4 m-0">微信搜索「<span class="text-[#6c5ce7] font-medium">五味杂陈杂货铺</span>」</p>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="px-8 py-6 border-t border-black/[0.06]">
+        <footer class="px-4 sm:px-8 py-6 border-t border-black/[0.06]">
       <div class="mx-auto max-w-[1100px] text-center">
                         <p class="text-[13px] text-[#bbb]">© 2026 R-Markdown · Markdown to WeChat</p>
         <p class="text-[12px] text-[#ccc] mt-1">网站使用AI辅助生成</p>
