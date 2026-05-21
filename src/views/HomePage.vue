@@ -473,7 +473,7 @@ const features = [
             GitHub
           </a>
         </nav>
-        <DarkModeToggle :mode="darkMode" @select="setDarkMode" class="ml-auto shrink-0" />
+                <DarkModeToggle :mode="darkMode" @select="setDarkMode" class="shrink-0" />
       </div>
     </header>
 
