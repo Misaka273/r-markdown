@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useDropdownGroup } from '../composables/useDropdownGroup'
 
 const props = defineProps<{
   themes: { accent: string; dark: string }[]
@@ -12,16 +13,16 @@ const emit = defineEmits<{
   customSelect: [hex: string]
 }>()
 
-const show = ref(false)
+const { toggle: groupToggle, isVisible } = useDropdownGroup('theme')
 const pickerRef = ref<HTMLElement | null>(null)
 
 function toggle() {
-  show.value = !show.value
+  groupToggle(!isVisible.value)
 }
 
 function onClickOutside(e: MouseEvent) {
   if (pickerRef.value && !pickerRef.value.contains(e.target as Node)) {
-    show.value = false
+    groupToggle(false)
   }
 }
 
@@ -35,6 +36,7 @@ onBeforeUnmount(() => {
 
 function select(a: string, d: string) {
   emit('select', a, d)
+  groupToggle(false)
 }
 
 function onCustomInput(e: Event) {
@@ -57,7 +59,7 @@ function onCustomInput(e: Event) {
     </button>
     <div
       class="theme-picker absolute top-full right-0 mt-2 p-3 rounded-xl z-10 w-50"
-      :class="{ show }"
+            :class="{ show: isVisible }"
     >
       <div class="flex flex-wrap gap-2">
         <div

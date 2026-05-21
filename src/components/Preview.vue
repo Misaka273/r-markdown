@@ -134,13 +134,12 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
 </script>
 
 <template>
-  <div
+    <div
     class="preview-scroll"
     style="
       height: 100%;
       overflow-y: auto;
-      padding: 16px;
-            scrollbar-width: none;
+      scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
     "
@@ -175,7 +174,15 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
 </template>
 
 <style scoped>
+.preview-scroll {
+  padding: 16px;
+}
 .preview-scroll::-webkit-scrollbar {
   display: none;
+}
+@media (max-width: 767px) {
+  .preview-scroll {
+    padding: 0;
+  }
 }
 </style>

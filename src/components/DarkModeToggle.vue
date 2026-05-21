@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 import type { DarkMode } from '../composables/useDarkMode'
+import { useDropdownGroup } from '../composables/useDropdownGroup'
 
 defineProps<{
   mode: DarkMode
@@ -10,28 +11,31 @@ const emit = defineEmits<{
   select: [mode: DarkMode]
 }>()
 
-const show = ref(false)
+const { toggle: groupToggle, isVisible } = useDropdownGroup('darkmode')
 
 function toggle() {
-  show.value = !show.value
+  groupToggle(!isVisible.value)
 }
 
 function select(m: DarkMode) {
   emit('select', m)
-  show.value = false
+  groupToggle(false)
 }
 
 function close(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (!target.closest('.dark-mode-toggle')) {
-    show.value = false
+    groupToggle(false)
   }
 }
 
-// 点击外部关闭
-if (typeof document !== 'undefined') {
+onMounted(() => {
   document.addEventListener('click', close)
-}
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', close)
+})
 </script>
 
 <template>
@@ -96,7 +100,7 @@ if (typeof document !== 'undefined') {
     </button>
     <div
       class="dark-mode-menu absolute top-full right-0 mt-2 p-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 w-36"
-      :class="{ show }"
+            :class="{ show: isVisible }"
     >
       <button
         class="dark-mode-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
