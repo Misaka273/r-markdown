@@ -454,7 +454,7 @@ const features = [
           发<span class="text-[#6c5ce7]">公众号</span>。
         </h1>
                 <p class="hero-subtitle text-lg sm:text-2xl font-semibold text-black/80 m-0 mb-4 sm:mb-5 tracking-tight">
-          R-Markdown — 最简洁的公众号 Markdown 排版工具
+          R-Markdown — 一款简洁的公众号 Markdown 排版工具
         </p>
                 <p class="hero-desc text-base sm:text-[19px] leading-relaxed text-black/[0.55] m-0">
           左侧写 Markdown，右侧实时预览排版效果，<br class="hidden sm:block">
@@ -502,7 +502,7 @@ const features = [
                     <!-- Editor body -->
           <div class="preview-body flex flex-col sm:flex-row h-auto sm:h-[530px]">
             <!-- Left: Markdown source (typing animation) -->
-            <div class="preview-editor flex-[5] sm:border-r border-b sm:border-b-0 border-black/[0.06] bg-[#fafafa] p-4 sm:p-8 font-mono text-[13px] sm:text-[15px] leading-[1.9] text-[#444] overflow-hidden max-h-[250px] sm:max-h-none">
+                        <div class="preview-editor flex-[5] sm:border-r border-b sm:border-b-0 border-black/[0.06] bg-[#fafafa] p-4 sm:p-8 font-mono text-[13px] sm:text-[15px] leading-[1.9] text-[#444] overflow-hidden">
               <div class="text-[#999] text-[12px] mb-3 select-none">Markdown</div>
               <pre class="whitespace-pre-wrap break-words m-0 font-inherit text-inherit"><span v-for="(line, i) in typedMd.split('\n')" :key="i"><template v-for="(segment, j) in renderMdLine(line)" :key="j"><span v-if="segment.type === 'key'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'bold'" class="font-bold text-[#111]">{{ segment.text }}</span><span v-else-if="segment.type === 'accent'" class="text-[#6c5ce7]">{{ segment.text }}</span><span v-else-if="segment.type === 'accentText'" class="text-[#444]">{{ segment.text }}</span><span v-else-if="segment.type === 'gradient'" class="text-[#333]">{{ segment.text }}</span><span v-else class="text-[#666]">{{ segment.text }}</span></template><span v-if="!typingDone && i === typedMd.split('\n').length - 1" class="inline-block w-[2px] h-[1.1em] bg-[#6c5ce7] align-middle ml-[1px] animate-blink"></span>
 </span></pre>
