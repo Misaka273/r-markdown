@@ -104,6 +104,7 @@ watch(typedMd, () => {
 onMounted(() => {
   requestAnimationFrame(() => { visible.value = true })
   initCloudCanvas()
+  preloadEditor()
 
   const observer = new IntersectionObserver(
     (entries) => {
