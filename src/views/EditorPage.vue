@@ -421,7 +421,8 @@ onBeforeUnmount(() => {
           复制富文本
         </button>
         <!-- 移动端：下拉菜单 -->
-                <MobileActionsMenu
+                                <MobileActionsMenu
+          :mode="mobileTab"
           @load-demo="loadDemo"
           @copy-html="handleCopyHTML"
           @save-image="handleSaveImage"
