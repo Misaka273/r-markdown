@@ -419,38 +419,25 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Main Layout -->
-    <!-- 移动端：Tab 切换栏 -->
-    <div class="flex md:hidden shrink-0 border-b" style="background: var(--bg-primary)">
-      <button
-        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[13px] font-medium border-none cursor-pointer transition-all duration-200"
-        :style="{
-          background: mobileTab === 'editor' ? 'var(--accent-light)' : 'transparent',
-          color: mobileTab === 'editor' ? 'var(--accent)' : 'var(--text-secondary)',
-          borderBottom: mobileTab === 'editor' ? '2px solid var(--accent)' : '2px solid transparent'
-        }"
-        @click="mobileTab = 'editor'"
-      >
-        <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-        </svg>
-        编辑
-      </button>
-      <button
-        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[13px] font-medium border-none cursor-pointer transition-all duration-200"
-        :style="{
-          background: mobileTab === 'preview' ? 'var(--accent-light)' : 'transparent',
-          color: mobileTab === 'preview' ? 'var(--accent)' : 'var(--text-secondary)',
-          borderBottom: mobileTab === 'preview' ? '2px solid var(--accent)' : '2px solid transparent'
-        }"
-        @click="mobileTab = 'preview'"
-      >
-        <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
-          <rect x="5" y="2" width="14" height="20" rx="2" />
-          <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
-        </svg>
-        预览
-      </button>
+        <!-- 移动端：底部悬浮胶囊 Tab -->
+    <div class="mobile-tab-bar md:hidden" :style="{ '--accent': accent }">
+      <div class="mobile-tab-pill">
+        <div class="mobile-tab-highlight" :class="mobileTab === 'preview' ? 'right' : 'left'"></div>
+        <button class="mobile-tab-btn" :class="{ active: mobileTab === 'editor' }" @click="mobileTab = 'editor'">
+          <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          编辑
+        </button>
+        <button class="mobile-tab-btn" :class="{ active: mobileTab === 'preview' }" @click="mobileTab = 'preview'">
+          <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+            <rect x="5" y="2" width="14" height="20" rx="2" />
+            <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
+          </svg>
+          预览
+        </button>
+      </div>
     </div>
 
     <div class="flex flex-1 overflow-hidden">
@@ -503,5 +490,103 @@ onBeforeUnmount(() => {
         <Preview ref="previewRef" :markdown="markdown" :colors="colors" />
       </div>
     </div>
-  </div>
+    </div>
 </template>
+
+<style scoped>
+/* 移动端底部悬浮胶囊 */
+.mobile-tab-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+}
+
+.mobile-tab-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  pointer-events: auto;
+}
+
+.mobile-tab-highlight {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  border-radius: 9999px;
+  background: var(--accent, #6c5ce7);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-tab-highlight.left {
+  transform: translateX(0);
+}
+
+.mobile-tab-highlight.right {
+  transform: translateX(100%);
+}
+
+.mobile-tab-btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.mobile-tab-btn.active {
+  color: #fff;
+}
+
+/* 暗色模式 */
+:global([data-theme='dark']) .mobile-tab-pill {
+  background: rgba(30, 30, 30, 0.92);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .mobile-tab-btn {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+:global([data-theme='dark']) .mobile-tab-btn.active {
+  color: #fff;
+}
+
+/* 移动端给编辑/预览区域留出底部空间，避免被胶囊遮挡 */
+@media (max-width: 767px) {
+  :deep(.cm-editor) {
+    padding-bottom: 80px;
+  }
+  :deep(.preview-scroll) {
+    padding-bottom: 80px;
+  }
+}
+</style>
