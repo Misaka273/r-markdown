@@ -66,24 +66,18 @@ export const ParagraphTitle_DA01 = {
 </section>`
     }
 
-    // ── Level 2: 三级标题（左侧装饰数字 + 标题）──
+        // ── Level 2: 三级标题（数字 + 标题同行）──
     if (level === 2) {
       return `
 <section style="margin:36px 0px 20px">
-  <section style="position:relative;padding-left:56px">
-    <strong style="position:absolute;left:0;top:-6px;font-size:48px;font-weight:900;color:${color}20;line-height:1;letter-spacing:-2px;pointer-events:none;user-select:none"><span leaf="">${num}</span></strong>
-        <p style="margin:0px;font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4;letter-spacing:-0.3px"><span leaf="">${leaf(title)}</span></p>
-  </section>
+  <p style="margin:0px;display:flex;align-items:baseline;gap:10px"><strong style="font-size:22px;font-weight:900;color:${color};line-height:1.4;letter-spacing:-0.3px;flex-shrink:0"><span leaf="">${num}</span></strong><span style="font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4;letter-spacing:-0.3px"><span leaf="">${leaf(title)}</span></span></p>
 </section>`
     }
 
-    // ── Level 3: 四级标题（小装饰数字 + 标题）──
+    // ── Level 3: 四级标题（数字 + 标题同行，更小）──
     return `
 <section style="margin:28px 0px 16px">
-  <section style="position:relative;padding-left:44px">
-    <strong style="position:absolute;left:0;top:-4px;font-size:36px;font-weight:900;color:${color}18;line-height:1;letter-spacing:-1.5px;pointer-events:none;user-select:none"><span leaf="">${num}</span></strong>
-        <p style="margin:0px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.45"><span leaf="">${leaf(title)}</span></p>
-  </section>
+  <p style="margin:0px;display:flex;align-items:baseline;gap:8px"><strong style="font-size:18px;font-weight:900;color:${color};line-height:1.45;flex-shrink:0"><span leaf="">${num}</span></strong><span style="font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.45"><span leaf="">${leaf(title)}</span></span></p>
 </section>`
   },
 }
