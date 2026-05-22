@@ -5,10 +5,10 @@ import type { ThemeColors } from '@/composables/useTheme'
  * Steps_DA01 - 横向步骤流（默认A型01号样式）
  *
  * 编辑器语法：
- *   ::: steps label="HOW IT WORKS" title="标题" hint="提示文字" active="2" color="#e74c3c"
+ *   <steps label="HOW IT WORKS" title="标题" hint="提示文字" active="2" color="#e74c3c">
  *   - 步骤名称 | 步骤描述
  *   - 步骤名称 | 步骤描述
- *   :::
+ *   </steps>
  *
  * 属性：
  *   label  - 顶部标签（如：HOW IT WORKS）
@@ -29,12 +29,12 @@ export const Steps_DA01 = {
     { key: 'active', label: '当前步骤（1/2/3）', required: false, default: '1' },
     { key: 'color',  label: '自定义颜色',       required: false, default: '' },
   ],
-    example:
-    `::: steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2" color="#e74c3c"
+      example:
+    `<steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2" color="#e74c3c">
 - 输入 | 往知识库里喂东西
 - 管理 | 让知识库有序运转
 - 输出 | 从知识库取素材做东西
-:::`,
+</steps>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const active = parseInt(attrs.active || '1', 10)

@@ -56,16 +56,17 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-        // ::: steps
-    if (/^:::\s*steps\b/.test(line)) {
-      const attrs = parseAttrs(line)
+            // <steps>
+    if (/^<steps\b/.test(line)) {
+      const openMatch = line.match(/^<steps\b([^>]*)>/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       i++
       let body = ''
-      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
+      while (i < lines.length && !/^<\/steps>/.test(lines[i])) {
         body += lines[i] + '\n'
         i++
       }
-      i++ // skip :::
+      i++ // skip </steps>
       html += Steps_DA01.render(attrs, body.trim(), t)
       continue
     }
