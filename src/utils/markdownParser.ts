@@ -12,7 +12,7 @@ import {
   parseGallery,
 } from './components'
 import { Title_DA01 } from '@/editor-components/Title_DA01'
-import { ParagraphTitle_DA01 } from '@/editor-components/ParagraphTitle_DA01'
+import { PTitle } from '@/editor-components/PTitle'
 import { Breaking_DA01 } from '@/editor-components/Breaking_DA01'
 import { Steps_DA01 } from '@/editor-components/Steps_DA01'
 
@@ -190,7 +190,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       if (ptMatch) {
         const attrs = parseAttrs(ptMatch[1])
         const body = ptMatch[2].trim()
-        html += ParagraphTitle_DA01.render(attrs, body, t)
+        html += PTitle.render(attrs, body, t)
       }
       i++
       continue
@@ -289,7 +289,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         h3Num = h3NumMatch[1]
         h3Title = h3NumMatch[2]
       }
-      html += ParagraphTitle_DA01.render(
+      html += PTitle.render(
         { num: h3Num, level: '2' },
         h3Title, t,
       )
@@ -308,7 +308,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         h4Num = h4NumMatch[1]
         h4Title = h4NumMatch[2]
       }
-      html += ParagraphTitle_DA01.render(
+      html += PTitle.render(
         { num: h4Num, level: '3' },
         h4Title, t,
       )

@@ -2,7 +2,7 @@ import { leaf } from '@/utils/helpers'
 import type { ThemeColors } from '@/composables/useTheme'
 
 /**
- * ParagraphTitle_DA01 - 段落标题（默认A型01号样式）
+  * PTitle - 段落标题（默认A型01号样式）
  *
  * 编辑器语法（两种写法均可）：
  *   <p-title num="01" title="标题内容" subtitle="副标题" level="1"></p-title>
@@ -24,8 +24,8 @@ import type { ThemeColors } from '@/composables/useTheme'
  */
 
 // ── 组件定义 ──────────────────────────────────────────
-export const ParagraphTitle_DA01 = {
-  id: 'ParagraphTitle_DA01',
+export const PTitle = {
+  id: 'PTitle',
   name: '段落标题',
   tag: 'p-title',
       attrs: [
