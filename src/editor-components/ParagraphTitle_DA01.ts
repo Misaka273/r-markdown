@@ -36,48 +36,67 @@ export const ParagraphTitle_DA01 = {
   example:
     `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,
 
-    render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
-    const num = attrs.num || '01'
+      render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
+    const num = attrs.num || ''
     const title = attrs.title || body  // title 属性优先，fallback 到 body
     const subtitle = attrs.subtitle
     const level = parseInt(attrs.level || '1', 10)
     const accent = t.accent
     const color = attrs.color || accent
+    const hasNum = num !== ''
 
     // ── Level 1: 完整章节标题（CHAPTER + 大号装饰数字 + 标题 + 副标题）──
     if (level === 1) {
+      const numBlock = hasNum
+        ? `<strong style="display:block;font-size:60px;line-height:1;color:${color}40;letter-spacing:-3px;white-space:nowrap"><span leaf="">${num}</span></strong>`
+        : ''
+      const titleBlock = hasNum
+        ? `<strong style="display:block;font-size:30px;font-weight:900;color:rgb(17,24,39);line-height:1.26;letter-spacing:-0.8px;margin-top:-60px;margin-left:50px"><span leaf="">${leaf(title)}</span></strong>`
+        : `<strong style="display:block;font-size:30px;font-weight:900;color:rgb(17,24,39);line-height:1.26;letter-spacing:-0.8px"><span leaf="">${leaf(title)}</span></strong>`
       const subtitleHtml = subtitle
-        ? `<span style="display:block;margin-left:50px;font-size:11px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:1.6px"><span leaf="">${leaf(subtitle)}</span></span>`
+        ? `<span style="display:block;margin-left:${hasNum ? '50px' : '0'};font-size:11px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:1.6px"><span leaf="">${leaf(subtitle)}</span></span>`
+        : ''
+      const chapterLine = hasNum
+        ? `<section style="display:flex;align-items:center;margin:0;padding-bottom:12px"><span style="font-size:10px;font-weight:800;color:rgb(148,163,184);letter-spacing:2.6px;text-transform:uppercase;white-space:nowrap"><span leaf="">CHAPTER ${num}</span></span><section style="flex:1;border-top:1px solid rgb(229,231,235);margin:0 0 0 12px;height:0"></section></section>`
         : ''
 
       return `
 <section style="margin:48px 0px 30px">
   <section style="clear:both">
-    <section style="display:flex;align-items:center;margin:0;padding-bottom:12px">
-      <span style="font-size:10px;font-weight:800;color:rgb(148,163,184);letter-spacing:2.6px;text-transform:uppercase;white-space:nowrap"><span leaf="">CHAPTER ${num}</span></span>
-      <section style="flex:1;border-top:1px solid rgb(229,231,235);margin:0 0 0 12px;height:0"></section>
-    </section>
+    ${chapterLine}
     <section style="margin:0">
-      <strong style="display:block;font-size:60px;line-height:1;color:${color}40;letter-spacing:-3px;white-space:nowrap"><span leaf="">${num}</span></strong>
-            <strong style="display:block;font-size:30px;font-weight:900;color:rgb(17,24,39);line-height:1.26;letter-spacing:-0.8px;margin-top:-60px;margin-left:50px"><span leaf="">${leaf(title)}</span></strong>
+      ${numBlock}
+      ${titleBlock}
       ${subtitleHtml}
     </section>
   </section>
 </section>`
     }
 
-        // ── Level 2: 三级标题（数字 + 标题同行）──
+    // ── Level 2: 三级标题（数字 + 标题同行，无数字则只显示标题）──
     if (level === 2) {
-      return `
+      if (hasNum) {
+        return `
 <section style="margin:36px 0px 20px">
   <p style="margin:0px;display:flex;align-items:baseline;gap:10px"><strong style="font-size:22px;font-weight:900;color:${color};line-height:1.4;letter-spacing:-0.3px;flex-shrink:0"><span leaf="">${num}</span></strong><span style="font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4;letter-spacing:-0.3px"><span leaf="">${leaf(title)}</span></span></p>
 </section>`
+      }
+      return `
+<section style="margin:36px 0px 20px">
+  <p style="margin:0px;font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4;letter-spacing:-0.3px"><span leaf="">${leaf(title)}</span></p>
+</section>`
     }
 
-    // ── Level 3: 四级标题（数字 + 标题同行，更小）──
-    return `
+    // ── Level 3: 四级标题（数字 + 标题同行，无数字则只显示标题）──
+    if (hasNum) {
+      return `
 <section style="margin:28px 0px 16px">
   <p style="margin:0px;display:flex;align-items:baseline;gap:8px"><strong style="font-size:18px;font-weight:900;color:${color};line-height:1.45;flex-shrink:0"><span leaf="">${num}</span></strong><span style="font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.45"><span leaf="">${leaf(title)}</span></span></p>
+</section>`
+    }
+    return `
+<section style="margin:28px 0px 16px">
+  <p style="margin:0px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.45"><span leaf="">${leaf(title)}</span></p>
 </section>`
   },
 }
