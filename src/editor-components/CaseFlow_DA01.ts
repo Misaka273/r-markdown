@@ -36,6 +36,15 @@ export const CaseFlow_DA01 = {
   id: 'CaseFlow_DA01',
   name: '实践案例流',
   tag: 'case-flow',
+  attrs: [
+    { key: 'color', label: '自定义颜色', required: false, default: '' },
+  ],
+  example:
+    `<case-flow color="#e74c3c">
+- [案例 01] 从零搭建个人知识库，三周后效率翻倍
+- [案例 02] 用 AI 辅助写周报，每周省出两小时
+- [案例 03] 坚持早起 100 天，人生发生了什么变化
+</case-flow>`,
 
   render(
     attrs: Record<string, string>,
