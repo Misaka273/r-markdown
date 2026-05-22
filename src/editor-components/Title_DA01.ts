@@ -2,7 +2,7 @@ import { leaf } from '@/utils/helpers'
 import type { ThemeColors } from '@/composables/useTheme'
 
 /**
- * D001 - 标题卡片
+  * Title_DA01 - 标题卡片（默认A型01号样式）
  *
  * 编辑器语法：
  *   <title badge="GUIDE" subtitle="副标题" chips="关键词1|关键词2">文章标题</title>
@@ -63,8 +63,8 @@ function renderChips(raw: string): string {
 }
 
 // ── 组件定义 ──────────────────────────────────────────
-export const D001_title = {
-  id: 'D001',
+export const Title_DA01 = {
+  id: 'Title_DA01',
   name: '标题卡片',
   tag: 'title',
   attrs: [

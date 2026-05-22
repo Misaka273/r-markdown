@@ -13,7 +13,7 @@ import {
   parseEngage,
   parseGallery,
 } from './components'
-import { D001_title } from '@/editor-components/D001Title'
+import { Title_DA01 } from '@/editor-components/Title_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -161,7 +161,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       if (titleMatch) {
         const attrs = parseAttrs(titleMatch[1])
         const body = titleMatch[2].trim()
-        html += D001_title.render(attrs, body, t, md)
+                html += Title_DA01.render(attrs, body, t, md)
       }
       i++
       continue
