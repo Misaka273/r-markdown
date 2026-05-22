@@ -101,15 +101,11 @@ const DEMO_CONTENT = `
 
 ## 03 段落标题组件 :: PARAGRAPH TITLE · 分段标题
 
-<p-title icon="🔥" num="01">这是带图标的段落标题</p-title>
+<p-title num="01" subtitle="PARAGRAPH TITLE · 分段标题">段落标题组件</p-title>
 
-段落标题组件适合在长文章中划分章节，左侧带有主题色边框，视觉层次清晰。
+段落标题组件适合在长文章中划分章节，顶部带有 CHAPTER 标签和横线，左侧有大号装饰序号。
 
-<p-title num="02">这是带序号的段落标题</p-title>
-
-支持纯序号模式，序号以主题色胶囊形式展示。
-
-<p-title color="#FF6B35" num="03">自定义颜色的段落标题</p-title>
+<p-title num="02" subtitle="CUSTOM COLOR · 自定义颜色">自定义颜色示例</p-title>
 
 通过 \`color\` 属性可以覆盖默认主题色，适配不同内容场景。
 
