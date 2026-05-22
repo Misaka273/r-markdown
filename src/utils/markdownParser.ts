@@ -13,7 +13,7 @@ import {
   parseEngage,
   parseGallery,
 } from './components'
-import { D001_title } from '@/editor-components/D001_title'
+import { D001_title } from '@/editor-components/D001Title'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')

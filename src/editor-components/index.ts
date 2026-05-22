@@ -13,9 +13,10 @@
  *   example  - 编辑器侧示例代码（Markdown/类HTML）
  *   render   - (attrs, body, theme) => HTML（内联样式，可直接粘贴公众号）
  */
-import { D001_title } from './D001_title';
+import { D001_title } from './D001Title';
+import { ReadingPath } from './ReadingPath';
 
-export const components = [D001_title];
+export const components = [D001_title, ReadingPath];
 
 /** 按 id 索引 */
 export const componentMap = Object.fromEntries(components.map(c => [c.id, c]));
