@@ -3,10 +3,8 @@ import { leaf, esc, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import {
   renderFrontMatter,
-  parseSteps,
   parseBadges,
   parseCtaBlock,
-  parseBreaking,
   parseCtaInline,
   parseCompare,
   parseCallout,
@@ -15,6 +13,8 @@ import {
 } from './components'
 import { Title_DA01 } from '@/editor-components/Title_DA01'
 import { ParagraphTitle_DA01 } from '@/editor-components/ParagraphTitle_DA01'
+import { Breaking_DA01 } from '@/editor-components/Breaking_DA01'
+import { Steps_DA01 } from '@/editor-components/Steps_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -56,11 +56,17 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-    // ::: steps
+        // ::: steps
     if (/^:::\s*steps\b/.test(line)) {
-      const r = parseSteps(lines, i, t)
-      html += r.html
-      i = r.next
+      const attrs = parseAttrs(line)
+      i++
+      let body = ''
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
+        body += lines[i] + '\n'
+        i++
+      }
+      i++ // skip :::
+      html += Steps_DA01.render(attrs, body.trim(), t)
       continue
     }
     // ::: statement
@@ -101,11 +107,18 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += `<section><p style="font-size:16px;color:rgb(85,85,85);line-height:1.8;padding:16px 0px;border-left:3px solid ${t.accent};padding-left:16px;margin:14px 0px">${inlineFormat(text, t)}</p></section>`
       continue
     }
-    // <breaking>
+        // <breaking>
     if (/^<breaking\b/.test(line)) {
-      const r = parseBreaking(lines, i, t)
-      html += r.html
-      i = r.next
+      const openMatch = line.match(/^<breaking\b([^>]*)>/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+      i++
+      let body = ''
+      while (i < lines.length && !/^<\/breaking>/.test(lines[i])) {
+        body += lines[i] + '\n'
+        i++
+      }
+      i++ // skip </breaking>
+      html += Breaking_DA01.render(attrs, body.trim(), t)
       continue
     }
     // <cta>
