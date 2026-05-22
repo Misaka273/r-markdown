@@ -29,8 +29,8 @@ export const Steps_DA01 = {
     { key: 'active', label: '当前步骤（1/2/3）', required: false, default: '1' },
     { key: 'color',  label: '自定义颜色',       required: false, default: '' },
   ],
-  example:
-    `::: steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2"
+    example:
+    `::: steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2" color="#e74c3c"
 - 输入 | 往知识库里喂东西
 - 管理 | 让知识库有序运转
 - 输出 | 从知识库取素材做东西

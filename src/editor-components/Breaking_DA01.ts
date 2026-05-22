@@ -28,8 +28,8 @@ export const Breaking_DA01 = {
     { key: 'chips',    label: '关键词（|分隔）', required: false, default: '' },
     { key: 'color',    label: '自定义颜色',     required: false, default: '' },
   ],
-  example:
-    `<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观">
+    example:
+    `<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观" color="#e74c3c">
 这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。
 </breaking>`,
 

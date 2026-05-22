@@ -121,7 +121,7 @@ const DEMO_CONTENT = `
 
 ### 01 突发/重大更新卡片 (Breaking)
 
-<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观">
+<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观" color="#e74c3c">
 这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。
 </breaking>
 
@@ -132,7 +132,7 @@ const DEMO_CONTENT = `
 
 ### 03 横向步骤流 (Horizontal Steps)
 
-::: steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2"
+::: steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2" color="#e74c3c"
 - 输入 | 往知识库里喂东西
 - 管理 | 让知识库有序运转
 - 输出 | 从知识库取素材做东西
