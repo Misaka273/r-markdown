@@ -34,8 +34,10 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     html += renderFrontMatter(meta, md, t)
   }
 
-    // 收集 h2（用于 <reading-path> 标签）
+      // 收集 h2（用于 <reading-path> 标签）
   const h2List: string[] = []
+  let h3Count = 0
+  let h4Count = 0
   for (let j = 0; j < lines.length; j++) {
     const h2m = lines[j].match(/^##\s+(.+)/)
     if (h2m) h2List.push(h2m[1])
@@ -262,16 +264,24 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-    const h3m = line.match(/^###\s+(.+)/)
+        const h3m = line.match(/^###\s+(.+)/)
     if (h3m) {
-      html += `<section style="margin:24px 0px 24px"><p style="margin:0px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.5">${inlineFormat(h3m[1], t)}</p></section>`
+      h3Count++
+      html += ParagraphTitle_DA01.render(
+        { num: String(h3Count).padStart(2, '0'), level: '2' },
+        h3m[1], t,
+      )
       i++
       continue
     }
 
     const h4m = line.match(/^####\s+(.+)/)
     if (h4m) {
-      html += `<section><p style="margin:0px 0px 24px;font-size:16px;font-weight:700;color:rgb(17,24,39);line-height:1.5">${inlineFormat(h4m[1], t)}</p></section>`
+      h4Count++
+      html += ParagraphTitle_DA01.render(
+        { num: String(h4Count).padStart(2, '0'), level: '3' },
+        h4m[1], t,
+      )
       i++
       continue
     }
