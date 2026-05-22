@@ -8,58 +8,16 @@ import type { ThemeColors } from '@/composables/useTheme'
  *   <p-title num="01" subtitle="PARAGRAPH TITLE · 分段标题">段落标题组件</p-title>
  *   <p-title num="02">第二章标题</p-title>
  *
+ * Markdown 语法（自动转换）：
+ *   ### 三级标题文字      → level=2
+ *   #### 四级标题文字     → level=3
+ *
  * 属性：
  *   num      - 序号，如 01、02（必填）
  *   subtitle - 副标题文字（可选）
  *   color    - 自定义颜色（可选，默认使用主题色）
+ *   level    - 层级：1=完整章节标题（默认），2=三级标题，3=四级标题
  */
-
-// ── 样式常量 ──────────────────────────────────────────
-const S = {
-  // 外层容器
-  wrapper: (accent: string, customColor?: string) => {
-    const color = customColor || accent
-    return `position:relative;margin:40px 0px 20px;padding:24px 0px 20px;`
-         + `overflow:hidden`
-  },
-  // 顶部横线
-  topLine: (accent: string, customColor?: string) => {
-    const color = customColor || accent
-    return `display:flex;align-items:center;gap:12px;margin-bottom:16px`
-  },
-  // 横线
-  line: (accent: string, customColor?: string) => {
-    const color = customColor || accent
-    return `flex:1;height:1px;background:linear-gradient(90deg,${color}40,transparent)`
-  },
-  // CHAPTER 标签
-  chapterLabel: (accent: string, customColor?: string) => {
-    const color = customColor || accent
-    return `font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;`
-         + `color:${color}90;font-family:system-ui,-apple-system,sans-serif`
-  },
-  // 内容区域（包含大号装饰数字和文字）
-  content: 'position:relative;padding-left:80px',
-  // 左侧大号装饰数字
-  decoNum: (accent: string, customColor?: string) => {
-    const color = customColor || accent
-    return `position:absolute;left:0;top:-12px;font-size:96px;font-weight:900;`
-         + `color:${color}12;line-height:1;font-family:system-ui,-apple-system,sans-serif;`
-         + `pointer-events:none;user-select:none`
-  },
-  // 标题文字
-  title: (accent: string, customColor?: string) => {
-    const color = customColor || accent
-    return `margin:0px;font-size:28px;font-weight:900;color:rgb(17,24,39);`
-         + `line-height:1.3;letter-spacing:-0.5px;font-family:system-ui,-apple-system,sans-serif`
-  },
-  // 副标题
-  subtitle: (accent: string, customColor?: string) => {
-    const color = customColor || accent
-    return `margin:8px 0px 0px;font-size:12px;font-weight:600;letter-spacing:2px;`
-         + `text-transform:uppercase;color:${color};font-family:system-ui,-apple-system,sans-serif`
-  },
-}
 
 // ── 组件定义 ──────────────────────────────────────────
 export const ParagraphTitle_DA01 = {
@@ -70,6 +28,7 @@ export const ParagraphTitle_DA01 = {
     { key: 'num',      label: '序号（01/02）', required: true, default: '01' },
     { key: 'subtitle', label: '副标题',        required: false, default: '' },
     { key: 'color',    label: '自定义颜色',    required: false, default: '' },
+    { key: 'level',    label: '层级（1/2/3）', required: false, default: '1' },
   ],
   example:
     `<p-title num="01" subtitle="PARAGRAPH TITLE · 分段标题">段落标题组件</p-title>`,
@@ -77,35 +36,50 @@ export const ParagraphTitle_DA01 = {
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const num = attrs.num || '01'
     const subtitle = attrs.subtitle
+    const level = parseInt(attrs.level || '1', 10)
     const accent = t.accent
     const color = attrs.color || accent
 
-    // 顶部横线 + CHAPTER 标签
-    const topLine = `
-      <div style="${S.topLine(accent, attrs.color)}">
-        <span style="${S.chapterLabel(accent, attrs.color)}">CHAPTER ${num}</span>
-        <div style="${S.line(accent, attrs.color)}"></div>
-      </div>`
+    // ── Level 1: 完整章节标题（CHAPTER + 大号装饰数字 + 标题 + 副标题）──
+    if (level === 1) {
+      const subtitleHtml = subtitle
+        ? `<span style="display:block;margin-left:50px;font-size:11px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:1.6px"><span leaf="">${leaf(subtitle)}</span></span>`
+        : ''
 
-    // 大号装饰数字
-    const decoNum = `<span style="${S.decoNum(accent, attrs.color)}">${num}</span>`
+      return `
+<section style="margin:48px 0px 30px">
+  <section style="clear:both">
+    <section style="display:flex;align-items:center;margin:0;padding-bottom:12px">
+      <span style="font-size:10px;font-weight:800;color:rgb(148,163,184);letter-spacing:2.6px;text-transform:uppercase;white-space:nowrap"><span leaf="">CHAPTER ${num}</span></span>
+      <section style="flex:1;border-top:1px solid rgb(229,231,235);margin:0 0 0 12px;height:0"></section>
+    </section>
+    <section style="margin:0">
+      <strong style="display:block;font-size:60px;line-height:1;color:${color}40;letter-spacing:-3px;white-space:nowrap"><span leaf="">${num}</span></strong>
+      <strong style="display:block;font-size:30px;font-weight:900;color:rgb(17,24,39);line-height:1.26;letter-spacing:-0.8px;margin-top:-60px;margin-left:50px"><span leaf="">${leaf(body)}</span></strong>
+      ${subtitleHtml}
+    </section>
+  </section>
+</section>`
+    }
 
-    // 标题文字
-    const titleText = `<h2 style="${S.title(accent, attrs.color)}">${leaf(body)}</h2>`
+    // ── Level 2: 三级标题（左侧装饰数字 + 标题）──
+    if (level === 2) {
+      return `
+<section style="margin:36px 0px 20px">
+  <section style="position:relative;padding-left:56px">
+    <strong style="position:absolute;left:0;top:-6px;font-size:48px;font-weight:900;color:${color}20;line-height:1;letter-spacing:-2px;pointer-events:none;user-select:none"><span leaf="">${num}</span></strong>
+    <p style="margin:0px;font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4;letter-spacing:-0.3px"><span leaf="">${leaf(body)}</span></p>
+  </section>
+</section>`
+    }
 
-    // 副标题（如果有）
-    const subtitleText = subtitle
-      ? `<p style="${S.subtitle(accent, attrs.color)}">${leaf(subtitle)}</p>`
-      : ''
-
+    // ── Level 3: 四级标题（小装饰数字 + 标题）──
     return `
-      <section style="${S.wrapper(accent, attrs.color)}">
-        ${topLine}
-        <div style="${S.content}">
-          ${decoNum}
-          ${titleText}
-          ${subtitleText}
-        </div>
-      </section>`
+<section style="margin:28px 0px 16px">
+  <section style="position:relative;padding-left:44px">
+    <strong style="position:absolute;left:0;top:-4px;font-size:36px;font-weight:900;color:${color}18;line-height:1;letter-spacing:-1.5px;pointer-events:none;user-select:none"><span leaf="">${num}</span></strong>
+    <p style="margin:0px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.45"><span leaf="">${leaf(body)}</span></p>
+  </section>
+</section>`
   },
 }
