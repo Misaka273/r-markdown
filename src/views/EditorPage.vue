@@ -70,12 +70,8 @@ function onDragEnd() {
 const STORAGE_KEY = 'wechat-md-editor-content'
 const SAVE_TIME_KEY = 'wechat-md-editor-save-time'
 
-const DEMO_CONTENT = `---
-title: 功能全集：排版组件指南
-badge: GUIDE
-subtitle: 这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。
-chips: 图片并排|窗口滚动|渐变文字
----
+const DEMO_CONTENT = `
+<title badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>
 
 <reading-path />
 
