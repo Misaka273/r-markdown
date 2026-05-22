@@ -101,21 +101,21 @@ const DEMO_CONTENT = `
 
 ## 03 段落标题组件 :: PARAGRAPH TITLE · 分段标题
 
-<p-title num="01" subtitle="PARAGRAPH TITLE · 分段标题">段落标题组件</p-title>
+<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>
 
 段落标题组件适合在长文章中划分章节，顶部带有 CHAPTER 标签和横线，左侧有大号装饰序号。
 
-<p-title num="02" subtitle="CUSTOM COLOR · 自定义颜色">自定义颜色示例</p-title>
+<p-title num="02" title="自定义颜色示例" subtitle="CUSTOM COLOR · 自定义颜色" level="1"></p-title>
 
 通过 \`color\` 属性可以覆盖默认主题色，适配不同内容场景。
 
-### 三级标题示例
+<p-title num="01" title="三级标题示例" level="2"></p-title>
 
-通过 \`###\` 语法自动生成，带左侧装饰序号，适合章节内的子标题。
+通过 \`level="2"\` 或 \`###\` 语法生成，带左侧装饰序号，适合章节内的子标题。
 
-#### 四级标题示例
+<p-title num="01" title="四级标题示例" level="3"></p-title>
 
-通过 \`####\` 语法自动生成，更小的装饰序号，适合细分内容段落。
+通过 \`level="3"\` 或 \`####\` 语法生成，更小的装饰序号，适合细分内容段落。
 
 ## 04 核心交互组件 :: COMPONENTS · 卡片与布局
 

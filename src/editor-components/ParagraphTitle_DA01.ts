@@ -4,9 +4,10 @@ import type { ThemeColors } from '@/composables/useTheme'
 /**
  * ParagraphTitle_DA01 - 段落标题（默认A型01号样式）
  *
- * 编辑器语法：
- *   <p-title num="01" subtitle="PARAGRAPH TITLE · 分段标题">段落标题组件</p-title>
- *   <p-title num="02">第二章标题</p-title>
+ * 编辑器语法（两种写法均可）：
+ *   <p-title num="01" title="标题内容" subtitle="副标题" level="1"></p-title>
+ *   <p-title num="01" title="标题内容" level="2"></p-title>
+ *   <p-title num="01">标题内容</p-title>  ← body 作为 fallback
  *
  * Markdown 语法（自动转换）：
  *   ### 三级标题文字      → level=2
@@ -14,6 +15,7 @@ import type { ThemeColors } from '@/composables/useTheme'
  *
  * 属性：
  *   num      - 序号，如 01、02（必填）
+ *   title    - 标题文字（可选，优先于 body 内容）
  *   subtitle - 副标题文字（可选）
  *   color    - 自定义颜色（可选，默认使用主题色）
  *   level    - 层级：1=完整章节标题（默认），2=三级标题，3=四级标题
@@ -24,17 +26,19 @@ export const ParagraphTitle_DA01 = {
   id: 'ParagraphTitle_DA01',
   name: '段落标题',
   tag: 'p-title',
-  attrs: [
+    attrs: [
     { key: 'num',      label: '序号（01/02）', required: true, default: '01' },
+    { key: 'title',    label: '标题文字',      required: false, default: '' },
     { key: 'subtitle', label: '副标题',        required: false, default: '' },
     { key: 'color',    label: '自定义颜色',    required: false, default: '' },
     { key: 'level',    label: '层级（1/2/3）', required: false, default: '1' },
   ],
   example:
-    `<p-title num="01" subtitle="PARAGRAPH TITLE · 分段标题">段落标题组件</p-title>`,
+    `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,
 
-  render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
+    render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const num = attrs.num || '01'
+    const title = attrs.title || body  // title 属性优先，fallback 到 body
     const subtitle = attrs.subtitle
     const level = parseInt(attrs.level || '1', 10)
     const accent = t.accent
@@ -55,7 +59,7 @@ export const ParagraphTitle_DA01 = {
     </section>
     <section style="margin:0">
       <strong style="display:block;font-size:60px;line-height:1;color:${color}40;letter-spacing:-3px;white-space:nowrap"><span leaf="">${num}</span></strong>
-      <strong style="display:block;font-size:30px;font-weight:900;color:rgb(17,24,39);line-height:1.26;letter-spacing:-0.8px;margin-top:-60px;margin-left:50px"><span leaf="">${leaf(body)}</span></strong>
+            <strong style="display:block;font-size:30px;font-weight:900;color:rgb(17,24,39);line-height:1.26;letter-spacing:-0.8px;margin-top:-60px;margin-left:50px"><span leaf="">${leaf(title)}</span></strong>
       ${subtitleHtml}
     </section>
   </section>
@@ -68,7 +72,7 @@ export const ParagraphTitle_DA01 = {
 <section style="margin:36px 0px 20px">
   <section style="position:relative;padding-left:56px">
     <strong style="position:absolute;left:0;top:-6px;font-size:48px;font-weight:900;color:${color}20;line-height:1;letter-spacing:-2px;pointer-events:none;user-select:none"><span leaf="">${num}</span></strong>
-    <p style="margin:0px;font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4;letter-spacing:-0.3px"><span leaf="">${leaf(body)}</span></p>
+        <p style="margin:0px;font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4;letter-spacing:-0.3px"><span leaf="">${leaf(title)}</span></p>
   </section>
 </section>`
     }
@@ -78,7 +82,7 @@ export const ParagraphTitle_DA01 = {
 <section style="margin:28px 0px 16px">
   <section style="position:relative;padding-left:44px">
     <strong style="position:absolute;left:0;top:-4px;font-size:36px;font-weight:900;color:${color}18;line-height:1;letter-spacing:-1.5px;pointer-events:none;user-select:none"><span leaf="">${num}</span></strong>
-    <p style="margin:0px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.45"><span leaf="">${leaf(body)}</span></p>
+        <p style="margin:0px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.45"><span leaf="">${leaf(title)}</span></p>
   </section>
 </section>`
   },
