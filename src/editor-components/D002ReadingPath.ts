@@ -44,7 +44,7 @@ const S = {
 }
 
 // ── 组件定义 ──────────────────────────────────────────
-export const ReadingPath = {
+export const D002ReadingPath = {
   id: 'reading-path',
   name: '阅读路线',
   tag: 'reading-path',

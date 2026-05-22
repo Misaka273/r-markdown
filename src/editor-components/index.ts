@@ -14,9 +14,9 @@
  *   render   - (attrs, body, theme) => HTML（内联样式，可直接粘贴公众号）
  */
 import { D001_title } from './D001Title';
-import { ReadingPath } from './ReadingPath';
+import { D002ReadingPath } from './D002ReadingPath';
 
-export const components = [D001_title, ReadingPath];
+export const components = [D001_title, D002ReadingPath];
 
 /** 按 id 索引 */
 export const componentMap = Object.fromEntries(components.map(c => [c.id, c]));
