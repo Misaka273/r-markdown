@@ -225,7 +225,21 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += `</section>`
       continue
     }
-        // 案例流
+                // <case-flow> 标签
+    if (/^<case-flow\b/.test(line)) {
+      const openMatch = line.match(/^<case-flow\b([^>]*)>/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+      i++
+      let body = ''
+      while (i < lines.length && !/^<\/case-flow>/.test(lines[i])) {
+        body += lines[i] + '\n'
+        i++
+      }
+      i++ // skip </case-flow>
+      html += CaseFlow_DA01.render(attrs, body.trim(), t)
+      continue
+    }
+        // 案例流（行内语法，无标签包裹时）
     if (/^-\s*\[案例\s*\d+\]/.test(line)) {
       const caseLines: string[] = []
       while (i < lines.length && /^-\s*\[案例\s*\d+\]/.test(lines[i])) {
