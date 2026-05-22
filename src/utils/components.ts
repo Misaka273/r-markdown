@@ -59,6 +59,8 @@ export function parseSteps(
   }
   i++
   const active = parseInt(attrs.active || '1')
+  const color = attrs.color || t.accent
+
   let html = `<section style="margin:0px 0px 24px;padding:40px 20px;background:rgb(250,251,254);border-radius:12px;border:1px solid rgb(238,238,238)">`
   if (attrs.label)
     html += `<p style="margin:0px 0px 4px;font-size:10px;color:rgb(153,153,153);letter-spacing:2px;font-weight:700">${leaf(attrs.label)}</p>`
@@ -70,10 +72,10 @@ export function parseSteps(
   steps.forEach((s, idx) => {
     const isActive = idx + 1 === active
     const itemStyle = isActive
-      ? `flex:1;min-width:100px;padding:16px 12px;background:${t.light};border-radius:10px;border:2px solid ${t.accent};text-align:center;position:relative`
+      ? `flex:1;min-width:100px;padding:16px 12px;background:${color}10;border-radius:10px;border:2px solid ${color};text-align:center;position:relative`
       : `flex:1;min-width:100px;padding:16px 12px;background:rgb(255,255,255);border-radius:10px;border:1px solid rgb(238,238,238);text-align:center;position:relative`
     html += `<section style="${itemStyle}">`
-    html += `<p style="margin:0px 0px 4px;font-size:20px;font-weight:900;color:${t.accent}">${leaf(idx + 1)}</p>`
+    html += `<p style="margin:0px 0px 4px;font-size:20px;font-weight:900;color:${color}">${leaf(idx + 1)}</p>`
     html += `<p style="margin:0px 0px 2px;font-size:13px;font-weight:700;color:rgb(51,65,85)">${leaf(s.name)}</p>`
     html += `<p style="margin:0px;font-size:11px;color:rgb(153,153,153)">${leaf(s.desc)}</p>`
     html += `</section>`
