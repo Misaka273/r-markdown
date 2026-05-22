@@ -17,7 +17,7 @@
  */
 import { Title_DA01 } from './Title_DA01';
 import { ReadingPath_DA01 } from './ReadingPath_DA01';
-import { PTitle } from './PTitle';
+import { PTitle } from './PTitle_DA01';
 import { Breaking_DA01 } from './Breaking_DA01';
 import { Steps_DA01 } from './Steps_DA01';
 

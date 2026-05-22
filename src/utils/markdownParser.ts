@@ -12,7 +12,7 @@ import {
   parseGallery,
 } from './components'
 import { Title_DA01 } from '@/editor-components/Title_DA01'
-import { PTitle } from '@/editor-components/PTitle'
+import { PTitle } from '@/editor-components/PTitle_DA01'
 import { Breaking_DA01 } from '@/editor-components/Breaking_DA01'
 import { Steps_DA01 } from '@/editor-components/Steps_DA01'
 
