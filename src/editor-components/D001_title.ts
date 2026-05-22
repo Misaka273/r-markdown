@@ -46,15 +46,6 @@ const S = {
 }
 
 // ── 辅助函数 ──────────────────────────────────────────
-function p(style: string, content: string): string {
-  return `<p style="${style}">${content}</p>`
-}
-
-function section(style: string, content: string): string {
-  return `<section style="${style}">${content}</section>`
-}
-
-// ── 统计字数 ──────────────────────────────────────────
 function countChars(raw: string): { chars: number; minutes: number } {
   const text = raw
     .replace(/<title[\s\S]*?<\/title>\s*/, '')
@@ -62,6 +53,13 @@ function countChars(raw: string): { chars: number; minutes: number } {
     .replace(/\s+/g, '')
   const chars = text.length
   return { chars, minutes: Math.max(1, Math.ceil(chars / 400)) }
+}
+
+function renderChips(raw: string): string {
+  return raw
+    .split('|')
+    .map(c => `<span style="${S.chip}">${leaf('#' + c.trim())}</span>`)
+    .join('')
 }
 
 // ── 组件定义 ──────────────────────────────────────────
@@ -80,32 +78,30 @@ export const D001_title = {
   render(attrs: Record<string, string>, body: string, t: ThemeColors, raw: string = ''): string {
     const { chars, minutes } = countChars(raw)
 
-    // ── 左栏内容 ──
-    const leftParts: string[] = []
-    if (attrs.badge)    leftParts.push(p(S.badge(t.accent), leaf(attrs.badge)))
-    if (body)           leftParts.push(p(S.title, leaf(body)))
-    if (attrs.subtitle) leftParts.push(p(S.subtitle, leaf(attrs.subtitle)))
-    if (attrs.chips) {
-      const tags = attrs.chips.split('|')
-        .map((c: string) => `<span style="${S.chip}">${leaf('#' + c.trim())}</span>`)
-        .join('')
-      leftParts.push(section(S.chips, tags))
-    }
-
-    // ── 右栏统计 ──
-    const rightContent =
-        p(S.statLabel, leaf('预计阅读(分)'))
-      + section(S.statNum(t.accent), `<span style="${S.numText}">${leaf(minutes)}</span>`)
-      + p(S.charCount, leaf(`共 ${chars} 字`))
-
-    // ── 组装 ──
-    return section(S.card,
-      section(S.body,
-        `<div class="tableWrapper"><table style="${S.table}"><colgroup><col><col style="width:90px;"></colgroup><tbody><tr>`
-      + `<td valign="top" align="left" style="${S.tdLeft}">${leftParts.join('')}</td>`
-      + `<td data-colwidth="90" width="90" valign="top" align="right" style="${S.tdRight}">${rightContent}</td>`
-      + `</tr></tbody></table></div>`
-      )
-    )
+    return `
+      <section style="${S.card}">
+        <section style="${S.body}">
+          <div class="tableWrapper">
+            <table style="${S.table}">
+              <colgroup><col><col style="width:90px;"></colgroup>
+              <tbody><tr>
+                <td valign="top" align="left" style="${S.tdLeft}">
+                  ${attrs.badge ? `<p style="${S.badge(t.accent)}">${leaf(attrs.badge)}</p>` : ''}
+                  ${body       ? `<p style="${S.title}">${leaf(body)}</p>` : ''}
+                  ${attrs.subtitle ? `<p style="${S.subtitle}">${leaf(attrs.subtitle)}</p>` : ''}
+                  ${attrs.chips ? `<section style="${S.chips}">${renderChips(attrs.chips)}</section>` : ''}
+                </td>
+                <td data-colwidth="90" width="90" valign="top" align="right" style="${S.tdRight}">
+                  <p style="${S.statLabel}">${leaf('预计阅读(分)')}</p>
+                  <section style="${S.statNum(t.accent)}">
+                    <span style="${S.numText}">${leaf(minutes)}</span>
+                  </section>
+                  <p style="${S.charCount}">${leaf(`共 ${chars} 字`)}</p>
+                </td>
+              </tr></tbody>
+            </table>
+          </div>
+        </section>
+      </section>`
   },
 }
