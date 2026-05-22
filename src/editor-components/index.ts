@@ -20,8 +20,9 @@ import { ReadingPath_DA01 } from './ReadingPath_DA01';
 import { PTitle } from './PTitle_DA01';
 import { Breaking_DA01 } from './Breaking_DA01';
 import { Steps_DA01 } from './Steps_DA01';
+import { CaseFlow_DA01 } from './CaseFlow_DA01';
 
-export const components = [Title_DA01, ReadingPath_DA01, PTitle, Breaking_DA01, Steps_DA01];
+export const components = [Title_DA01, ReadingPath_DA01, PTitle, Breaking_DA01, Steps_DA01, CaseFlow_DA01];
 
 /** 按 id 索引 */
 export const componentMap = Object.fromEntries(components.map(c => [c.id, c]));

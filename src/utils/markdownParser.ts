@@ -15,6 +15,7 @@ import { Title_DA01 } from '@/editor-components/Title_DA01'
 import { PTitle } from '@/editor-components/PTitle_DA01'
 import { Breaking_DA01 } from '@/editor-components/Breaking_DA01'
 import { Steps_DA01 } from '@/editor-components/Steps_DA01'
+import { CaseFlow_DA01 } from '@/editor-components/CaseFlow_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -224,19 +225,14 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += `</section>`
       continue
     }
-    // 案例流
+        // 案例流
     if (/^-\s*\[案例\s*\d+\]/.test(line)) {
-      const cases: { badge: string; text: string }[] = []
+      const caseLines: string[] = []
       while (i < lines.length && /^-\s*\[案例\s*\d+\]/.test(lines[i])) {
-        const cm = lines[i].match(/^-\s*\[(案例\s*\d+)\]\s*(.+)/)
-        if (cm) cases.push({ badge: cm[1], text: cm[2] })
+        caseLines.push(lines[i])
         i++
       }
-      html += `<section style="margin:16px 0px;display:flex;flex-direction:column;gap:10px">`
-      cases.forEach((c) => {
-        html += `<section style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgb(250,251,254);border-radius:10px;border:1px solid rgb(238,238,238)"><section style="flex-shrink:0;font-size:11px;font-weight:700;color:${t.accent};background:${t.light};padding:3px 10px;border-radius:6px;white-space:nowrap">${leaf(c.badge)}</section><section style="font-size:14px;color:rgb(85,85,85);line-height:1.6">${inlineFormat(c.text, t)}</section></section>`
-      })
-      html += `</section>`
+      html += CaseFlow_DA01.render({}, caseLines.join('\n'), t)
       continue
     }
     // : engage
