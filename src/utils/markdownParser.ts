@@ -1,5 +1,5 @@
 import type { ThemeColors } from '../composables/useTheme'
-import { leaf, esc } from './helpers'
+import { leaf, esc, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import {
   renderFrontMatter,
@@ -13,6 +13,7 @@ import {
   parseEngage,
   parseGallery,
 } from './components'
+import { D001_title } from '@/editor-components/D001_title'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -154,6 +155,18 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       }
       continue
     }
+        // <title> 标签（新组件语法）
+    if (/^<title\b/.test(line)) {
+      const titleMatch = line.match(/^<title\b([^>]*)>([\s\S]*?)<\/title>/)
+      if (titleMatch) {
+        const attrs = parseAttrs(titleMatch[1])
+        const body = titleMatch[2].trim()
+        html += D001_title.render(attrs, body, t, md)
+      }
+      i++
+      continue
+    }
+
     // < ![
     if (/^<\s*!\[/.test(line)) {
       const r = parseGallery(lines, i)
