@@ -111,7 +111,7 @@ const DEMO_CONTENT = `
 
 <p-title color="#FF6B35" num="03">自定义颜色的段落标题</p-title>
 
-通过 `color` 属性可以覆盖默认主题色，适配不同内容场景。
+通过 \`color\` 属性可以覆盖默认主题色，适配不同内容场景。
 
 ## 04 核心交互组件 :: COMPONENTS · 卡片与布局
 
