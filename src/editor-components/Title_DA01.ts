@@ -81,7 +81,7 @@ export const Title_DA01 = {
     return `
       <section style="${S.card}">
         <section style="${S.body}">
-          <div class="tableWrapper">
+          <section class="tableWrapper">
             <table style="${S.table}">
               <colgroup><col><col style="width:90px;"></colgroup>
               <tbody><tr>
@@ -100,7 +100,7 @@ export const Title_DA01 = {
                 </td>
               </tr></tbody>
             </table>
-          </div>
+          </section>
         </section>
       </section>`
   },

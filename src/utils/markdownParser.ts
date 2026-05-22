@@ -3,9 +3,9 @@ import { leaf, esc, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import {
   renderFrontMatter,
-  parseBadges,
-  parseCtaBlock,
+    parseCtaBlock,
   parseCtaInline,
+  parseCtaTag,
   parseCompare,
   parseCallout,
   parseEngage,
@@ -16,6 +16,10 @@ import { PTitle } from '@/editor-components/PTitle_DA01'
 import { Breaking_DA01 } from '@/editor-components/Breaking_DA01'
 import { Steps_DA01 } from '@/editor-components/Steps_DA01'
 import { CaseFlow_DA01 } from '@/editor-components/CaseFlow_DA01'
+import { Badges_DA01 } from '@/editor-components/Badges_DA01'
+import { Statement_DA01 } from '@/editor-components/Statement_DA01'
+import { Lead_DA01 } from '@/editor-components/Lead_DA01'
+import { Engage_DA01 } from '@/editor-components/Engage_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -71,23 +75,48 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Steps_DA01.render(attrs, body.trim(), t)
       continue
     }
-    // ::: statement
-    if (/^:::\s*statement\b/.test(line)) {
+                // <statement> ... </statement>
+    if (/^<statement\b/.test(line)) {
+      const openMatch = line.match(/^<statement\b([^>]*)>(.*)$/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+      // 单行模式
+      if (openMatch && openMatch[2] && /<\/statement>\s*$/.test(openMatch[2])) {
+        const text = openMatch[2].replace(/<\/statement>\s*$/, '').trim()
+        html += Statement_DA01.render(attrs, text, t)
+        i++
+        continue
+      }
+      // 多行模式
+      let text = openMatch && openMatch[2] ? openMatch[2] + '\n' : ''
       i++
-      let text = ''
-      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
+      while (i < lines.length && !/^<\/statement>/.test(lines[i])) {
         text += lines[i]
         i++
       }
       i++
-            html += `<section style="margin:20px 0px"><p style="text-align:center;font-size:18px;font-weight:700;color:rgb(51,65,85);line-height:1.6">${inlineFormat(text, t)}</p></section>`
+      html += Statement_DA01.render(attrs, text.trim(), t)
       continue
     }
-    // ::: badges
-    if (/^:::\s*badges\b/.test(line)) {
-      const r = parseBadges(lines, i, t)
-      html += r.html
-      i = r.next
+                // <badges> ... </badges> (支持单行和多行)
+    if (/^<badges\b/.test(line)) {
+      const openMatch = line.match(/^<badges\b([^>]*)>(.*)$/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+      // 单行模式：<badges ...>content</badges>
+      if (openMatch && openMatch[2] && /<\/badges>\s*$/.test(openMatch[2])) {
+        const body = openMatch[2].replace(/<\/badges>\s*$/, '').trim()
+        html += Badges_DA01.render(attrs, body, t)
+        i++
+        continue
+      }
+      // 多行模式：内容在后续行
+      let body = openMatch && openMatch[2] ? openMatch[2] + '\n' : ''
+      i++
+      while (i < lines.length && !/^<\/badges>/.test(lines[i])) {
+        body += lines[i] + '\n'
+        i++
+      }
+      i++ // skip </badges>
+      html += Badges_DA01.render(attrs, body.trim(), t)
       continue
     }
     // ::: cta
@@ -97,8 +126,10 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       i = r.next
       continue
     }
-    // ::: lead
+        // ::: lead
     if (/^:::\s*lead\b/.test(line)) {
+      const leadAttrsMatch = line.match(/^:::\s*lead\b([^>]*)/)
+      const attrs = leadAttrsMatch && leadAttrsMatch[1] ? parseAttrs(leadAttrsMatch[1]) : {}
       i++
       let text = ''
       while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
@@ -106,7 +137,29 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         i++
       }
       i++
-      html += `<section><p style="font-size:16px;color:rgb(85,85,85);line-height:1.8;padding:16px 0px;border-left:3px solid ${t.accent};padding-left:16px;margin:14px 0px">${inlineFormat(text, t)}</p></section>`
+      html += Lead_DA01.render(attrs, text.trim(), t)
+      continue
+    }
+        // <lead> ... </lead>
+    if (/^<lead\b/.test(line)) {
+      const openMatch = line.match(/^<lead\b([^>]*)>(.*)$/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+      // 单行模式
+      if (openMatch && openMatch[2] && /<\/lead>\s*$/.test(openMatch[2])) {
+        const text = openMatch[2].replace(/<\/lead>\s*$/, '').trim()
+        html += Lead_DA01.render(attrs, text, t)
+        i++
+        continue
+      }
+      // 多行模式
+      let text = openMatch && openMatch[2] ? openMatch[2] + '\n' : ''
+      i++
+      while (i < lines.length && !/^<\/lead>/.test(lines[i])) {
+        text += lines[i]
+        i++
+      }
+      i++
+      html += Lead_DA01.render(attrs, text.trim(), t)
       continue
     }
         // <breaking>
@@ -130,9 +183,16 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       i = r.next
       continue
     }
-        // <compare>
+                // <compare>
     if (/^<compare\b/.test(line)) {
       const r = parseCompare(lines, i, t)
+      html += r.html
+      i = r.next
+      continue
+    }
+    // <cta>
+    if (/^<cta\b/.test(line)) {
+      const r = parseCtaTag(lines, i, t)
       html += r.html
       i = r.next
       continue
@@ -249,18 +309,18 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += CaseFlow_DA01.render({}, caseLines.join('\n'), t)
       continue
     }
-    // : engage
-    if (/^:\s*engage\b/.test(line)) {
-      const r = parseEngage(lines, i, t)
-      html += r.html
-      i = r.next
+            // : engage 或 <engage>
+    if (/^:\s*engage\b/.test(line) || /^<engage\b/.test(line)) {
+      const attrs = parseAttrs(line)
+      html += Engage_DA01.render(attrs, '', t)
+      i++
       continue
     }
 
-    // 标题
+        // 标题 — 全部走 PTitle 组件
     const h1m = line.match(/^#\s+(.+)/)
     if (h1m) {
-      html += `<section><p style="margin:0px 0px 24px;font-size:22px;font-weight:800;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h1m[1], t)}</p></section>`
+      html += PTitle.render({ level: '1' }, h1m[1], t)
       i++
       continue
     }
@@ -268,58 +328,48 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     const h2m = line.match(/^##\s+(.+)/)
     if (h2m) {
       const h2idx = h2List.indexOf(h2m[1])
-      const title = h2m[1]
-        .replace(/::.*/, '')
-        .trim()
-        .replace(/^\d+\s*/, '')
-      const sub = h2m[1].match(/::\s*(.+)/)
+      const raw = h2m[1]
+      const title = raw.replace(/::.*/, '').trim().replace(/^\d+\s*/, '')
+      const sub = raw.match(/::\s*(.+)/)
       const chNum = String(h2idx >= 0 ? h2idx + 1 : 1).padStart(2, '0')
       const chLabel = sub ? sub[1].trim() : ''
-      html += `<section style="margin:48px 0px 30px"><section style="clear:both">`
-      html += `<section style="display:flex;align-items:center;margin:0;padding-bottom:12px"><span style="font-size:10px;font-weight:800;color:rgb(148,163,184);letter-spacing:2.6px;text-transform:uppercase;white-space:nowrap">${leaf('CHAPTER ' + chNum)}</span><section style="flex:1;border-top:1px solid rgb(229,231,235);margin:0 0 0 12px;height:0"></section></section>`
-      html += `<section style="margin:0">`
-      html += `<strong style="display:block;font-size:60px;line-height:1;color:rgba(${t.rgb},0.25);letter-spacing:-3px;white-space:nowrap">${leaf(chNum)}</strong>`
-      html += `<strong style="display:block;font-size:30px;font-weight:900;color:rgb(17,24,39);line-height:1.26;letter-spacing:-0.8px;margin-top:-60px;margin-left:50px">${leaf(title)}</strong>`
-      if (chLabel)
-        html += `<span style="display:block;margin-left:50px;font-size:11px;color:${t.accent};font-weight:700;text-transform:uppercase;letter-spacing:1.6px">${leaf(chLabel)}</span>`
-      html += `</section>`
-      html += `</section></section>`
+      const attrs: Record<string, string> = { num: chNum, level: '2' }
+      if (chLabel) attrs.subtitle = chLabel
+      html += PTitle.render(attrs, title, t)
       i++
       continue
     }
 
-            const h3m = line.match(/^###\s+(.+)/)
+    const h3m = line.match(/^###\s+(.+)/)
     if (h3m) {
       h3Count++
       let h3Num = String(h3Count).padStart(2, '0')
       let h3Title = h3m[1]
-      // 检测标题是否以数字开头（如 "01 突发/重大更新卡片"），如果是则用用户的数字作为序号
       const h3NumMatch = h3Title.match(/^(\d{1,2})\s+(.+)/)
       if (h3NumMatch) {
         h3Num = h3NumMatch[1]
         h3Title = h3NumMatch[2]
       }
       html += PTitle.render(
-        { num: h3Num, level: '2' },
+        { num: h3Num, level: '3' },
         h3Title, t,
       )
       i++
       continue
     }
 
-        const h4m = line.match(/^####\s+(.+)/)
+    const h4m = line.match(/^####\s+(.+)/)
     if (h4m) {
       h4Count++
       let h4Num = String(h4Count).padStart(2, '0')
       let h4Title = h4m[1]
-      // 检测标题是否以数字开头（如 "01 突发/重大更新卡片"），如果是则用用户的数字作为序号
       const h4NumMatch = h4Title.match(/^(\d{1,2})\s+(.+)/)
       if (h4NumMatch) {
         h4Num = h4NumMatch[1]
         h4Title = h4NumMatch[2]
       }
       html += PTitle.render(
-        { num: h4Num, level: '3' },
+        { num: h4Num, level: '4' },
         h4Title, t,
       )
       i++
@@ -357,7 +407,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         )
         i++
       }
-      html += `<section style="margin:0px 0px 30px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:28px 20px;background:rgba(255,255,255,0.92)"><div class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
+      html += `<section style="margin:0px 0px 30px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:28px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
       headers.forEach((h) => {
         html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">${inlineFormat(h, t)}</td>`
       })
@@ -369,7 +419,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         })
         html += `</tr>`
       })
-      html += `</tbody></table></div></section></section>`
+      html += `</tbody></table></section></section></section>`
       continue
     }
 

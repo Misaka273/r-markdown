@@ -1,6 +1,9 @@
 import type { ThemeColors } from '../composables/useTheme'
 import { esc, leaf, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
+import { Compare_DA01 } from '@/editor-components/Compare_DA01'
+import { CTA_DA01 } from '@/editor-components/Cta_DA01'
+import { Badges_DA01 } from '@/editor-components/Badges_DA01'
 
 export function renderFrontMatter(
   meta: Record<string, string>,
@@ -17,7 +20,7 @@ export function renderFrontMatter(
   const readMin = Math.max(1, Math.ceil(charCount / 400))
   let html = `<section style="margin:0px 0px 30px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)">`
   html += `<section style="padding:20px;background:rgba(255,255,255,0.92)">`
-  html += `<div class="tableWrapper"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%;margin-bottom:0"><colgroup><col><col style="width:90px;"></colgroup><tbody><tr>`
+  html += `<section class="tableWrapper"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%;margin-bottom:0"><colgroup><col><col style="width:90px;"></colgroup><tbody><tr>`
   html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left">`
   if (meta.badge)
     html += `<p style="margin:0px;padding:0px 0px 10px;font-size:10px;color:${t.accent};letter-spacing:2.4px;text-transform:uppercase;font-weight:800">${leaf(meta.badge)}</p>`
@@ -38,7 +41,7 @@ export function renderFrontMatter(
   html += `<section style="display:inline-block;width:64px;height:64px;line-height:64px;text-align:center;border-radius:10px;background-color:${t.accent};box-shadow:rgba(15,23,42,0.16) 0px 12px 24px"><span style="font-size:30px;line-height:64px;color:rgb(255,255,255);font-weight:900;letter-spacing:-1px">${leaf(readMin)}</span></section>`
   html += `<p style="margin:8px 0px 0px;font-size:10px;color:rgb(148,163,184);font-weight:700;letter-spacing:0.3px">${leaf('共 ' + charCount + ' 字')}</p>`
   html += `</td>`
-  html += `</tr></tbody></table></div>`
+  html += `</tr></tbody></table></section>`
   html += `</section></section>`
   return html
 }
@@ -98,23 +101,7 @@ export function parseBadges(
     i++
   }
   i++
-  const items = text
-    .split('|')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    const tone = attrs.tone || 'accent'
-  const colors: Record<string, { bg: string; color: string; border: string }> = {
-    green: { bg: '#f0faf4', color: '#27ae60', border: '#38ef7d' },
-    yellow: { bg: '#fff8f0', color: '#f5a623', border: '#f5a623' },
-    dark: { bg: '#2a2a4a', color: '#e0e0e0', border: t.accent },
-    accent: { bg: t.accent, color: '#ffffff', border: t.accent },
-  }
-  const c = colors[tone] || colors.accent
-  let html = `<section style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0px">`
-  items.forEach((item) => {
-    html += `<span style="display:inline-block;padding:0 5px;border-radius:20px;font-size:14px;font-weight:600;background:${c.bg};color:${c.color};border:1px solid ${c.border}">${leaf(item)}</span>`
-  })
-  html += `</section>`
+  const html = Badges_DA01.render(attrs, text, t)
   return { html, next: i }
 }
 
@@ -137,6 +124,24 @@ export function parseCtaBlock(
     html += `<span style="display:inline-block;padding:12px 32px;background:rgba(255,255,255,0.2);border-radius:8px;font-weight:700;letter-spacing:1px;backdrop-filter:blur(4px)">${leaf(attrs.button)}</span>`
   html += `</section>`
   return { html, next: i }
+}
+
+export function parseCtaTag(
+  lines: string[],
+  start: number,
+  t: ThemeColors,
+): { html: string; next: number } {
+  let i = start
+  const openMatch = lines[i].match(/<cta\s*(.*)>/)
+  const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+  i++
+  let body = ''
+  while (i < lines.length && !/^<\/cta>/.test(lines[i])) {
+    body += lines[i] + '\n'
+    i++
+  }
+  i++
+  return { html: CTA_DA01.render(attrs, body, t), next: i }
 }
 
 export function parseBreaking(
@@ -230,19 +235,14 @@ export function parseCompare(
     i++
   }
   i++
-  const sideStyle = 'flex:1;min-width:0;padding:16px;background:rgb(250,251,254);border-radius:12px'
-  let html = `<section style="display:flex;gap:16px;margin:20px 0px">`
-  html += `<section style="${sideStyle}">`
-  html += `<p style="margin:0px 0px 4px;font-size:10px;font-weight:700;color:rgb(153,153,153);letter-spacing:2px">${leaf(attrs['left-label'] || 'BEFORE')}</p>`
-  html += `<p style="margin:0px 0px 8px;font-size:14px;font-weight:700;color:rgb(51,65,85)">${leaf(attrs['left-title'] || '')}</p>`
-  html += inlineFormat(leftContent.trim(), t)
-  html += `</section>`
-  html += `<section style="${sideStyle}">`
-  html += `<p style="margin:0px 0px 4px;font-size:10px;font-weight:700;color:${t.accent};letter-spacing:2px">${leaf(attrs['right-label'] || 'AFTER')}</p>`
-  html += `<p style="margin:0px 0px 8px;font-size:14px;font-weight:700;color:rgb(51,65,85)">${leaf(attrs['right-title'] || '')}</p>`
-  html += inlineFormat(rightContent.trim(), t)
-  html += `</section></section>`
-  return { html, next: i }
+
+  // 构造 body 供 Compare_DA01 解析
+  const body = `<left>\n${leftContent}</left>\n<right>\n${rightContent}</right>`
+
+  // 使用 inlineFormat 渲染内部 markdown
+  const inlineRenderer = (md: string) => inlineFormat(md, t)
+
+  return { html: Compare_DA01.render(attrs, body, t, inlineRenderer), next: i }
 }
 
 export function parseCallout(

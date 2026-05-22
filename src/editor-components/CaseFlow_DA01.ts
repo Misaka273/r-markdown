@@ -14,6 +14,7 @@
  *   color?: string  - 标签背景色（默认 #e74c3c 红色）
  */
 import type { ThemeColors } from '@/composables/useTheme'
+import { resolveColor, colorToAlpha } from '@/utils/colorUtils'
 
 interface CaseItem {
   num: string
@@ -51,22 +52,24 @@ export const CaseFlow_DA01 = {
     body: string,
     t: ThemeColors
   ): string {
-    const color = attrs.color || '#e74c3c'
+                const hex = resolveColor(attrs.color || t.accent)
     const items = parseCaseItems(body)
 
     if (items.length === 0) return ''
 
-    const rows = items.map(item => `
-      <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
-        <span style="flex-shrink:0;background:${color};color:#fff;font-size:12px;font-weight:600;padding:4px 10px;border-radius:4px;letter-spacing:0.5px;">案例 ${item.num}</span>
+    const tagBg = colorToAlpha(hex, 0.12)
+
+        const rows = items.map(item => `
+      <section style="display:flex;align-items:center;gap:16px;padding:20px;margin-bottom:12px;border:1px solid rgba(0,0,0,0.06);border-radius:12px;background:#fff;">
+                <span style="flex-shrink:0;background:${tagBg};color:${hex};font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;letter-spacing:0.5px;">案例 ${item.num}</span>
         <span style="flex:1;font-size:15px;line-height:1.6;color:#333;">${item.text}</span>
-      </div>
+      </section>
     `).join('')
 
     return `
-      <div style="margin:20px 0;padding:0 16px;">
+      <section style="margin:20px 0;">
         ${rows}
-      </div>
+      </section>
     `
   }
 }

@@ -30,7 +30,7 @@ export function lightenHex(hex: string, factor: number): string {
 
 export function parseAttrs(s: string): Record<string, string> {
   const attrs: Record<string, string> = {}
-  s.replace(/(\w+)="([^"]*)"/g, (_, k: string, v: string) => {
+    s.replace(/([\w-]+)="([^"]*)"/g, (_, k: string, v: string) => {
     attrs[k] = v
     return ''
   })
