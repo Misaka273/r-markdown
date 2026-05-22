@@ -152,18 +152,19 @@ export function parseBreaking(
     i++
   }
   i++
+  const color = attrs.color || t.accent
   let html = `<section style="margin:24px 0px;padding:28px 24px;background:linear-gradient(135deg,${t.light},rgba(255,255,255,0.8));border:1px solid ${t.border};border-radius:16px;position:relative;overflow:hidden">`
   html += `<section style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:${t.light};border-radius:50%;opacity:0.5"></section>`
   if (attrs.badge)
-    html += `<span style="display:inline-block;padding:4px 12px;background:${t.accent};color:rgb(255,255,255);border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:12px">${leaf(attrs.badge)}</span>`
+    html += `<span style="display:inline-block;padding:4px 12px;background:${color};color:rgb(255,255,255);border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:12px">${leaf(attrs.badge)}</span>`
   if (attrs.title)
     html += `<p style="margin:0px 0px 8px;font-size:22px;font-weight:800;color:rgb(26,26,26);line-height:1.4">${leaf(attrs.title)}</p>`
   if (attrs.subtitle)
     html += `<p style="margin:0px 0px 12px;font-size:14px;color:rgb(102,102,102)">${leaf(attrs.subtitle)}</p>`
-    if (attrs.chips) {
+  if (attrs.chips) {
     html += `<section style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">`
     attrs.chips.split('|').forEach((c) => {
-      html += `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(255,255,255,0.8);color:${t.accent};border:1px solid ${t.border}">${leaf('#' + c.trim())}</span>`
+      html += `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(255,255,255,0.8);color:${color};border:1px solid ${t.border}">${leaf('#' + c.trim())}</span>`
     })
     html += `</section>`
   }
