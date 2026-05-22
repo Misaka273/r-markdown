@@ -4,9 +4,9 @@ import type { ThemeColors } from '@/composables/useTheme'
 /**
  * ParagraphTitle_DA01 - 段落标题（默认A型01号样式）
  *
- * 编辑器语法：
- *   <ptitle icon="🔥" num="01">标题文字</ptitle>
- *   <ptitle color="#FF6B35">标题文字</ptitle>
+  * 编辑器语法：
+ *   <p-title icon="🔥" num="01">标题文字</p-title>
+ *   <p-title color="#FF6B35">标题文字</p-title>
  *
  * 属性：
  *   icon  - 左侧图标/emoji（可选）
@@ -42,14 +42,14 @@ const S = {
 export const ParagraphTitle_DA01 = {
   id: 'ParagraphTitle_DA01',
   name: '段落标题',
-  tag: 'ptitle',
+    tag: 'p-title',
   attrs: [
     { key: 'icon',  label: '图标/emoji',  required: false, default: '' },
     { key: 'num',   label: '序号（01/02）', required: false, default: '' },
     { key: 'color', label: '自定义颜色',   required: false, default: '' },
   ],
   example:
-    `<ptitle icon="🔥" num="01">段落标题文字</ptitle>`,
+        `<p-title icon="🔥" num="01">段落标题文字</p-title>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const prefix = attrs.icon

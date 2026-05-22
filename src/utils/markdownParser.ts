@@ -168,9 +168,9 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-    // <ptitle> 段落标题标签
-    if (/^<ptitle\b/.test(line)) {
-      const ptMatch = line.match(/^<ptitle\b([^>]*)>([\s\S]*?)<\/ptitle>/)
+        // <p-title> 段落标题标签
+    if (/^<p-title\b/.test(line)) {
+      const ptMatch = line.match(/^<p-title\b([^>]*)>([\s\S]*?)<\/p-title>/)
       if (ptMatch) {
         const attrs = parseAttrs(ptMatch[1])
         const body = ptMatch[2].trim()
