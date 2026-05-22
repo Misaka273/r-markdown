@@ -14,6 +14,7 @@ import {
   parseGallery,
 } from './components'
 import { Title_DA01 } from '@/editor-components/Title_DA01'
+import { ParagraphTitle_DA01 } from '@/editor-components/ParagraphTitle_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -155,13 +156,25 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       }
       continue
     }
-        // <title> 标签（新组件语法）
+            // <title> 标签（新组件语法）
     if (/^<title\b/.test(line)) {
       const titleMatch = line.match(/^<title\b([^>]*)>([\s\S]*?)<\/title>/)
       if (titleMatch) {
         const attrs = parseAttrs(titleMatch[1])
         const body = titleMatch[2].trim()
                 html += Title_DA01.render(attrs, body, t, md)
+      }
+      i++
+      continue
+    }
+
+    // <ptitle> 段落标题标签
+    if (/^<ptitle\b/.test(line)) {
+      const ptMatch = line.match(/^<ptitle\b([^>]*)>([\s\S]*?)<\/ptitle>/)
+      if (ptMatch) {
+        const attrs = parseAttrs(ptMatch[1])
+        const body = ptMatch[2].trim()
+        html += ParagraphTitle_DA01.render(attrs, body, t)
       }
       i++
       continue

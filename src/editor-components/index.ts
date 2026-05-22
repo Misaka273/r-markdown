@@ -17,8 +17,9 @@
  */
 import { Title_DA01 } from './Title_DA01';
 import { ReadingPath_DA01 } from './ReadingPath_DA01';
+import { ParagraphTitle_DA01 } from './ParagraphTitle_DA01';
 
-export const components = [Title_DA01, ReadingPath_DA01];
+export const components = [Title_DA01, ReadingPath_DA01, ParagraphTitle_DA01];
 
 /** 按 id 索引 */
 export const componentMap = Object.fromEntries(components.map(c => [c.id, c]));
