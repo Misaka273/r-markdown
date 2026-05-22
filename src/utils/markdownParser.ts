@@ -264,23 +264,39 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-        const h3m = line.match(/^###\s+(.+)/)
+            const h3m = line.match(/^###\s+(.+)/)
     if (h3m) {
       h3Count++
+      let h3Num = String(h3Count).padStart(2, '0')
+      let h3Title = h3m[1]
+      // 检测标题是否以数字开头（如 "01 突发/重大更新卡片"），如果是则用用户的数字作为序号
+      const h3NumMatch = h3Title.match(/^(\d{1,2})\s+(.+)/)
+      if (h3NumMatch) {
+        h3Num = h3NumMatch[1]
+        h3Title = h3NumMatch[2]
+      }
       html += ParagraphTitle_DA01.render(
-        { num: String(h3Count).padStart(2, '0'), level: '2' },
-        h3m[1], t,
+        { num: h3Num, level: '2' },
+        h3Title, t,
       )
       i++
       continue
     }
 
-    const h4m = line.match(/^####\s+(.+)/)
+        const h4m = line.match(/^####\s+(.+)/)
     if (h4m) {
       h4Count++
+      let h4Num = String(h4Count).padStart(2, '0')
+      let h4Title = h4m[1]
+      // 检测标题是否以数字开头（如 "01 突发/重大更新卡片"），如果是则用用户的数字作为序号
+      const h4NumMatch = h4Title.match(/^(\d{1,2})\s+(.+)/)
+      if (h4NumMatch) {
+        h4Num = h4NumMatch[1]
+        h4Title = h4NumMatch[2]
+      }
       html += ParagraphTitle_DA01.render(
-        { num: String(h4Count).padStart(2, '0'), level: '3' },
-        h4m[1], t,
+        { num: h4Num, level: '3' },
+        h4Title, t,
       )
       i++
       continue
