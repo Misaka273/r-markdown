@@ -154,8 +154,7 @@ function onCardLeave(e: MouseEvent) {
                 </div>
                                 <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
                 <!-- 属性说明表 -->
-                <div v-if="comp.attrs && comp.attrs.length" class="attrs-table">
-                                                                    <div class="attrs-header">属性说明</div>
+                                <div v-if="comp.attrs && comp.attrs.length" class="attrs-table">
                   <div class="attrs-row attrs-label-row">
                     <span class="attr-col-key">属性</span>
                     <span class="attr-col-desc">说明</span>
