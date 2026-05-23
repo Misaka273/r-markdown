@@ -186,6 +186,7 @@ function onMouseMove(e: MouseEvent) {
   break-inside: avoid;
   margin-bottom: 1.5rem;
   position: relative;
+  display: grid;
   border-radius: 1rem;
   overflow: hidden;
   background: #fff;
@@ -218,6 +219,8 @@ function onMouseMove(e: MouseEvent) {
 
 /* 正面渲染预览 */
 .card-front {
+  grid-row: 1;
+  grid-column: 1;
   position: relative;
   z-index: 1;
   transition: opacity 0.35s ease, filter 0.35s ease;
@@ -226,20 +229,22 @@ function onMouseMove(e: MouseEvent) {
 .spotlight-card:hover .card-front {
   opacity: 0.15;
   filter: blur(2px);
+  pointer-events: none;
 }
 
 /* 悬浮语法层 */
 .card-overlay {
-  position: absolute;
-  inset: 0;
+  grid-row: 1;
+  grid-column: 1;
+  position: relative;
   z-index: 4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 1.25rem;
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
 }
 
 .spotlight-card:hover .card-overlay {
@@ -249,7 +254,6 @@ function onMouseMove(e: MouseEvent) {
 
 .overlay-content {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -409,6 +413,9 @@ function onMouseMove(e: MouseEvent) {
 [data-theme='dark'] .spotlight-card {
   background: #1a1a1e;
   border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .card-overlay {
+  background: rgba(26, 26, 30, 0.96);
 }
 [data-theme='dark'] .spotlight-glow {
   background: radial-gradient(
