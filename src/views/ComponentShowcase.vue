@@ -432,9 +432,6 @@ function onCardLeave(e: MouseEvent) {
 
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
-  max-width: 100% !important;
-  width: 100% !important;
-  box-sizing: border-box;
 }
 </style>
 
