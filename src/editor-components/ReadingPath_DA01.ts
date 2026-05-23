@@ -50,14 +50,14 @@ export const ReadingPath_DA01 = {
   tag: 'reading-path',
   attrs: [],
 
-  render(h2List: string[], t: ThemeColors): string {
-    if (h2List.length <= 1) return ''
+    render(pTitleList: { num: string; title: string; subtitle: string }[], t: ThemeColors): string {
+    if (pTitleList.length <= 1) return ''
 
-    const steps = h2List.map((h2, idx) => {
-      const label = h2.replace(/::.*/, '').trim().replace(/^\d+\s*/, '')
-      const num = String(idx + 1).padStart(2, '0')
+    const steps = pTitleList.map((item, idx) => {
+      const label = item.title.replace(/::.*/, '').trim().replace(/^\d+\s*/, '')
+      const num = item.num || String(idx + 1).padStart(2, '0')
       const active = idx === 0
-      const connector = idx < h2List.length - 1
+      const connector = idx < pTitleList.length - 1
         ? `<span style="${S.line}">${leaf('-')}</span>`
         : ''
 
@@ -80,7 +80,7 @@ export const ReadingPath_DA01 = {
             <p style="${S.label}">${leaf('READING PATH')}</p>
             <p style="${S.heading}">${leaf('阅读路线')}</p>
           </section>
-          <p style="${S.count}">${leaf(h2List.length + ' 个章节')}</p>
+          <p style="${S.count}">${leaf(pTitleList.length + ' 个章节')}</p>
         </section>
         <section style="${S.track}">
           ${steps}

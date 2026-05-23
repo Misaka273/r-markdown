@@ -1,5 +1,7 @@
 export const DEMO_CONTENT = `
-<title badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>
+<title type="DA01" badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>
+
+<title type="DA02" badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>
 
 <reading-path />
 
@@ -29,19 +31,13 @@ export const DEMO_CONTENT = `
 
 <p-title num="03" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1" num-color="red" color="orange" subtitle-color="green"></p-title>
 
-段落标题组件适合在长文章中划分章节，顶部带有 CHAPTER 标签和横线，左侧有大号装饰序号，这是一个自定义颜色章节标题。
-
 <p-title num="02" title="二级标题示例" level="2" prefix="🔥" suffix="🔥" color="" num-color=""></p-title>
-
-直接用 \`##\` 语法即可生成二级标题，带左侧装饰序号，适合章节内的子标题，使用 \`p-title\` 标签语法会有更多的扩展。
 
 <p-title num="03" title="三级标题示例" level="3" color=""></p-title>
 
-直接用 \`###\` 语法即可生成三级标题，更小的装饰序号，适合细分内容段落，使用 \`p-title\` 标签语法会有更多的扩展。
-
 <p-title num="04" title="四级标题示例" level="4" color=""></p-title>
 
-直接用 \`###\` 语法即可生成四级标题，最小的装饰序号，使用 \`p-title\` 标签语法会有更多的扩展。
+> 直接用1～4个 \`#\` 语法即可生成一到四级标，使用 \`p-title\` 标签语法会有更多的扩展。
 
 <p-title num="04" title="核心交互组件" subtitle="COMPONENTS · 卡片与布局" level="1"></p-title>
 
@@ -80,9 +76,9 @@ export const DEMO_CONTENT = `
 - [案例 03] 编辑器重构：组件化架构让新增样式变得简单高效。
 </case-flow>
 
-<p-title num="04" title="布局演示" subtitle="LAYOUT · 对比与引导" level="1"></p-title>
+<p-title num="03" title="布局演示" subtitle="LAYOUT · 对比与引导" level="1"></p-title>
 
-<p-title num="01" title="Before / After 对比" level="2"></p-title>
+<p-title num="01" title="Before / After 对比（横向）" level="2"></p-title>
 
 <compare left-label="BEFORE" left-title="回味过去" right-label="AFTER" right-title="展望未来">
 <left>
@@ -93,11 +89,29 @@ export const DEMO_CONTENT = `
 </right>
 </compare>
 
-<p-title num="02" title="行动点召唤 (CTA)" level="2"></p-title>
+<p-title num="02" title="Before / After 对比（纵向）" level="2"></p-title>
+<compare left-label="BEFORE" left-title="回味过去" right-label="AFTER" right-title="展望未来" direction="vertical">
+<left>
+![旧版](https://robocopmao.github.io/r-markdown/banner1.webp)[100% 120px]
+</left>
+<right>
+![新版](https://robocopmao.github.io/r-markdown/banner2.webp)[100% 120px]
+</right>
+</compare>
+
+<p-title num="03" title="行动点召唤 (CTA)" level="2"></p-title>
 
 <cta label="GET STARTED" title="准备好开始你的创作了吗？" button="立即复制下方代码"></cta>
 
-<p-title num="05" title="其他组件用法" subtitle="MISC · 标签与代码" level="1"></p-title>
+<p-title num="04" title="时间线演示（Timeline）" level="2"></p-title>
+
+<timeline>
+- 2024年01月 | 项目启动 | 完成团队组建和需求分析 | ![新版](https://robocopmao.github.io/r-markdown/banner2.webp)[100% 120px]
+- 2024年06月 | 一期上线 | 核心功能发布，用户突破1万
+- 2025年01月 | 二期迭代 | 新增AI辅助功能，用户突破10万
+</timeline>
+
+<p-title num="04" title="其他组件用法" subtitle="MISC · 标签与代码" level="1"></p-title>
 
 <p-title num="01" title="彩色标签徽章 (Badges)" level="2"></p-title>
 
@@ -143,7 +157,7 @@ Lead 组件会生成一段带有左侧边框的引导文字，适合用来引入
 
 > Lead 组件的左侧边框颜色会跟随主题色变化，非常适合用作文章的引言或过渡段落。
 
-<p-title title="写在最后" subtitle="CONCLUSION · 结尾互动" level="1"></p-title>
+<p-title num="05" title="写在最后" subtitle="CONCLUSION · 结尾互动" level="1"></p-title>
 
 所有组件都支持公众号无损复制，您可以根据需要自由组合。
 
