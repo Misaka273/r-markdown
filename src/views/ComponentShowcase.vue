@@ -23,6 +23,7 @@ const componentExamples = ref<Array<{
   description: string
   example: string
   rendered: string
+  idSuffix: string
 }>>([])
 
 onMounted(() => {
@@ -32,7 +33,8 @@ onMounted(() => {
     name: comp.name,
     description: comp.description || '',
     example: comp.example || '',
-    rendered: comp.example ? parseMarkdown(comp.example, demoColors) : ''
+    rendered: comp.example ? parseMarkdown(comp.example, demoColors) : '',
+    idSuffix: comp.id.split('_').slice(1).join('_')
   }))
 })
 
@@ -78,38 +80,42 @@ function copySyntax(code: string) {
             组件预览
           </h1>
           <p class="text-base sm:text-[19px] text-[#888] m-0">
-            悬停卡片查看组件语法
+            悬停卡片翻转查看组件语法
           </p>
         </div>
 
-                <!-- Components Waterfall -->
+        <!-- Components Waterfall -->
         <div class="waterfall">
           <div
             v-for="comp in componentExamples"
             :key="comp.id"
-            class="showcase-card group"
+            class="flip-card"
           >
-                        <!-- 渲染预览（始终完整展示） -->
-            <div class="card-preview bg-white rounded-2xl border border-black/[0.06] shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-visible">
-              <div class="p-6">
-                <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content"></div>
-                <div v-else class="text-[13px] text-[#ccc] italic py-8 text-center">暂无示例</div>
+            <div class="flip-card-inner">
+              <!-- 正面：渲染预览 -->
+              <div class="flip-card-front card-surface">
+                <div class="p-6">
+                  <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content"></div>
+                  <div v-else class="text-[13px] text-[#ccc] italic py-8 text-center">暂无示例</div>
+                </div>
               </div>
-            </div>
 
-            <!-- 悬停语法遮罩 -->
-            <div v-if="comp.example" class="syntax-overlay">
-              <div class="syntax-header">
-                <span class="text-[13px] text-white/80 font-semibold">{{ comp.name }} <span class="text-[#a78bfa]">{{ comp.id.split('_').slice(1).join('_') }}</span></span>
-                <button class="copy-btn" @click.stop="copySyntax(comp.example)">
-                  <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="5" y="5" width="9" height="9" rx="1.5"/>
-                    <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/>
-                  </svg>
-                  复制
-                </button>
+              <!-- 背面：语法用法 -->
+              <div v-if="comp.example" class="flip-card-back card-surface">
+                <div class="back-content">
+                  <div class="back-header">
+                    <span class="back-title">{{ comp.name }} <span class="back-id">{{ comp.idSuffix }}</span></span>
+                    <button class="copy-btn" @click.stop="copySyntax(comp.example)">
+                      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+                        <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/>
+                      </svg>
+                      复制
+                    </button>
+                  </div>
+                  <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
+                </div>
               </div>
-              <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
             </div>
           </div>
         </div>
@@ -148,53 +154,79 @@ function copySyntax(code: string) {
   }
 }
 
-/* ── 卡片容器 ── */
-.showcase-card {
-  position: relative;
-  cursor: default;
+/* ── 翻转卡片 ── */
+.flip-card {
   break-inside: avoid;
   margin-bottom: 1.5rem;
+  perspective: 1200px;
+  cursor: default;
 }
 
-.card-preview {
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
 }
 
-.showcase-card:hover .card-preview {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(108, 92, 231, 0.12);
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
 }
 
-/* ── 语法遮罩 ── */
-.syntax-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%);
+.flip-card-front,
+.flip-card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   border-radius: 1rem;
-  padding: 1.25rem;
+}
+
+/* 正面 */
+.flip-card-front {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+/* 背面 */
+.flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.back-content {
   display: flex;
   flex-direction: column;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(8px);
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-  overflow: hidden;
+  height: 100%;
+  padding: 1.25rem;
 }
 
-.showcase-card:hover .syntax-overlay {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.syntax-header {
+.back-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+.back-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.back-id {
+  color: #a78bfa;
+  font-weight: 500;
 }
 
 .copy-btn {
@@ -257,7 +289,7 @@ function copySyntax(code: string) {
 [data-theme='dark'] .nav-link:hover {
   color: #f0f0f0 !important;
 }
-[data-theme='dark'] .card-preview {
+[data-theme='dark'] .flip-card-front {
   background: #1a1a1e;
   border-color: rgba(255, 255, 255, 0.08);
 }
