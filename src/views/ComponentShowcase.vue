@@ -24,6 +24,7 @@ const componentExamples = ref<Array<{
   example: string
   rendered: string
   idSuffix: string
+  attrs: Array<{ key: string; label: string; required?: boolean; default?: string }>
 }>>([])
 
 onMounted(() => {
@@ -34,7 +35,8 @@ onMounted(() => {
     description: comp.description || '',
     example: comp.example || '',
     rendered: comp.example ? parseMarkdown(comp.example, demoColors) : '',
-    idSuffix: comp.id.split('_').slice(1).join('_')
+    idSuffix: comp.id.split('_').slice(1).join('_'),
+    attrs: (comp as any).attrs || []
   }))
 })
 
@@ -125,7 +127,21 @@ function onMouseMove(e: MouseEvent) {
                     复制
                   </button>
                 </div>
-                <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
+                                <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
+                <!-- 属性说明表 -->
+                <div v-if="comp.attrs && comp.attrs.length" class="attrs-table">
+                  <div class="attrs-header">属性说明</div>
+                  <div class="attrs-row attrs-label-row">
+                    <span class="attr-col-key">属性</span>
+                    <span class="attr-col-label">说明</span>
+                    <span class="attr-col-default">默认值</span>
+                  </div>
+                  <div v-for="attr in comp.attrs" :key="attr.key" class="attrs-row">
+                    <span class="attr-col-key"><code>{{ attr.key }}</code><span v-if="attr.required" class="attr-required">必填</span></span>
+                    <span class="attr-col-label">{{ attr.label }}</span>
+                    <span class="attr-col-default">{{ attr.default || '—' }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -293,6 +309,78 @@ function onMouseMove(e: MouseEvent) {
   word-break: break-all;
 }
 
+/* ── 属性说明表 ── */
+.attrs-table {
+  margin-top: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.attrs-header {
+  padding: 6px 10px;
+  font-weight: 600;
+  font-size: 11px;
+  color: #6c5ce7;
+  background: rgba(108, 92, 231, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.attrs-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 70px;
+  gap: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.attrs-row:last-child {
+  border-bottom: none;
+}
+
+.attrs-label-row {
+  background: rgba(0, 0, 0, 0.03);
+  font-weight: 600;
+  color: #888;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.attrs-row span {
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  color: #ccc;
+}
+
+.attr-col-key code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: #a78bfa;
+  background: rgba(108, 92, 231, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.attr-required {
+  font-size: 9px;
+  color: #e74c3c;
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+.attr-col-label {
+  color: #aaa;
+}
+
+.attr-col-default {
+  color: #777;
+  font-family: 'SF Mono', monospace;
+  font-size: 10px;
+}
+
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
 }
@@ -345,6 +433,19 @@ function onMouseMove(e: MouseEvent) {
   background: #a78bfa;
   color: #1a1a1e;
   border-color: #a78bfa;
+}
+[data-theme='dark'] .attrs-table {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .attrs-header {
+  background: rgba(167, 139, 250, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme='dark'] .attrs-row {
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+[data-theme='dark'] .attrs-label-row {
+  background: rgba(255, 255, 255, 0.03);
 }
 [data-theme='dark'] footer {
   border-color: rgba(255, 255, 255, 0.06);
