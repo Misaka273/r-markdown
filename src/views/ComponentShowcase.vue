@@ -250,6 +250,7 @@ function onCardLeave(e: MouseEvent) {
   position: relative;
   z-index: 1;
   transition: opacity 0.35s ease, filter 0.35s ease;
+  overflow: hidden;
 }
 
 .spotlight-card:hover .card-front {
@@ -431,7 +432,8 @@ function onCardLeave(e: MouseEvent) {
 
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
-  max-width: 100%;
+  max-width: 100% !important;
+  width: 100% !important;
   box-sizing: border-box;
 }
 </style>
