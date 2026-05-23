@@ -21,7 +21,7 @@ export const Badges_DA01 = {
   name: '彩色标签徽章',
   tag: 'badges',
   attrs: [
-    { key: 'tone',  label: '风格色调', required: false, default: 'accent' },
+        { key: 'tone',  label: '风格色调', required: false, default: 'accent', options: ['accent', 'green', 'yellow', 'dark'] },
     { key: 'color', label: '文字颜色', required: false, default: '' },
     { key: 'bg',    label: '背景颜色', required: false, default: '' },
   ],

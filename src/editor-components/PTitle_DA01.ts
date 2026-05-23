@@ -39,7 +39,7 @@ export const PTitle = {
     { key: 'color',           label: '标题颜色',      required: false, default: '' },
     { key: 'num-color',       label: '序号颜色',      required: false, default: '' },
     { key: 'subtitle-color',  label: '副标题颜色',    required: false, default: '' },
-    { key: 'level',           label: '层级（1/2/3/4）', required: false, default: '1' },
+        { key: 'level',           label: '层级', required: false, default: '1', options: ['1', '2', '3', '4'] },
     { key: 'prefix',          label: '前缀图标',      required: false, default: '' },
     { key: 'suffix',          label: '后缀图标',      required: false, default: '' },
   ],

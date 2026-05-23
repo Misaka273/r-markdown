@@ -68,7 +68,7 @@ export const Title_DA01 = {
   name: '标题卡片',
   tag: 'title',
     attrs: [
-    { key: 'type',     label: '样式类型（DA01/DA02）', required: false, default: 'DA01' },
+        { key: 'type',     label: '样式类型', required: false, default: 'DA01', options: ['DA01', 'DA02'] },
     { key: 'badge',    label: '标签',           required: false, default: '' },
     { key: 'subtitle', label: '副标题',         required: false, default: '' },
     { key: 'chips',    label: '关键词（|分隔）', required: false, default: '' },

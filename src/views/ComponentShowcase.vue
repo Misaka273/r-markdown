@@ -24,7 +24,7 @@ const componentExamples = ref<Array<{
   example: string
   rendered: string
   idSuffix: string
-  attrs: Array<{ key: string; label: string; required?: boolean; default?: string }>
+    attrs: Array<{ key: string; label: string; required?: boolean; default?: string; options?: string[] }>
 }>>([])
 
 onMounted(() => {
@@ -161,10 +161,15 @@ function onCardLeave(e: MouseEvent) {
                     <span class="attr-col-label">说明</span>
                     <span class="attr-col-default">默认值</span>
                   </div>
-                  <div v-for="attr in comp.attrs" :key="attr.key" class="attrs-row">
+                                    <div v-for="attr in comp.attrs" :key="attr.key" class="attrs-row">
                     <span class="attr-col-key"><code>{{ attr.key }}</code><span v-if="attr.required" class="attr-required">必填</span></span>
                     <span class="attr-col-label">{{ attr.label }}</span>
-                    <span class="attr-col-default">{{ attr.default || '—' }}</span>
+                    <span class="attr-col-default">
+                      <template v-if="attr.options">
+                        <span v-for="(opt, i) in attr.options" :key="opt" class="attr-option"><code>{{ opt }}</code><span v-if="i < attr.options.length - 1" class="attr-option-sep">/</span></span>
+                      </template>
+                      <template v-else>{{ attr.default || '—' }}</template>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -395,6 +400,20 @@ function onCardLeave(e: MouseEvent) {
   color: #e74c3c;
   margin-left: 4px;
   font-weight: 600;
+}
+
+.attr-option code {
+  font-size: 10px;
+  color: #6c5ce7;
+  background: rgba(108, 92, 231, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.attr-option-sep {
+  color: #ccc;
+  margin: 0 2px;
+  font-size: 10px;
 }
 
 .attr-col-label {
