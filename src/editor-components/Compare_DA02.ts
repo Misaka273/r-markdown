@@ -1,47 +1,38 @@
 /**
- * Compare_DA01 - 左右对比（默认A型01号样式）
+ * Compare_DA02 - 纵向对比（默认A型02号样式）
+ *
+ * 与 DA01 的区别：
+ *   DA01 = 横向左右对比（flex row）
+ *   DA02 = 纵向上下对比（flex column）
  *
  * 编辑器语法：
-  *   <compare left-label="BEFORE" left-title="旧版" right-label="AFTER" right-title="新版">
- *   <left>
- *   左侧内容（支持图片、文字等）
- *   </left>
- *   <right>
- *   右侧内容（支持图片、文字等）
- *   </right>
+ *   <compare type="DA02" left-label="BEFORE" left-title="旧版" right-label="AFTER" right-title="新版">
+ *   <left>旧版内容</left>
+ *   <right>新版内容</right>
  *   </compare>
- *
- * 属性：
- *   left-label  - 左侧标签（如 BEFORE）
- *   left-title  - 左侧标题
- *   right-label - 右侧标签（如 AFTER）
- *   right-title - 右侧标题
- *   color       - 自定义颜色（默认使用主题色）
- *   direction   - 布局方向：horizontal（默认）/ vertical（竖向）
  */
 import { leaf } from '@/utils/helpers'
 import { resolveColor } from '@/utils/colorUtils'
 import type { ThemeColors } from '@/composables/useTheme'
 
-export const Compare_DA01 = {
-  id: 'Compare_DA01',
-  name: '对比',
+export const Compare_DA02 = {
+  id: 'Compare_DA02',
+  name: '对比（纵向）',
   tag: 'compare',
-    attrs: [
+  attrs: [
     { key: 'left-label',  label: '左侧标签',  required: false, default: '' },
     { key: 'left-title',  label: '左侧标题',  required: false, default: '' },
     { key: 'right-label', label: '右侧标签',  required: false, default: '' },
     { key: 'right-title', label: '右侧标题',  required: false, default: '' },
     { key: 'color',       label: '自定义颜色', required: false, default: '' },
-    { key: 'direction',   label: '布局方向',   required: false, default: 'horizontal', options: ['horizontal', 'vertical'] },
   ],
-    example:
-    `<compare left-label="BEFORE" left-title="旧版绿色" right-label="AFTER" right-title="新版靛青">
+  example:
+    `<compare type="DA02" left-label="BEFORE" left-title="旧版" right-label="AFTER" right-title="新版">
 <left>
-![旧版](https://robocopmao.github.io/r-markdown/banner1.webp)[100% 120px]
+旧版内容：界面简单，功能较少，适合轻量使用场景。
 </left>
 <right>
-![新版](https://robocopmao.github.io/r-markdown/banner2.webp)[100% 120px]
+新版内容：全新设计，功能丰富，支持多种高级特性。
 </right>
 </compare>`,
 
@@ -54,15 +45,13 @@ export const Compare_DA01 = {
     }
   },
 
-    render(
+  render(
     attrs: Record<string, string>,
     body: string,
     t: ThemeColors,
     inlineRenderer?: (md: string) => string,
   ): string {
     const hex = resolveColor(attrs.color || t.accent)
-    const direction = attrs.direction || 'horizontal'
-    const isVertical = direction === 'vertical'
     const { left, right } = this.parseSides(body)
 
     const renderContent = (md: string): string => {
@@ -92,12 +81,7 @@ export const Compare_DA01 = {
       return html
     }
 
-    if (isVertical) {
-      // ── 竖向布局 ──
-      return `<section style="display:flex;flex-direction:column;gap:12px;margin:20px 0px"><section style="padding:16px;background:rgb(250,251,254);border-radius:12px">${renderSide(attrs['left-label'] || '', attrs['left-title'] || '', left, 'rgb(153,153,153)')}</section><section style="padding:16px;background:rgb(250,251,254);border-radius:12px">${renderSide(attrs['right-label'] || '', attrs['right-title'] || '', right, hex)}</section></section>`
-    }
-
-    // ── 横向布局（默认）──
-    return `<section style="display:flex;gap:16px;margin:20px 0px"><section style="flex:1;min-width:0;padding:16px;background:rgb(250,251,254);border-radius:12px">${renderSide(attrs['left-label'] || '', attrs['left-title'] || '', left, 'rgb(153,153,153)')}</section><section style="flex:1;min-width:0;padding:16px;background:rgb(250,251,254);border-radius:12px">${renderSide(attrs['right-label'] || '', attrs['right-title'] || '', right, hex)}</section></section>`
+    // 纵向布局
+    return `<section style="display:flex;flex-direction:column;gap:12px;margin:20px 0px"><section style="padding:16px;background:rgb(250,251,254);border-radius:12px">${renderSide(attrs['left-label'] || '', attrs['left-title'] || '', left, 'rgb(153,153,153)')}</section><section style="padding:16px;background:rgb(250,251,254);border-radius:12px">${renderSide(attrs['right-label'] || '', attrs['right-title'] || '', right, hex)}</section></section>`
   },
 }

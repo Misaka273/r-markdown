@@ -2,6 +2,7 @@ import type { ThemeColors } from '../composables/useTheme'
 import { esc, leaf, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import { Compare_DA01 } from '@/editor-components/Compare_DA01'
+import { Compare_DA02 } from '@/editor-components/Compare_DA02'
 import { CTA_DA01 } from '@/editor-components/Cta_DA01'
 import { Badges_DA01 } from '@/editor-components/Badges_DA01'
 
@@ -239,10 +240,11 @@ export function parseCompare(
   // 构造 body 供 Compare_DA01 解析
   const body = `<left>\n${leftContent}</left>\n<right>\n${rightContent}</right>`
 
-  // 使用 inlineFormat 渲染内部 markdown
+    // 使用 inlineFormat 渲染内部 markdown
   const inlineRenderer = (md: string) => inlineFormat(md, t)
 
-  return { html: Compare_DA01.render(attrs, body, t, inlineRenderer), next: i }
+  const renderer = attrs.type === 'DA02' ? Compare_DA02 : Compare_DA01
+  return { html: renderer.render(attrs, body, t, inlineRenderer), next: i }
 }
 
 export function parseCallout(
