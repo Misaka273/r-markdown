@@ -5,7 +5,7 @@ import type { ThemeColors } from '@/composables/useTheme'
  * Steps_DA01 - 步骤流（默认A型01号样式）
  *
  * 编辑器语法：
- *   <steps label="HOW IT WORKS" title="标题" hint="提示文字" active="2" color="#e74c3c" direction="horizontal">
+  *   <steps label="HOW IT WORKS" title="标题" hint="提示文字" active="2" color="#e74c3c">
  *   - 步骤名称 | 步骤描述
  *   - 步骤名称 | 步骤描述
  *   </steps>
@@ -16,7 +16,7 @@ import type { ThemeColors } from '@/composables/useTheme'
  *   hint      - 提示文字
  *   active    - 当前激活步骤（从1开始）
  *   color     - 自定义颜色（默认使用主题色）
- *   direction - 布局方向：horizontal=横向（默认），vertical=竖向
+  *   （竖向布局请使用 type="DA02"）
  */
 
 export const Steps_DA01 = {
@@ -29,27 +29,19 @@ export const Steps_DA01 = {
     { key: 'hint',      label: '提示文字',         required: false, default: '' },
     { key: 'active',    label: '当前步骤（1/2/3）', required: false, default: '1' },
     { key: 'color',     label: '自定义颜色',       required: false, default: '' },
-    { key: 'direction', label: '布局方向（horizontal/vertical）', required: false, default: 'horizontal' },
+    
   ],
-      example:
+          example:
     `<steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2" color="#e74c3c">
 - 输入 | 往知识库里喂东西
 - 管理 | 让知识库有序运转
 - 输出 | 从知识库取素材做东西
-</steps>` + '\n\n' +
-    `<steps label="VERTICAL STEPS" title="竖向步骤流" active="2" direction="vertical">
-- 注册账号 | 填写基本信息完成注册
-- 实名认证 | 上传证件完成身份验证
-- 开始使用 | 选择功能模块开始体验
 </steps>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const active = parseInt(attrs.active || '1', 10)
     const color = attrs.color || t.accent
-    const direction = attrs.direction || 'horizontal'
-    const isVertical = direction === 'vertical'
-
-    // 解析步骤列表
+        // 解析步骤列表
     const steps: { name: string; desc: string }[] = []
     body.split('\n').forEach((line) => {
       const m = line.trim().match(/^-\s*(.+)\s*\|\s*(.+)/)
@@ -64,27 +56,7 @@ export const Steps_DA01 = {
     if (attrs.hint)
       html += `<p style="margin:0px 0px 16px;font-size:12px;color:rgb(153,153,153)">${leaf(attrs.hint)}</p>`
 
-    if (isVertical) {
-      // ── 竖向布局 ──
-      html += `<section style="display:flex;flex-direction:column;gap:12px">`
-      steps.forEach((s, idx) => {
-        const isActive = idx + 1 === active
-                const borderWidth = isActive ? '2px' : '1px'
-        const borderColor = isActive ? color : 'rgb(238,238,238)'
-        const bgColor = isActive ? `${color}10` : 'rgb(255,255,255)'
-        html += `<section style="display:flex;align-items:flex-start;gap:12px;padding:16px;background:${bgColor};border-radius:10px;border:${borderWidth} solid ${borderColor}">`
-        // 序号圆圈
-        html += `<section style="flex-shrink:0;width:32px;height:32px;border-radius:50%;background:${isActive ? color : 'rgb(238,238,238)'};display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:900;color:${isActive ? '#fff' : 'rgb(153,153,153)'}">${leaf(idx + 1)}</span></section>`
-        // 文字内容
-        html += `<section style="flex:1;margin-top:4px">`
-        html += `<p style="margin:0px 0px 2px;font-size:14px;font-weight:700;color:rgb(51,65,85)">${leaf(s.name)}</p>`
-        html += `<p style="margin:0px;font-size:12px;color:rgb(153,153,153)">${leaf(s.desc)}</p>`
-        html += `</section>`
-        html += `</section>`
-      })
-      html += `</section>`
-    } else {
-      // ── 横向布局（默认）──
+        // 横向布局
       html += `<section style="display:flex;gap:12px;overflow-x:auto">`
       steps.forEach((s, idx) => {
         const isActive = idx + 1 === active
@@ -97,8 +69,7 @@ export const Steps_DA01 = {
         html += `<p style="margin:0px;font-size:11px;color:rgb(153,153,153)">${leaf(s.desc)}</p>`
         html += `</section>`
       })
-      html += `</section>`
-    }
+            html += `</section>`
 
     html += `</section>`
     return html

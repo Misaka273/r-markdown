@@ -16,6 +16,7 @@ import { Title_DA02 } from '@/editor-components/Title_DA02'
 import { PTitle } from '@/editor-components/PTitle_DA01'
 import { Breaking_DA01 } from '@/editor-components/Breaking_DA01'
 import { Steps_DA01 } from '@/editor-components/Steps_DA01'
+import { Steps_DA02 } from '@/editor-components/Steps_DA02'
 import { CaseFlow_DA01 } from '@/editor-components/CaseFlow_DA01'
 import { Badges_DA01 } from '@/editor-components/Badges_DA01'
 import { Statement_DA01 } from '@/editor-components/Statement_DA01'
@@ -89,7 +90,8 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         i++
       }
       i++ // skip </steps>
-      html += Steps_DA01.render(attrs, body.trim(), t)
+            const stepsRenderer = attrs.type === 'DA02' ? Steps_DA02 : Steps_DA01
+      html += stepsRenderer.render(attrs, body.trim(), t)
       continue
     }
                 // <statement> ... </statement>
