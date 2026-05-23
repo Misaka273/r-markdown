@@ -29,10 +29,10 @@ export function renderFrontMatter(
     html += `<p style="margin:0px;font-size:28px;font-weight:900;color:rgb(17,24,39);line-height:1.2;letter-spacing:-0.5px;word-break:break-all">${leaf(meta.title)}</p>`
   if (meta.subtitle)
     html += `<p style="margin:0px;padding:10px 0px 0px;font-size:14px;color:rgb(71,85,105);line-height:1.7;font-weight:400">${leaf(meta.subtitle)}</p>`
-    if (meta.chips) {
-                html += `<section style="margin:0px;padding:10px 0px 0px;font-size:0px;line-height:1.8">`
+  if (meta.chips) {
+    html += `<section style="margin:0px;padding:10px 0px 0px;font-size:0px;line-height:1.8">`
     meta.chips.split('|').forEach((c) => {
-                        html += `<span style="display:inline-block;margin:0px 8px 0px 0px;font-size:10px;color:#576B95;font-weight:700;letter-spacing:0.02em;white-space:nowrap">${leaf('#' + c.trim())}</span>`
+      html += `<span style="display:inline-block;margin:0px 8px 0px 0px;font-size:10px;color:#576B95;font-weight:700;letter-spacing:0.02em;white-space:nowrap">${leaf('#' + c.trim())}</span>`
     })
     html += `</section>`
   }
@@ -240,7 +240,7 @@ export function parseCompare(
   // 构造 body 供 Compare_DA01 解析
   const body = `<left>\n${leftContent}</left>\n<right>\n${rightContent}</right>`
 
-    // 使用 inlineFormat 渲染内部 markdown
+  // 使用 inlineFormat 渲染内部 markdown
   const inlineRenderer = (md: string) => inlineFormat(md, t)
 
   const renderer = attrs.type === 'DA02' ? Compare_DA02 : Compare_DA01

@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { toPng } from 'html-to-image'
 import type { ThemeColors } from '@/composables/useTheme'
 import { parseMarkdown } from '@/utils/markdownParser'
+import Toast from './Toast.vue'
 
 const props = defineProps<{
   markdown: string
@@ -11,6 +12,18 @@ const props = defineProps<{
 
 const previewRef = ref<HTMLElement>()
 const saving = ref(false)
+const toastVisible = ref(false)
+const toastMessage = ref('')
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(msg: string) {
+  toastMessage.value = msg
+  toastVisible.value = true
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toastVisible.value = false
+  }, 1500)
+}
 
 function updateContent() {
   const el = previewRef.value
@@ -119,22 +132,11 @@ async function saveAsImage() {
   }
 }
 
-function showToast(msg: string) {
-  const t = document.createElement('div')
-  t.className = 'toast show'
-  t.textContent = msg
-  document.body.appendChild(t)
-  setTimeout(() => {
-    t.classList.remove('show')
-    setTimeout(() => document.body.removeChild(t), 300)
-  }, 2000)
-}
-
 defineExpose({ copyRichText, copyHTML, saveAsImage })
 </script>
 
 <template>
-    <div
+  <div
     class="preview-scroll"
     style="
       height: 100%;
@@ -171,6 +173,7 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
       ></div>
     </div>
   </div>
+  <Toast :visible="toastVisible" :message="toastMessage" />
 </template>
 
 <style scoped>

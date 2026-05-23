@@ -2,10 +2,11 @@
 
 /* ── Theme CSS Variables ── */
 :root {
-  --accent: #6c5ce7;
+    --accent: #6c5ce7;
   --accent-dark: #5a4bd1;
   --accent-light: #6c5ce726;
   --accent-border: #6c5ce733;
+  --accent-rgb: 108, 92, 231;
 
   /* ── Light Mode (default) ── */
   --bg-primary: #ffffff;

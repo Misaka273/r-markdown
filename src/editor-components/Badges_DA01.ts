@@ -21,12 +21,17 @@ export const Badges_DA01 = {
   name: '彩色标签徽章',
   tag: 'badges',
   attrs: [
-        { key: 'tone',  label: '风格色调', required: false, default: 'accent', options: ['accent', 'green', 'yellow', 'dark'] },
+    {
+      key: 'tone',
+      label: '风格色调',
+      required: false,
+      default: 'accent',
+      options: ['accent', 'green', 'yellow', 'dark'],
+    },
     { key: 'color', label: '文字颜色', required: false, default: '' },
-    { key: 'bg',    label: '背景颜色', required: false, default: '' },
+    { key: 'bg', label: '背景颜色', required: false, default: '' },
   ],
-  example:
-    `<badges tone="accent">Vue|TypeScript|Vite|Tailwind</badges>`,
+  example: `<badges tone="accent">Vue|TypeScript|Vite|Tailwind</badges>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const items = body
@@ -36,9 +41,9 @@ export const Badges_DA01 = {
 
     const tone = attrs.tone || 'accent'
     const tones: Record<string, { bg: string; color: string; border: string }> = {
-      green:  { bg: '#e8f5e9', color: '#2e7d32', border: '#a5d6a7' },
+      green: { bg: '#e8f5e9', color: '#2e7d32', border: '#a5d6a7' },
       yellow: { bg: '#fff9c4', color: '#f57f17', border: '#fff176' },
-      dark:   { bg: '#263238', color: '#eceff1', border: '#455a64' },
+      dark: { bg: '#263238', color: '#eceff1', border: '#455a64' },
       accent: { bg: t.accent + '18', color: t.accent, border: t.accent + '50' },
     }
     const c = tones[tone] || tones.accent

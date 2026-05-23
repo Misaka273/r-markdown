@@ -7,7 +7,7 @@ import type { ThemeColors } from '@/composables/useTheme'
  * 编辑器语法：
  *   <statement>这是一段居中的强调文字。</statement>
  *
-  * 属性：
+ * 属性：
  *   color - 文字颜色（可选，默认 rgb(51,65,85)）
  *
  * body 内容居中显示，字号较大加粗，适合金句或核心观点。
@@ -17,9 +17,7 @@ export const Statement_DA01 = {
   id: 'Statement_DA01',
   name: '居中强调语',
   tag: 'statement',
-  attrs: [
-    { key: 'color', label: '文字颜色', required: false, default: '' },
-  ],
+  attrs: [{ key: 'color', label: '文字颜色', required: false, default: '' }],
   example: `<statement>这是一段居中的强调文字，适合用来突出核心观点或结论。</statement>`,
 
   render(attrs: Record<string, string>, body: string, _t: ThemeColors): string {

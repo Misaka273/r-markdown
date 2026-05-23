@@ -12,22 +12,21 @@
  *   - 开始使用 | 选择功能模块开始体验
  *   </steps>
  */
-import { leaf } from '@/utils/helpers'
+import { leaf, withAlpha } from '@/utils/helpers'
 import type { ThemeColors } from '@/composables/useTheme'
 
 export const Steps_DA02 = {
   id: 'Steps_DA02',
-  name: '步骤流（竖向）',
+  name: '步骤流',
   tag: 'steps',
   attrs: [
-    { key: 'label',  label: '顶部标签',         required: false, default: '' },
-    { key: 'title',  label: '标题',             required: false, default: '' },
-    { key: 'hint',   label: '提示文字',         required: false, default: '' },
+    { key: 'label', label: '顶部标签', required: false, default: '' },
+    { key: 'title', label: '标题', required: false, default: '' },
+    { key: 'hint', label: '提示文字', required: false, default: '' },
     { key: 'active', label: '当前步骤（1/2/3）', required: false, default: '1' },
-    { key: 'color',  label: '自定义颜色',       required: false, default: '' },
+    { key: 'color', label: '自定义颜色', required: false, default: '' },
   ],
-  example:
-    `<steps type="DA02" label="VERTICAL STEPS" title="竖向步骤流" active="2">
+  example: `<steps type="DA02" label="VERTICAL STEPS" title="竖向步骤流" active="2">
 - 注册账号 | 填写基本信息完成注册
 - 实名认证 | 上传证件完成身份验证
 - 开始使用 | 选择功能模块开始体验
@@ -57,7 +56,7 @@ export const Steps_DA02 = {
       const isActive = idx + 1 === active
       const borderWidth = isActive ? '2px' : '1px'
       const borderColor = isActive ? color : 'rgb(238,238,238)'
-      const bgColor = isActive ? `${color}10` : 'rgb(255,255,255)'
+      const bgColor = isActive ? withAlpha(color) : 'rgb(255,255,255)'
       html += `<section style="display:flex;align-items:flex-start;gap:12px;padding:16px;background:${bgColor};border-radius:10px;border:${borderWidth} solid ${borderColor}">`
       html += `<section style="flex-shrink:0;width:32px;height:32px;border-radius:50%;background:${isActive ? color : 'rgb(238,238,238)'};display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:900;color:${isActive ? '#fff' : 'rgb(153,153,153)'}">${leaf(idx + 1)}</span></section>`
       html += `<section style="flex:1;margin-top:4px">`

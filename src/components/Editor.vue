@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { useTheme } from '@/composables/useTheme'
 import { EditorView, keymap, placeholder as ph } from '@codemirror/view'
 import { EditorState } from '@codemirror/state'
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
@@ -10,7 +11,6 @@ import {
   HighlightStyle,
   bracketMatching,
   foldGutter,
-  indentOnInput,
 } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
 import { lineNumbers, highlightActiveLine, highlightActiveLineGutter } from '@codemirror/view'
@@ -28,6 +28,7 @@ const emit = defineEmits<{
 }>()
 
 const editorRef = ref<HTMLDivElement>()
+const { colors } = useTheme()
 let view: EditorView | null = null
 
 // 自定义语法高亮 — 去掉 defaultHighlightStyle 的 heading 下划线
@@ -86,18 +87,18 @@ const warmTheme = EditorView.theme(
       backgroundColor: 'transparent',
     },
     '.cm-selectionBackground': {
-      backgroundColor: 'rgba(108, 92, 231, 0.15) !important',
+      backgroundColor: 'rgba(var(--accent-rgb), 0.15) !important',
     },
     '&.cm-focused .cm-selectionBackground': {
-      backgroundColor: 'rgba(108, 92, 231, 0.2) !important',
+      backgroundColor: 'rgba(var(--accent-rgb), 0.2) !important',
     },
     '.cm-cursor': {
       borderLeftColor: 'var(--accent)',
       borderLeftWidth: '2px',
     },
     '.cm-matchingBracket': {
-      backgroundColor: 'rgba(108, 92, 231, 0.15)',
-      outline: '1px solid rgba(108, 92, 231, 0.3)',
+      backgroundColor: 'rgba(var(--accent-rgb), 0.15)',
+      outline: '1px solid rgba(var(--accent-rgb), 0.3)',
     },
     '.cm-foldGutter': {
       color: 'var(--text-muted)',
@@ -116,7 +117,7 @@ const warmTheme = EditorView.theme(
     '.cm-string': { color: '#86efac' },
     '.cm-number': { color: '#fbbf24' },
     '.cm-monospace': {
-      backgroundColor: 'rgba(108, 92, 231, 0.08)',
+      backgroundColor: 'rgba(var(--accent-rgb), 0.08)',
       color: '#f472b6',
       padding: '2px 6px',
       borderRadius: '4px',
@@ -161,7 +162,7 @@ onMounted(async () => {
       highlightActiveLineGutter(),
       highlightActiveLine(),
       foldGutter(),
-      indentOnInput(),
+
       bracketMatching(),
       closeBrackets(),
       autocompletion(),

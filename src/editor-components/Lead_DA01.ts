@@ -18,10 +18,8 @@ export const Lead_DA01 = {
   id: 'Lead_DA01',
   name: '引导文字',
   tag: 'lead',
-  attrs: [
-    { key: 'color', label: '边框颜色', required: false, default: '' },
-  ],
-    example: `<lead>在开始之前，先聊一个背景：最近几年，越来越多的人开始重新审视自己的生活方式。</lead>`,
+  attrs: [{ key: 'color', label: '边框颜色', required: false, default: '' }],
+  example: `<lead>在开始之前，先聊一个背景：最近几年，越来越多的人开始重新审视自己的生活方式。</lead>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const color = attrs.color || t.accent

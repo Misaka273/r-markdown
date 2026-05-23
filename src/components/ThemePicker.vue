@@ -59,7 +59,7 @@ function onCustomInput(e: Event) {
     </button>
     <div
       class="theme-picker absolute top-full right-0 mt-2 p-3 rounded-xl z-10 w-50"
-            :class="{ show: isVisible }"
+      :class="{ show: isVisible }"
     >
       <div class="flex flex-wrap gap-2">
         <div

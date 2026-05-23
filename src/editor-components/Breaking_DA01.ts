@@ -22,22 +22,20 @@ export const Breaking_DA01 = {
   name: '突发卡片',
   tag: 'breaking',
   attrs: [
-    { key: 'badge',    label: '标签',           required: false, default: '' },
-    { key: 'title',    label: '标题',           required: false, default: '' },
-    { key: 'subtitle', label: '副标题',         required: false, default: '' },
-    { key: 'chips',    label: '关键词（|分隔）', required: false, default: '' },
-    { key: 'color',    label: '自定义颜色',     required: false, default: '' },
+    { key: 'badge', label: '标签', required: false, default: '' },
+    { key: 'title', label: '标题', required: false, default: '' },
+    { key: 'subtitle', label: '副标题', required: false, default: '' },
+    { key: 'chips', label: '关键词（|分隔）', required: false, default: '' },
+    { key: 'color', label: '自定义颜色', required: false, default: '' },
   ],
-    example:
-    `<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观" color="#e74c3c">
+  example: `<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观">
 这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。
 </breaking>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const color = attrs.color || t.accent
 
-    let html = `<section style="margin:24px 0px;padding:28px 24px;background:linear-gradient(135deg,${t.light},rgba(255,255,255,0.8));border:1px solid ${t.border};border-radius:16px;position:relative;overflow:hidden">`
-    html += `<section style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:${t.light};border-radius:50%;opacity:0.5"></section>`
+    let html = `<section style="margin:24px 0px;padding:28px 24px;background:radial-gradient(circle 60px at 92% 30px,${t.light} 96%,transparent 100%),linear-gradient(135deg,${t.light},rgba(255,255,255,0.8));border:1px solid ${t.border};border-radius:16px">`
 
     if (attrs.badge)
       html += `<span style="display:inline-block;padding:4px 12px;background:${color};color:rgb(255,255,255);border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:12px">${leaf(attrs.badge)}</span>`

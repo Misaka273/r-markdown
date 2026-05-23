@@ -33,22 +33,21 @@ export const PTitle = {
   name: '段落标题',
   tag: 'p-title',
   attrs: [
-    { key: 'num',             label: '序号（01/02）', required: false, default: '' },
-    { key: 'title',           label: '标题文字',      required: false, default: '' },
-    { key: 'subtitle',        label: '副标题',        required: false, default: '' },
-    { key: 'color',           label: '标题颜色',      required: false, default: '' },
-    { key: 'num-color',       label: '序号颜色',      required: false, default: '' },
-    { key: 'subtitle-color',  label: '副标题颜色',    required: false, default: '' },
-        { key: 'level',           label: '层级', required: false, default: '1', options: ['1', '2', '3', '4'] },
-    { key: 'prefix',          label: '前缀图标',      required: false, default: '' },
-    { key: 'suffix',          label: '后缀图标',      required: false, default: '' },
+    { key: 'num', label: '序号（01/02）', required: false, default: '' },
+    { key: 'title', label: '标题文字', required: false, default: '' },
+    { key: 'subtitle', label: '副标题', required: false, default: '' },
+    { key: 'color', label: '标题颜色', required: false, default: '' },
+    { key: 'num-color', label: '序号颜色', required: false, default: '' },
+    { key: 'subtitle-color', label: '副标题颜色', required: false, default: '' },
+    { key: 'level', label: '层级', required: false, default: '1', options: ['1', '2', '3', '4'] },
+    { key: 'prefix', label: '前缀图标', required: false, default: '' },
+    { key: 'suffix', label: '后缀图标', required: false, default: '' },
   ],
-  example:
-    `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,
+  example: `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const num = attrs.num || ''
-    const title = attrs.title || body  // title 属性优先，fallback 到 body
+    const title = attrs.title || body // title 属性优先，fallback 到 body
     const subtitle = attrs.subtitle
     const level = parseInt(attrs.level || '1', 10)
     const accent = t.accent
@@ -64,7 +63,7 @@ export const PTitle = {
     // ── Level 1: 完整章节标题（CHAPTER + 大号装饰数字 + 标题 + 副标题）──
     if (level === 1) {
       const numBlock = hasNum
-                ? `<strong style="display:block;font-size:60px;line-height:1;color:${numColor};letter-spacing:-3px;white-space:nowrap;opacity:0.25"><span leaf="">${num}</span></strong>`
+        ? `<strong style="display:block;font-size:60px;line-height:1;color:${numColor};letter-spacing:-3px;white-space:nowrap;opacity:0.25"><span leaf="">${num}</span></strong>`
         : ''
       const titleBlock = hasNum
         ? `<strong style="display:block;font-size:30px;font-weight:900;color:${titleColor};line-height:1.26;letter-spacing:-0.8px;margin-top:-60px;margin-left:50px"><span leaf="">${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}</span></strong>`

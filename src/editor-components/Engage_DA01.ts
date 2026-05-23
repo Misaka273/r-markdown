@@ -25,7 +25,7 @@ export const Engage_DA01 = {
   example: `<engage title="如果这份文档对你有帮助，欢迎点赞、推荐、转发！" label="THANKS FOR READING">`,
 
   render(attrs: Record<string, string>, _body: string, t: ThemeColors): string {
-        let html = `<section style="margin:48px 0px 28px;width:100%;max-width:677px;box-sizing:border-box;overflow:hidden;text-align:center;padding:24px;border-radius:14px;background:rgba(${t.rgb},0.05);border:1px dashed rgba(229,231,235,0.9)">`
+    let html = `<section style="margin:48px 0px 28px;width:100%;max-width:677px;box-sizing:border-box;overflow:hidden;text-align:center;padding:24px;border-radius:14px;background:rgba(${t.rgb},0.05);border:1px dashed rgba(229,231,235,0.9)">`
     if (attrs.title)
       html += `<p style="margin:0px 0px 20px;font-size:16px;font-weight:800;color:rgb(30,41,59);line-height:1.6">${leaf(attrs.title)}</p>`
     html += `<section style="margin:0px 0px 14px;text-align:center;font-size:0px;line-height:1;color:${t.accent}">`

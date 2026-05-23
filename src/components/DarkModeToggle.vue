@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
     </button>
     <div
       class="dark-mode-menu absolute top-full right-0 mt-2 p-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 w-36"
-            :class="{ show: isVisible }"
+      :class="{ show: isVisible }"
     >
       <button
         class="dark-mode-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"

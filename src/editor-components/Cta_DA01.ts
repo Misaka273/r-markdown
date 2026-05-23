@@ -20,13 +20,12 @@ export const CTA_DA01 = {
   name: '行动号召',
   tag: 'cta',
   attrs: [
-    { key: 'label',  label: '标签',       required: false, default: '' },
-    { key: 'title',  label: '标题',       required: false, default: '' },
-    { key: 'button', label: '按钮文字',   required: false, default: '' },
-    { key: 'color',  label: '自定义颜色', required: false, default: '' },
+    { key: 'label', label: '标签', required: false, default: '' },
+    { key: 'title', label: '标题', required: false, default: '' },
+    { key: 'button', label: '按钮文字', required: false, default: '' },
+    { key: 'color', label: '自定义颜色', required: false, default: '' },
   ],
-  example:
-    `<cta label="GET STARTED" title="准备好开始你的创作了吗？" button="立即复制下方代码">
+  example: `<cta label="GET STARTED" title="准备好开始你的创作了吗？" button="立即复制下方代码">
 </cta>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {

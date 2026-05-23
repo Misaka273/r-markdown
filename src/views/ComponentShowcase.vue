@@ -1,47 +1,113 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { parseMarkdown } from '@/utils/markdownParser'
-import type { ThemeColors } from '@/composables/useTheme'
+import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
+import SiteLogo from '@/components/SiteLogo.vue'
+import NavCapsule from '@/components/NavCapsule.vue'
+import MobileNavMenu from '@/components/MobileNavMenu.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
+import Toast from '@/components/Toast.vue'
 import { components } from '@/editor-components'
 
 const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
+const { colors } = useTheme()
 const visible = ref(false)
 
-const demoColors: ThemeColors = {
-  accent: '#6c5ce7',
-  dark: '#5a4bd1',
-  light: '#f0edff',
-  border: '#e5e7eb',
-  rgb: '108,92,231',
+// 分类定义
+const categories = [
+  { key: 'all', label: '全部' },
+  { key: 'title', label: '标题' },
+  { key: 'content', label: '内容' },
+  { key: 'layout', label: '布局' },
+  { key: 'interactive', label: '互动' },
+]
+const activeCategory = ref('all')
+
+// 组件 id → 分类映射
+const componentCategoryMap: Record<string, string> = {
+  Title_DA01: 'title',
+  Title_DA02: 'title',
+  PTitle_DA01: 'title',
+  Breaking_DA01: 'title',
+  ReadingPath_DA01: 'content',
+  Lead_DA01: 'content',
+  Statement_DA01: 'content',
+  Steps_DA01: 'layout',
+  Steps_DA02: 'layout',
+  CaseFlow_DA01: 'layout',
+  Compare_DA01: 'layout',
+  Compare_DA02: 'layout',
+  TimeLine_DA01: 'layout',
+  Badges_DA01: 'interactive',
+  CTA_DA01: 'interactive',
+  Engage_DA01: 'interactive',
 }
 
-const componentExamples = ref<Array<{
-  id: string
-  name: string
-  description: string
-  example: string
-  rendered: string
-  idSuffix: string
-    attrs: Array<{ key: string; label: string; required?: boolean; default?: string; options?: string[] }>
-}>>([])
+const filteredComponents = computed(() => {
+  if (activeCategory.value === 'all') return componentExamples.value
+  return componentExamples.value.filter((c) => componentCategoryMap[c.id] === activeCategory.value)
+})
+
+const showcaseNavItems = computed(() => [
+  { key: 'home', label: '首页', to: '/', iconPath: 'M3 12l7-8 7 8' },
+  { key: 'editor', label: '编辑器', to: '/editor', iconPath: 'M11.5 3.5l5 5L7 18H2v-5L11.5 3.5z' },
+])
+
+const componentExamples = ref<
+  Array<{
+    id: string
+    name: string
+    description: string
+    example: string
+    rendered: string
+    idSuffix: string
+    attrs: Array<{
+      key: string
+      label: string
+      required?: boolean
+      default?: string
+      options?: string[]
+    }>
+  }>
+>([])
 
 onMounted(() => {
-  requestAnimationFrame(() => { visible.value = true })
-  componentExamples.value = components.map(comp => ({
-    id: comp.id,
-    name: comp.name,
-    description: comp.description || '',
-    example: comp.example || '',
-    rendered: comp.example ? parseMarkdown(comp.example, demoColors) : '',
-    idSuffix: comp.id.split('_').slice(1).join('_'),
-    attrs: (comp as any).attrs || []
+  requestAnimationFrame(() => {
+    visible.value = true
+  })
+  componentExamples.value = components
+    .filter((comp) => comp.id !== 'ReadingPath_DA01')
+    .map((comp) => ({
+      id: comp.id,
+      name: comp.name,
+      description: comp.description || '',
+      example: comp.example || '',
+      rendered: comp.example ? parseMarkdown(comp.example, colors.value) : '',
+      idSuffix: comp.id.split('_').slice(1).join('_'),
+      attrs: (comp as any).attrs || [],
+    }))
+})
+
+// 主题色变化时重新渲染预览
+watch(colors, (c) => {
+  componentExamples.value = componentExamples.value.map((comp) => ({
+    ...comp,
+    rendered: comp.example ? parseMarkdown(comp.example, c) : comp.rendered,
   }))
 })
 
+const showToast = ref(false)
+const toastText = ref('')
+
 function copySyntax(code: string) {
   navigator.clipboard.writeText(code)
+  toastText.value = '已复制到剪贴板'
+  showToast.value = true
+  setTimeout(() => {
+    showToast.value = false
+  }, 1500)
 }
 
 function onMouseMove(e: MouseEvent) {
@@ -81,28 +147,20 @@ function onCardLeave(e: MouseEvent) {
   <div class="showcase-page" :class="{ 'opacity-100': visible, 'opacity-0': !visible }">
     <!-- Header -->
     <header class="header-blur sticky top-0 z-50 backdrop-blur-xl">
-      <div class="mx-auto max-w-[1100px] flex items-center px-4 sm:px-8 py-3.5">
-        <router-link to="/" class="flex items-center gap-2.5 no-underline shrink-0 logo-link">
-          <svg class="logo-icon" viewBox="0 0 24 24" width="26" height="26">
-            <rect width="24" height="24" rx="6" fill="#6c5ce7" />
-            <text x="3" y="17" font-family="Arial" font-size="10.5" font-weight="bold" fill="white">RM</text>
-          </svg>
-          <span class="text-[17px] font-bold text-[#111] tracking-tight logo-text">R-Markdown</span>
-        </router-link>
-
-        <nav class="nav-pill relative hidden sm:flex items-center rounded-full bg-black/5 px-0.5 py-0.5 ml-auto">
-          <router-link to="/" class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]">
-            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l7-8 7 8"/></svg>
-            首页
-          </router-link>
-          <span class="w-1 h-1 rounded-full bg-black/20 relative z-10 mx-1"></span>
-          <router-link to="/editor" class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]">
-            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 7h6M7 10h4"/></svg>
-            编辑器
-          </router-link>
-        </nav>
-
-        <DarkModeToggle :mode="darkMode" @select="setDarkMode" class="shrink-0 ml-auto sm:ml-3" />
+      <div class="mx-auto max-w-[1100px] flex items-center gap-1.5 px-4 sm:px-8 py-3.5">
+        <SiteLogo />
+        <NavCapsule :items="showcaseNavItems" active-key="editor" class="ml-auto" />
+        <MobileNavMenu
+          :items="showcaseNavItems"
+          @click="
+            (key: string) => {
+              if (key === 'home') $router.push('/')
+              else if (key === 'editor') $router.push('/editor')
+            }
+          "
+          class="ml-auto sm:ml-0"
+        />
+        <DarkModeToggle :mode="darkMode" @select="setDarkMode" class="shrink-0" />
       </div>
     </header>
 
@@ -110,18 +168,33 @@ function onCardLeave(e: MouseEvent) {
     <main class="px-4 sm:px-8 py-8 sm:py-12">
       <div class="mx-auto max-w-[1100px]">
         <div class="mb-8 sm:mb-12">
-          <h1 class="text-[28px] sm:text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">
-            组件预览
+          <h1
+            class="text-[28px] sm:text-[40px] font-extrabold tracking-tight m-0 mb-2"
+            style="color: var(--text-primary)"
+          >
+            扩展组件
           </h1>
-          <p class="text-base sm:text-[19px] text-[#888] m-0">
-            悬停卡片查看组件用法
+          <p class="text-base sm:text-[19px] m-0" style="color: var(--text-muted)">
+            浏览和使用丰富的排版组件
           </p>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter">
+          <button
+            v-for="cat in categories"
+            :key="cat.key"
+            :class="['cat-btn', { active: activeCategory === cat.key }]"
+            @click="activeCategory = cat.key"
+          >
+            {{ cat.label }}
+          </button>
         </div>
 
         <!-- Components Waterfall -->
         <div class="waterfall">
-                    <div
-            v-for="comp in componentExamples"
+          <div
+            v-for="comp in filteredComponents"
             :key="comp.id"
             class="spotlight-card"
             @mousemove="onMouseMove"
@@ -143,29 +216,52 @@ function onCardLeave(e: MouseEvent) {
             <div v-if="comp.example" class="card-overlay">
               <div class="overlay-content">
                 <div class="overlay-header">
-                  <span class="overlay-title">{{ comp.name }} <span class="overlay-id">{{ comp.idSuffix }}</span></span>
+                  <span class="overlay-title"
+                    >{{ comp.name }} <span class="overlay-id">{{ comp.idSuffix }}</span></span
+                  >
                   <button class="copy-btn" @click.stop="copySyntax(comp.example)">
-                    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="5" y="5" width="9" height="9" rx="1.5"/>
-                      <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/>
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="13"
+                      height="13"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="5" y="5" width="9" height="9" rx="1.5" />
+                      <path
+                        d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"
+                      />
                     </svg>
                     复制
                   </button>
                 </div>
-                                <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
+                <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
                 <!-- 属性说明表 -->
-                                <div v-if="comp.attrs && comp.attrs.length" class="attrs-table">
+                <div v-if="comp.attrs && comp.attrs.length" class="attrs-table">
                   <div class="attrs-row attrs-label-row">
                     <span class="attr-col-key">属性</span>
                     <span class="attr-col-desc">说明</span>
                   </div>
                   <div v-for="attr in comp.attrs" :key="attr.key" class="attrs-row">
-                    <span class="attr-col-key"><code>{{ attr.key }}</code><span v-if="attr.required" class="attr-required">必填</span></span>
+                    <span class="attr-col-key"
+                      ><code>{{ attr.key }}</code
+                      ><span v-if="attr.required" class="attr-required">必填</span></span
+                    >
                     <span class="attr-col-desc">
                       {{ attr.label }}
-                      <template v-if="attr.default">，默认 <code class="attr-default-inline">{{ attr.default }}</code></template>
+                      <template v-if="attr.default"
+                        >，默认
+                        <code class="attr-default-inline">{{ attr.default }}</code></template
+                      >
                       <template v-if="attr.options && attr.options.length">
-                        ，可选 <code v-for="(opt, i) in attr.options" :key="opt" class="attr-option-inline">{{ opt }}<template v-if="i < attr.options.length - 1"> / </template></code>
+                        ，可选
+                        <code v-for="(opt, i) in attr.options" :key="opt" class="attr-option-inline"
+                          >{{ opt
+                          }}<template v-if="i < attr.options.length - 1"> / </template></code
+                        >
                       </template>
                     </span>
                   </div>
@@ -178,23 +274,46 @@ function onCardLeave(e: MouseEvent) {
     </main>
 
     <!-- Footer -->
-    <footer class="px-4 sm:px-8 py-6 border-t border-black/[0.06]">
-      <div class="mx-auto max-w-[1100px] text-center">
-        <p class="text-[13px] text-[#bbb]">© 2026 R-Markdown · Markdown to WeChat</p>
-      </div>
-    </footer>
+    <SiteFooter showExtra />
+
+    <!-- Toast -->
+    <Toast :visible="showToast" :message="toastText" />
   </div>
 </template>
 
 <style scoped>
 .showcase-page {
   min-height: 100vh;
-  background: #f5f5f7;
+  background: var(--bg-secondary);
   transition: opacity 0.3s ease;
 }
 
-.logo-link {
+/* ── 分类筛选 ── */
+.category-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.cat-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cat-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+.cat-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
 /* ── 瀑布流 ── */
@@ -217,9 +336,9 @@ function onCardLeave(e: MouseEvent) {
   display: grid;
   border-radius: 1rem;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-panel);
   cursor: default;
   --mouse-x: 50%;
   --mouse-y: 50%;
@@ -234,8 +353,8 @@ function onCardLeave(e: MouseEvent) {
   transition: opacity 0.35s ease;
   background: radial-gradient(
     350px circle at var(--mouse-x) var(--mouse-y),
-    rgba(108, 92, 231, 0.15),
-    rgba(108, 92, 231, 0.05) 40%,
+    rgba(var(--accent-rgb), 0.15),
+    rgba(var(--accent-rgb), 0.05) 40%,
     transparent 70%
   );
   pointer-events: none;
@@ -249,7 +368,9 @@ function onCardLeave(e: MouseEvent) {
 .card-front {
   position: relative;
   z-index: 1;
-  transition: opacity 0.35s ease, filter 0.35s ease;
+  transition:
+    opacity 0.35s ease,
+    filter 0.35s ease;
   overflow: hidden;
 }
 
@@ -269,7 +390,7 @@ function onCardLeave(e: MouseEvent) {
   transition: opacity 0.35s ease;
   pointer-events: none;
   overflow-y: auto;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--bg-primary);
   backdrop-filter: blur(8px);
 }
 
@@ -295,11 +416,11 @@ function onCardLeave(e: MouseEvent) {
 .overlay-title {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .overlay-id {
-  color: #6c5ce7;
+  color: var(--accent);
   font-weight: 500;
 }
 
@@ -309,18 +430,18 @@ function onCardLeave(e: MouseEvent) {
   gap: 4px;
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(108, 92, 231, 0.08);
-  color: #6c5ce7;
+  border: 1px solid var(--border-color);
+  background: var(--accent-light);
+  color: var(--accent);
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .copy-btn:hover {
-  background: #6c5ce7;
+  background: var(--accent);
   color: white;
-  border-color: #6c5ce7;
+  border-color: var(--accent);
 }
 
 .syntax-code {
@@ -343,7 +464,7 @@ function onCardLeave(e: MouseEvent) {
 .attrs-table {
   margin-top: 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
   overflow: hidden;
   font-size: 11px;
   flex-shrink: 0;
@@ -353,16 +474,16 @@ function onCardLeave(e: MouseEvent) {
   padding: 6px 10px;
   font-weight: 600;
   font-size: 11px;
-  color: #6c5ce7;
-  background: rgba(108, 92, 231, 0.06);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--accent);
+  background: var(--accent-light);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .attrs-row {
   display: grid;
   grid-template-columns: 90px 1fr;
   gap: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .attrs-row:last-child {
@@ -370,9 +491,9 @@ function onCardLeave(e: MouseEvent) {
 }
 
 .attrs-label-row {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--accent-light);
   font-weight: 600;
-  color: #888;
+  color: var(--text-muted);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -382,14 +503,14 @@ function onCardLeave(e: MouseEvent) {
   padding: 5px 10px;
   display: flex;
   align-items: center;
-  color: #444;
+  color: var(--text-secondary);
 }
 
 .attr-col-key code {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 11px;
-  color: #a78bfa;
-  background: rgba(108, 92, 231, 0.1);
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
   padding: 1px 5px;
   border-radius: 3px;
 }
@@ -402,7 +523,7 @@ function onCardLeave(e: MouseEvent) {
 }
 
 .attr-col-desc {
-  color: #555;
+  color: var(--text-secondary);
   font-size: 11px;
   line-height: 1.6;
 }
@@ -410,8 +531,8 @@ function onCardLeave(e: MouseEvent) {
 .attr-default-inline {
   font-family: 'SF Mono', monospace;
   font-size: 10px;
-  color: #6c5ce7;
-  background: rgba(108, 92, 231, 0.08);
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
   padding: 1px 4px;
   border-radius: 3px;
 }
@@ -419,10 +540,10 @@ function onCardLeave(e: MouseEvent) {
 .attr-option-inline {
   font-family: 'SF Mono', monospace;
   font-size: 10px;
-  color: #6c5ce7;
-  background: rgba(108, 92, 231, 0.08);
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
   padding: 1px 4px;
-    border-radius: 3px;
+  border-radius: 3px;
 }
 
 .preview-content {
@@ -432,77 +553,5 @@ function onCardLeave(e: MouseEvent) {
 
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
-}
-</style>
-
-<style>
-/* 深色模式 */
-[data-theme='dark'] .showcase-page {
-  background: #111114;
-}
-[data-theme='dark'] header {
-  background: rgba(17, 17, 20, 0.8) !important;
-}
-[data-theme='dark'] .logo-text {
-  color: #f0f0f0;
-}
-[data-theme='dark'] .nav-pill {
-  background: rgba(255, 255, 255, 0.08) !important;
-}
-[data-theme='dark'] .nav-link {
-  color: #aaa !important;
-}
-[data-theme='dark'] .nav-link:hover {
-  color: #f0f0f0 !important;
-}
-[data-theme='dark'] .spotlight-card {
-  background: #1a1a1e;
-  border-color: rgba(255, 255, 255, 0.08);
-}
-[data-theme='dark'] .card-overlay {
-  background: rgba(26, 26, 30, 0.96);
-}
-[data-theme='dark'] .spotlight-glow {
-  background: radial-gradient(
-    350px circle at var(--mouse-x) var(--mouse-y),
-    rgba(167, 139, 250, 0.2),
-    rgba(167, 139, 250, 0.06) 40%,
-    transparent 70%
-  );
-}
-[data-theme='dark'] .overlay-title {
-  color: rgba(255, 255, 255, 0.85);
-}
-[data-theme='dark'] .overlay-id {
-  color: #a78bfa;
-}
-[data-theme='dark'] .copy-btn {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(167, 139, 250, 0.1);
-  color: #a78bfa;
-}
-[data-theme='dark'] .copy-btn:hover {
-  background: #a78bfa;
-  color: #1a1a1e;
-  border-color: #a78bfa;
-}
-[data-theme='dark'] .attrs-table {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-[data-theme='dark'] .attrs-header {
-  background: rgba(167, 139, 250, 0.08);
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-[data-theme='dark'] .attrs-row {
-  border-bottom-color: rgba(255, 255, 255, 0.04);
-}
-[data-theme='dark'] .attrs-label-row {
-  background: rgba(255, 255, 255, 0.03);
-}
-[data-theme='dark'] footer {
-  border-color: rgba(255, 255, 255, 0.06);
-}
-[data-theme='dark'] footer p {
-  color: #555;
 }
 </style>

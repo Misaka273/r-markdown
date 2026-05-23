@@ -1,5 +1,4 @@
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <router-view />
@@ -61,26 +60,22 @@
   width: 3px;
 }
 
-/* ── Toast ── */
-.toast {
-  position: fixed;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100px);
-  padding: 12px 24px;
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow:
-    rgba(0, 0, 0, 0.04) 0px 4px 18px,
-    rgba(0, 0, 0, 0.027) 0px 2px 8px;
-  transition: transform 0.3s ease;
-  z-index: 1000;
+/* ── Header Blur ── */
+.header-blur {
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 245, 247, 0.98) 0%,
+    rgba(245, 245, 247, 0.6) 70%,
+    rgba(245, 245, 247, 0) 100%
+  );
 }
 
-.toast.show {
-  transform: translateX(-50%) translateY(0);
+[data-theme='dark'] .header-blur {
+  background: linear-gradient(
+    to bottom,
+    rgba(17, 17, 20, 0.98) 0%,
+    rgba(17, 17, 20, 0.6) 70%,
+    rgba(17, 17, 20, 0) 100%
+  );
 }
 </style>

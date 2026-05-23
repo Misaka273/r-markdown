@@ -107,6 +107,7 @@ export function useTheme() {
     root.style.setProperty('--accent-dark', d)
     root.style.setProperty('--accent-light', a + '26')
     root.style.setProperty('--accent-border', a + '33')
+    root.style.setProperty('--accent-rgb', hexToRgb(a))
   }
 
   // 初始化 CSS 变量

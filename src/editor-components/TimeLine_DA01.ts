@@ -33,17 +33,19 @@ interface TimelineItem {
 
 function parseTimelineItems(body: string): TimelineItem[] {
   const items: TimelineItem[] = []
-  const lines = body.split('\n').filter(l => l.trim())
+  const lines = body.split('\n').filter((l) => l.trim())
 
   for (const line of lines) {
     // 匹配：- 日期 | 标题 | 描述 [| ![alt](src)[宽 高]]
-    const m = line.match(/^-\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)(?:\s*\|\s*!\[(.*?)\]\((.*?)\)\[(\S+)\s+(\S+)\])?\s*$/)
+    const m = line.match(
+      /^-\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)(?:\s*\|\s*!\[(.*?)\]\((.*?)\)\[(\S+)\s+(\S+)\])?\s*$/,
+    )
     if (m) {
       items.push({
         date: m[1].trim(),
         title: m[2].trim(),
         desc: m[3].trim(),
-        image: m[4] !== undefined ? { alt: m[4], src: m[5], width: m[6], height: m[7] } : null
+        image: m[4] !== undefined ? { alt: m[4], src: m[5], width: m[6], height: m[7] } : null,
       })
     }
   }
@@ -54,21 +56,14 @@ export const TimeLine_DA01 = {
   id: 'TimeLine_DA01',
   name: '时间线',
   tag: 'timeline',
-  attrs: [
-    { key: 'color', label: '自定义颜色', required: false, default: '' },
-  ],
-  example:
-    `<timeline>
+  attrs: [{ key: 'color', label: '自定义颜色', required: false, default: '' }],
+  example: `<timeline>
 - 2024年01月 | 项目启动 | 完成团队组建和需求分析 | ![新版](https://picsum.photos/400/120?random=1)[100% 120px]
 - 2024年06月 | 一期上线 | 核心功能发布，用户突破1万
 - 2025年01月 | 二期迭代 | 新增AI辅助功能，用户突破10万 | ![二期](https://picsum.photos/400/120?random=2)[100% 120px]
 </timeline>`,
 
-  render(
-    attrs: Record<string, string>,
-    body: string,
-    t: ThemeColors
-  ): string {
+  render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const hex = resolveColor(attrs.color || t.accent)
     const items = parseTimelineItems(body)
 
@@ -77,19 +72,20 @@ export const TimeLine_DA01 = {
     const dotBg = colorToAlpha(hex, 0.15)
     const lineColor = colorToAlpha(hex, 0.3)
 
-    const rows = items.map((item, idx) => {
-      const isLast = idx === items.length - 1
+    const rows = items
+      .map((item, idx) => {
+        const isLast = idx === items.length - 1
 
-      // 图片 HTML
-      let imageHtml = ''
-      if (item.image) {
-        const style: string[] = ['border-radius:12px', 'display:block', 'margin-top:12px']
-        if (item.image.width) style.push(`width:${item.image.width}`)
-        if (item.image.height) style.push(`height:${item.image.height}`, 'object-fit:cover')
-                imageHtml = `<img src="${item.image.src}" alt="${item.image.alt}" style="${style.join(';')};" />`
-      }
+        // 图片 HTML
+        let imageHtml = ''
+        if (item.image) {
+          const style: string[] = ['border-radius:12px', 'display:block', 'margin-top:12px']
+          if (item.image.width) style.push(`width:${item.image.width}`)
+          if (item.image.height) style.push(`height:${item.image.height}`, 'object-fit:cover')
+          imageHtml = `<img src="${item.image.src}" alt="${item.image.alt}" style="${style.join(';')};" />`
+        }
 
-      return `
+        return `
         <section style="display:flex;gap:20px;position:relative;${isLast ? '' : 'padding-bottom:32px;'}">
           <!-- 左侧时间轴 -->
           <section style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px;">
@@ -104,11 +100,12 @@ export const TimeLine_DA01 = {
             ${imageHtml}
           </section>
         </section>`
-    }).join('')
+      })
+      .join('')
 
     return `
       <section style="margin:24px 0;padding:24px;background:linear-gradient(135deg, rgba(255,255,255,0.8), rgba(248,250,252,0.6));border:1px solid rgba(0,0,0,0.06);border-radius:16px;">
         ${rows}
       </section>`
-  }
+  },
 }

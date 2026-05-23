@@ -197,7 +197,7 @@ function onPreviewScroll() {
   if (!previewScrollEl) return
   const maxScroll = previewScrollEl.scrollHeight - previewScrollEl.clientHeight
   if (maxScroll > 0) {
-        const ratio = previewScrollEl.scrollTop / maxScroll
+    const ratio = previewScrollEl.scrollTop / maxScroll
     handlePreviewScroll(ratio)
     if (isMobile.value) {
       nearBottom.value = ratio > 0.85
@@ -216,10 +216,14 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="flex flex-col h-screen">
-        <!-- Toolbar -->
+    <!-- Toolbar -->
     <div class="toolbar flex items-center justify-between px-4 py-2 border-b shrink-0">
       <div class="flex items-center min-w-0">
-                <router-link to="/" class="flex items-center text-sm font-semibold tracking-tight no-underline" style="color: var(--text-primary)">
+        <router-link
+          to="/"
+          class="flex items-center text-sm font-semibold tracking-tight no-underline"
+          style="color: var(--text-primary)"
+        >
           <svg viewBox="0 0 24 24" width="22" height="22" class="shrink-0 mr-1.5">
             <rect width="24" height="24" rx="5" :fill="accent" />
             <text
@@ -235,12 +239,29 @@ onBeforeUnmount(() => {
           </svg>
           <span class="hidden sm:inline">R-Markdown 编辑器</span>
           <span class="sm:hidden">R-Markdown</span>
-                    <span class="text-[0.55em] opacity-60 align-super ml-0.5 hidden sm:inline">for 公众号</span>
-                </router-link>
+          <span class="text-[0.55em] opacity-60 align-super ml-0.5 hidden sm:inline"
+            >for 公众号</span
+          >
+        </router-link>
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
       </div>
-            <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
+        <button
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="$router.push('/components')"
+        >
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          扩展组件
+        </button>
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="loadDemo"
@@ -297,12 +318,13 @@ onBeforeUnmount(() => {
           复制富文本
         </button>
         <!-- 移动端：下拉菜单 -->
-                                <MobileActionsMenu
+        <MobileActionsMenu
           :mode="mobileTab"
           @load-demo="loadDemo"
           @copy-html="handleCopyHTML"
           @save-image="handleSaveImage"
           @copy-rich-text="handleCopyRichText"
+          @go-components="$router.push('/components')"
         />
         <ThemePicker
           :themes="themes"
@@ -316,19 +338,43 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Main Layout -->
-                <!-- 移动端：底部悬浮胶囊 Tab（始终显示） -->
-        <div class="mobile-tab-bar md:hidden" :style="{ '--accent': accent, '--pill-bg': isDark ? 'rgba(30, 30, 30, 0.45)' : 'rgba(245, 245, 247, 0.45)', '--pill-shadow': isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.08)', '--pill-shadow-sm': isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)', '--pill-inset': isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.4)', '--pill-text': isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.45)' }">
+    <!-- 移动端：底部悬浮胶囊 Tab（始终显示） -->
+    <div
+      class="mobile-tab-bar md:hidden"
+      :style="{
+        '--accent': accent,
+        '--pill-bg': isDark ? 'rgba(30, 30, 30, 0.45)' : 'rgba(245, 245, 247, 0.45)',
+        '--pill-shadow': isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.08)',
+        '--pill-shadow-sm': isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+        '--pill-inset': isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.4)',
+        '--pill-text': isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.45)',
+      }"
+    >
       <div class="mobile-tab-pill">
         <div class="mobile-tab-highlight" :class="mobileTab === 'preview' ? 'right' : 'left'"></div>
-        <button class="mobile-tab-btn" :class="{ active: mobileTab === 'editor' }" @click="mobileTab = 'editor'">
-          <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+        <button
+          class="mobile-tab-btn"
+          :class="{ active: mobileTab === 'editor' }"
+          @click="mobileTab = 'editor'"
+        >
+          <svg
+            class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
           编辑
         </button>
-        <button class="mobile-tab-btn" :class="{ active: mobileTab === 'preview' }" @click="mobileTab = 'preview'">
-          <svg class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+        <button
+          class="mobile-tab-btn"
+          :class="{ active: mobileTab === 'preview' }"
+          @click="mobileTab = 'preview'"
+        >
+          <svg
+            class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
             <rect x="5" y="2" width="14" height="20" rx="2" />
             <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
           </svg>
@@ -338,9 +384,15 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="flex flex-1 overflow-hidden">
-            <!-- Editor Panel -->
-            <div class="flex flex-col overflow-hidden flex-1 min-w-0" :class="{ 'hidden md:flex': mobileTab !== 'editor', 'mobile-near-bottom': nearBottom && isMobile }">
-                <div
+      <!-- Editor Panel -->
+      <div
+        class="flex flex-col overflow-hidden flex-1 min-w-0"
+        :class="{
+          'hidden md:flex': mobileTab !== 'editor',
+          'mobile-near-bottom': nearBottom && isMobile,
+        }"
+      >
+        <div
           class="panel-header hidden md:flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
         >
           <span class="flex items-center gap-1.5">
@@ -355,19 +407,22 @@ onBeforeUnmount(() => {
           </span>
           <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
         </div>
-                        <Editor
-          :model-value="markdown"
-          @update:model-value="onInput"
-          @scroll="onEditorScrollAll"
-        />
+        <Editor :model-value="markdown" @update:model-value="onInput" @scroll="onEditorScrollAll" />
       </div>
 
       <!-- Resize Handle (仅桌面端) -->
       <div class="resize-handle hidden md:block" @mousedown="onDragStart"></div>
 
       <!-- Preview Panel -->
-                        <div class="flex flex-col overflow-hidden flex-1 md:flex-none" :class="{ 'hidden md:flex': mobileTab !== 'preview', 'mobile-near-bottom': nearBottom && isMobile }" :style="isMobile ? {} : { width: previewWidth + 'px' }">
-                <div
+      <div
+        class="flex flex-col overflow-hidden flex-1 md:flex-none"
+        :class="{
+          'hidden md:flex': mobileTab !== 'preview',
+          'mobile-near-bottom': nearBottom && isMobile,
+        }"
+        :style="isMobile ? {} : { width: previewWidth + 'px' }"
+      >
+        <div
           class="panel-header hidden md:flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
         >
           <span class="flex items-center gap-1.5">
@@ -387,7 +442,7 @@ onBeforeUnmount(() => {
         <Preview ref="previewRef" :markdown="markdown" :colors="colors" />
       </div>
     </div>
-    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -447,7 +502,7 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: 9999px;
   background: transparent;
-    color: var(--pill-text, rgba(0, 0, 0, 0.45));
+  color: var(--pill-text, rgba(0, 0, 0, 0.45));
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;

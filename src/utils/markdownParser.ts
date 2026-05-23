@@ -3,7 +3,7 @@ import { leaf, esc, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import {
   renderFrontMatter,
-    parseCtaBlock,
+  parseCtaBlock,
   parseCtaInline,
   parseCtaTag,
   parseCompare,
@@ -42,10 +42,8 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     html += renderFrontMatter(meta, md, t)
   }
 
-            // 收集 p-title level1（用于 <reading-path> 标签）
+    // 收集 p-title level1（用于 <reading-path> 标签）
   const pTitleLevel1List: { num: string; title: string; subtitle: string }[] = []
-  let h3Count = 0
-  let h4Count = 0
   for (let j = 0; j < lines.length; j++) {
     // 匹配 <p-title ...> 标签
     const ptMatch = lines[j].match(/^<p-title\b([^>]*)>([\s\S]*?)<\/p-title>/)
@@ -58,11 +56,6 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         const subtitle = attrs.subtitle || ''
         pTitleLevel1List.push({ num, title, subtitle })
       }
-    }
-    // 匹配 # 标题（Markdown 语法）
-    const h1m = lines[j].match(/^#\s+(.+)/)
-    if (h1m) {
-      pTitleLevel1List.push({ num: '', title: h1m[1], subtitle: '' })
     }
   }
 
@@ -79,7 +72,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-            // <steps>
+    // <steps>
     if (/^<steps\b/.test(line)) {
       const openMatch = line.match(/^<steps\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -90,11 +83,11 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         i++
       }
       i++ // skip </steps>
-            const stepsRenderer = attrs.type === 'DA02' ? Steps_DA02 : Steps_DA01
+      const stepsRenderer = attrs.type === 'DA02' ? Steps_DA02 : Steps_DA01
       html += stepsRenderer.render(attrs, body.trim(), t)
       continue
     }
-                // <statement> ... </statement>
+    // <statement> ... </statement>
     if (/^<statement\b/.test(line)) {
       const openMatch = line.match(/^<statement\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -116,7 +109,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Statement_DA01.render(attrs, text.trim(), t)
       continue
     }
-                // <badges> ... </badges> (支持单行和多行)
+    // <badges> ... </badges> (支持单行和多行)
     if (/^<badges\b/.test(line)) {
       const openMatch = line.match(/^<badges\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -145,7 +138,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       i = r.next
       continue
     }
-        // ::: lead
+    // ::: lead
     if (/^:::\s*lead\b/.test(line)) {
       const leadAttrsMatch = line.match(/^:::\s*lead\b([^>]*)/)
       const attrs = leadAttrsMatch && leadAttrsMatch[1] ? parseAttrs(leadAttrsMatch[1]) : {}
@@ -159,7 +152,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Lead_DA01.render(attrs, text.trim(), t)
       continue
     }
-        // <lead> ... </lead>
+    // <lead> ... </lead>
     if (/^<lead\b/.test(line)) {
       const openMatch = line.match(/^<lead\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -181,7 +174,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Lead_DA01.render(attrs, text.trim(), t)
       continue
     }
-        // <breaking>
+    // <breaking>
     if (/^<breaking\b/.test(line)) {
       const openMatch = line.match(/^<breaking\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -202,7 +195,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       i = r.next
       continue
     }
-                // <compare>
+    // <compare>
     if (/^<compare\b/.test(line)) {
       const r = parseCompare(lines, i, t)
       html += r.html
@@ -216,7 +209,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       i = r.next
       continue
     }
-        // <reading-path> 或 <reading-path />
+    // <reading-path> 或 <reading-path />
     if (/^<reading-path\s*\/?>/.test(line) || /^<reading-path>/.test(line)) {
       // 渲染阅读路线组件（从 p-title level1 生成）
       if (pTitleLevel1List.length > 1) {
@@ -224,7 +217,10 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         html += `<section style="display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:14px;gap:12px"><section style="flex-shrink:0"><p style="margin:0px;padding:0px 0px 6px;font-size:10px;color:rgb(100,116,139);text-transform:uppercase;letter-spacing:2.8px;font-weight:800;white-space:nowrap">${leaf('READING PATH')}</p><p style="margin:0px;font-size:16px;line-height:1.35;color:rgb(17,24,39);font-weight:800">${leaf('阅读路线')}</p></section><p style="margin:0px;font-size:10px;color:rgb(148,163,184);white-space:nowrap">${leaf(pTitleLevel1List.length + ' 个章节')}</p></section>`
         html += `<section style="padding:14px 12px 12px;border:1px solid rgb(229,231,235);border-radius:13px;background:linear-gradient(rgb(255,255,255) 0%,rgb(248,250,252) 100%);box-shadow:rgba(15,23,42,0.04) 0px 12px 30px;overflow-x:auto;white-space:nowrap;font-size:0px">`
         pTitleLevel1List.forEach((item, idx) => {
-          const label = item.title.replace(/::.*/, '').trim().replace(/^\d+\s*/, '')
+          const label = item.title
+            .replace(/::.*/, '')
+            .trim()
+            .replace(/^\d+\s*/, '')
           const num = item.num || String(idx + 1).padStart(2, '0')
           const isActive = idx === 0
           html += `<section style="display:inline-flex;vertical-align:middle;align-items:center">`
@@ -242,14 +238,18 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         html += `</section></section></section>`
       }
       // 跳过闭合标签（如果有）
-      if (/^<reading-path>/.test(line) && i + 1 < lines.length && /^<\/reading-path>/.test(lines[i + 1])) {
+      if (
+        /^<reading-path>/.test(line) &&
+        i + 1 < lines.length &&
+        /^<\/reading-path>/.test(lines[i + 1])
+      ) {
         i += 2
       } else {
         i++
       }
       continue
     }
-                        // <title> 标签（通过 type 属性选择样式：DA01/DA02/...）
+    // <title> 标签（通过 type 属性选择样式：DA01/DA02/...）
     if (/^<title\b/.test(line)) {
       const titleMatch = line.match(/^<title\b([^>]*)>([\s\S]*?)<\/title>/)
       if (titleMatch) {
@@ -266,7 +266,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-        // <p-title> 段落标题标签
+    // <p-title> 段落标题标签
     if (/^<p-title\b/.test(line)) {
       const ptMatch = line.match(/^<p-title\b([^>]*)>([\s\S]*?)<\/p-title>/)
       if (ptMatch) {
@@ -306,7 +306,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += `</section>`
       continue
     }
-                // <case-flow> 标签
+    // <case-flow> 标签
     if (/^<case-flow\b/.test(line)) {
       const openMatch = line.match(/^<case-flow\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -320,14 +320,14 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += CaseFlow_DA01.render(attrs, body.trim(), t)
       continue
     }
-        // 案例流（行内语法，无标签包裹时）
+    // 案例流（行内语法，无标签包裹时）
     if (/^-\s*\[案例\s*\d+\]/.test(line)) {
       const caseLines: string[] = []
       while (i < lines.length && /^-\s*\[案例\s*\d+\]/.test(lines[i])) {
         caseLines.push(lines[i])
         i++
       }
-            html += CaseFlow_DA01.render({}, caseLines.join('\n'), t)
+      html += CaseFlow_DA01.render({}, caseLines.join('\n'), t)
       continue
     }
     // <timeline> 标签
@@ -344,7 +344,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += TimeLine_DA01.render(attrs, body.trim(), t)
       continue
     }
-            // : engage 或 <engage>
+    // : engage 或 <engage>
     if (/^:\s*engage\b/.test(line) || /^<engage\b/.test(line)) {
       const attrs = parseAttrs(line)
       html += Engage_DA01.render(attrs, '', t)
@@ -352,61 +352,31 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-        // 标题 — 全部走 PTitle 组件
+        // 标题 — Markdown 原生语法，不走 PTitle
     const h1m = line.match(/^#\s+(.+)/)
     if (h1m) {
-      html += PTitle.render({ level: '1' }, h1m[1], t)
+      html += `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h1m[1], t)}</h1>`
       i++
       continue
     }
 
     const h2m = line.match(/^##\s+(.+)/)
     if (h2m) {
-      const h2idx = h2List.indexOf(h2m[1])
-      const raw = h2m[1]
-      const title = raw.replace(/::.*/, '').trim().replace(/^\d+\s*/, '')
-      const sub = raw.match(/::\s*(.+)/)
-      const chNum = String(h2idx >= 0 ? h2idx + 1 : 1).padStart(2, '0')
-      const chLabel = sub ? sub[1].trim() : ''
-      const attrs: Record<string, string> = { num: chNum, level: '2' }
-      if (chLabel) attrs.subtitle = chLabel
-      html += PTitle.render(attrs, title, t)
+      html += `<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h2m[1], t)}</h2>`
       i++
       continue
     }
 
     const h3m = line.match(/^###\s+(.+)/)
     if (h3m) {
-      h3Count++
-      let h3Num = String(h3Count).padStart(2, '0')
-      let h3Title = h3m[1]
-      const h3NumMatch = h3Title.match(/^(\d{1,2})\s+(.+)/)
-      if (h3NumMatch) {
-        h3Num = h3NumMatch[1]
-        h3Title = h3NumMatch[2]
-      }
-      html += PTitle.render(
-        { num: h3Num, level: '3' },
-        h3Title, t,
-      )
+      html += `<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">${inlineFormat(h3m[1], t)}</h3>`
       i++
       continue
     }
 
     const h4m = line.match(/^####\s+(.+)/)
     if (h4m) {
-      h4Count++
-      let h4Num = String(h4Count).padStart(2, '0')
-      let h4Title = h4m[1]
-      const h4NumMatch = h4Title.match(/^(\d{1,2})\s+(.+)/)
-      if (h4NumMatch) {
-        h4Num = h4NumMatch[1]
-        h4Title = h4NumMatch[2]
-      }
-      html += PTitle.render(
-        { num: h4Num, level: '4' },
-        h4Title, t,
-      )
+      html += `<h4 style="margin:20px 0px 8px;font-size:15px;font-weight:700;color:rgb(55,65,81);line-height:1.4">${inlineFormat(h4m[1], t)}</h4>`
       i++
       continue
     }
@@ -421,7 +391,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         i++
       }
       i++
-            html += `<section style="background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;overflow-x:auto;margin:14px 0px;font-size:12.5px;line-height:1.6"><code style="background:none;color:inherit;padding:0;font-size:inherit;white-space:pre">${esc(code.trimEnd())}</code></section>`
+      html += `<section style="background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;overflow-x:auto;margin:14px 0px;font-size:12.5px;line-height:1.6"><code style="background:none;color:inherit;padding:0;font-size:inherit;white-space:pre">${esc(code.trimEnd())}</code></section>`
       continue
     }
 
@@ -501,7 +471,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     }
 
     // 普通段落
-          html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">${inlineFormat(line, t)}</p></section>`
+    html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">${inlineFormat(line, t)}</p></section>`
     i++
   }
 
