@@ -378,7 +378,7 @@ function onCardLeave(e: MouseEvent) {
   padding: 5px 10px;
   display: flex;
   align-items: center;
-  color: #ccc;
+  color: #444;
 }
 
 .attr-col-key code {
@@ -398,11 +398,11 @@ function onCardLeave(e: MouseEvent) {
 }
 
 .attr-col-label {
-  color: #aaa;
+  color: #666;
 }
 
 .attr-col-default {
-  color: #777;
+  color: #555;
   font-family: 'SF Mono', monospace;
   font-size: 10px;
 }
