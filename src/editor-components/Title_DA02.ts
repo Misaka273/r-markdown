@@ -67,8 +67,8 @@ export const Title_DA02 = {
     { key: 'subtitle', label: '副标题',         required: false, default: '' },
     { key: 'chips',    label: '关键词（|分隔）', required: false, default: '' },
   ],
-  example:
-    `<title badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>`,
+      example:
+    `<title type="DA02" badge="UPDATE" subtitle="新增了段落标题、步骤流程、时间线等组件，优化了深色模式适配。" chips="新组件|深色模式|性能优化">v2.0 版本更新说明</title>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors, raw: string = ''): string {
     const { chars, minutes } = countChars(raw)
