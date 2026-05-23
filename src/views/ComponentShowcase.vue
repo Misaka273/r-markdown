@@ -78,7 +78,7 @@ onMounted(() => {
             组件预览
           </h1>
           <p class="text-base sm:text-[19px] text-[#888] m-0">
-            所有可用的排版组件及其语法示例
+            悬停卡片查看组件语法
           </p>
         </div>
 
@@ -87,40 +87,41 @@ onMounted(() => {
           <div
             v-for="comp in componentExamples"
             :key="comp.id"
-            class="component-card bg-white rounded-2xl border border-black/[0.06] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_8px_30px_rgba(108,92,231,0.1)] hover:-translate-y-1"
+            class="flip-card"
           >
-            <!-- Card Header -->
-            <div class="px-5 sm:px-6 py-4 border-b border-black/[0.06] bg-[#fafafa]">
-              <div class="flex items-center gap-3">
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#6c5ce7]/10 text-[#6c5ce7] text-[13px] font-bold">
-                  {{ comp.id.split('_')[1] || comp.id.slice(-2) }}
-                </span>
-                <div>
-                  <h3 class="text-[15px] font-bold text-[#111] m-0">{{ comp.name }}</h3>
-                  <p class="text-[12px] text-[#999] m-0 mt-0.5">{{ comp.id }}</p>
+            <div class="flip-card-inner">
+              <!-- Front: Preview -->
+              <div class="flip-card-front bg-white rounded-2xl border border-black/[0.06] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+                <div class="preview-area p-6 min-h-[180px] flex flex-col">
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#6c5ce7]/10 text-[#6c5ce7] text-[12px] font-bold">
+                      {{ comp.id.split('_')[1] || comp.id.slice(-2) }}
+                    </span>
+                    <span class="text-[14px] font-semibold text-[#111]">{{ comp.name }}</span>
+                  </div>
+                  <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content flex-1"></div>
+                  <div v-else class="text-[13px] text-[#ccc] italic flex-1 flex items-center justify-center">暂无示例</div>
                 </div>
               </div>
-            </div>
 
-            <!-- Card Body -->
-            <div class="p-5 sm:p-6">
-              <!-- Description -->
-              <p v-if="comp.description" class="text-[13px] text-[#666] m-0 mb-4 leading-relaxed">
-                {{ comp.description }}
-              </p>
-
-              <!-- Syntax -->
-              <div class="mb-4">
-                <div class="text-[11px] text-[#999] font-medium mb-2 uppercase tracking-wider">语法</div>
-                <pre class="bg-[#f5f5f7] rounded-lg p-3 text-[12px] text-[#444] overflow-x-auto m-0 font-mono leading-relaxed"><code>{{ comp.example }}</code></pre>
-              </div>
-
-              <!-- Preview -->
-              <div>
-                <div class="text-[11px] text-[#999] font-medium mb-2 uppercase tracking-wider">预览效果</div>
-                <div class="preview-area bg-white rounded-lg border border-black/[0.04] p-4 min-h-[100px]">
-                  <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content"></div>
-                  <div v-else class="text-[13px] text-[#ccc] italic">暂无示例</div>
+              <!-- Back: Syntax -->
+              <div class="flip-card-back bg-white rounded-2xl border border-black/[0.06] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+                <div class="p-6 h-full flex flex-col">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#6c5ce7]/10 text-[#6c5ce7] text-[12px] font-bold">
+                      {{ comp.id.split('_')[1] || comp.id.slice(-2) }}
+                    </span>
+                    <span class="text-[14px] font-semibold text-[#111]">{{ comp.name }}</span>
+                  </div>
+                  
+                  <p v-if="comp.description" class="text-[12px] text-[#666] m-0 mb-3 leading-relaxed">
+                    {{ comp.description }}
+                  </p>
+                  
+                  <div class="flex-1 flex flex-col">
+                    <div class="text-[11px] text-[#999] font-medium mb-2 uppercase tracking-wider">语法示例</div>
+                    <pre class="bg-[#f5f5f7] rounded-lg p-4 text-[12px] text-[#444] overflow-x-auto m-0 font-mono leading-relaxed flex-1"><code>{{ comp.example }}</code></pre>
+                  </div>
                 </div>
               </div>
             </div>
@@ -149,6 +150,42 @@ onMounted(() => {
   cursor: pointer;
 }
 
+/* 卡片翻转 */
+.flip-card {
+  perspective: 1200px;
+  height: 240px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-card-front {
+  z-index: 2;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
 }
@@ -174,16 +211,18 @@ onMounted(() => {
 [data-theme='dark'] .nav-link:hover {
   color: #f0f0f0 !important;
 }
-[data-theme='dark'] .component-card {
+[data-theme='dark'] .flip-card-front,
+[data-theme='dark'] .flip-card-back {
   background: #1a1a1e;
   border-color: rgba(255, 255, 255, 0.08);
 }
-[data-theme='dark'] .component-card .bg-\\[\\#fafafa\\] {
-  background: #222226 !important;
+[data-theme='dark'] .flip-card-front .preview-area,
+[data-theme='dark'] .flip-card-back {
+  background: #1a1a1e;
 }
-[data-theme='dark'] .preview-area {
-  background: #1e1e22;
-  border-color: rgba(255, 255, 255, 0.06);
+[data-theme='dark'] .flip-card-back pre {
+  background: #222226;
+  color: #ccc;
 }
 [data-theme='dark'] footer {
   border-color: rgba(255, 255, 255, 0.06);
