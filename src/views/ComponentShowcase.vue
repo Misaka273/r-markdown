@@ -82,8 +82,8 @@ function copySyntax(code: string) {
           </p>
         </div>
 
-        <!-- Components Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                <!-- Components Waterfall -->
+        <div class="waterfall">
           <div
             v-for="comp in componentExamples"
             :key="comp.id"
@@ -142,10 +142,24 @@ function copySyntax(code: string) {
   cursor: pointer;
 }
 
+/* ── 瀑布流 ── */
+.waterfall {
+  columns: 2;
+  column-gap: 1.5rem;
+}
+
+@media (max-width: 1023px) {
+  .waterfall {
+    columns: 1;
+  }
+}
+
 /* ── 卡片容器 ── */
 .showcase-card {
   position: relative;
   cursor: default;
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
 }
 
 .card-preview {
