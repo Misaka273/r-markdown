@@ -424,8 +424,15 @@ function onCardLeave(e: MouseEvent) {
     border-radius: 3px;
 }
 
+.preview-content {
+  overflow: hidden;
+  max-width: 100%;
+}
+
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 </style>
 
