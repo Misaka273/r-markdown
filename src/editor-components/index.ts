@@ -23,6 +23,7 @@ import { Breaking_DA01 } from './Breaking_DA01';
 import { Steps_DA01 } from './Steps_DA01';
 import { CaseFlow_DA01 } from './CaseFlow_DA01';
 import { Compare_DA01 } from './Compare_DA01';
+import { Compare_DA02 } from './Compare_DA02';
 import { CTA_DA01 } from './Cta_DA01';
 import { Badges_DA01 } from './Badges_DA01';
 import { Statement_DA01 } from './Statement_DA01';
@@ -30,7 +31,7 @@ import { Lead_DA01 } from './Lead_DA01';
 import { Engage_DA01 } from './Engage_DA01';
 import { TimeLine_DA01 } from './TimeLine_DA01';
 
-export const components = [Title_DA01, Title_DA02, ReadingPath_DA01, PTitle, Breaking_DA01, Steps_DA01, CaseFlow_DA01, Compare_DA01, CTA_DA01, Badges_DA01, Statement_DA01, Lead_DA01, Engage_DA01, TimeLine_DA01];
+export const components = [Title_DA01, Title_DA02, ReadingPath_DA01, PTitle, Breaking_DA01, Steps_DA01, CaseFlow_DA01, Compare_DA01, Compare_DA02, CTA_DA01, Badges_DA01, Statement_DA01, Lead_DA01, Engage_DA01, TimeLine_DA01];
 
 /** 按 id 索引 */
 export const componentMap = Object.fromEntries(components.map(c => [c.id, c]));
