@@ -16,6 +16,7 @@
  *   render   - (attrs, body, theme) => HTML（内联样式，可直接粘贴公众号）
  */
 import { Title_DA01 } from './Title_DA01';
+import { Title_DA02 } from './Title_DA02';
 import { ReadingPath_DA01 } from './ReadingPath_DA01';
 import { PTitle } from './PTitle_DA01';
 import { Breaking_DA01 } from './Breaking_DA01';
@@ -29,7 +30,7 @@ import { Lead_DA01 } from './Lead_DA01';
 import { Engage_DA01 } from './Engage_DA01';
 import { TimeLine_DA01 } from './TimeLine_DA01';
 
-export const components = [Title_DA01, ReadingPath_DA01, PTitle, Breaking_DA01, Steps_DA01, CaseFlow_DA01, Compare_DA01, CTA_DA01, Badges_DA01, Statement_DA01, Lead_DA01, Engage_DA01, TimeLine_DA01];
+export const components = [Title_DA01, Title_DA02, ReadingPath_DA01, PTitle, Breaking_DA01, Steps_DA01, CaseFlow_DA01, Compare_DA01, CTA_DA01, Badges_DA01, Statement_DA01, Lead_DA01, Engage_DA01, TimeLine_DA01];
 
 /** 按 id 索引 */
 export const componentMap = Object.fromEntries(components.map(c => [c.id, c]));
