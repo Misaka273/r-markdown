@@ -41,6 +41,15 @@ onMounted(() => {
 function copySyntax(code: string) {
   navigator.clipboard.writeText(code)
 }
+
+function onMouseMove(e: MouseEvent) {
+  const card = e.currentTarget as HTMLElement
+  const rect = card.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  card.style.setProperty('--mouse-x', `${x}px`)
+  card.style.setProperty('--mouse-y', `${y}px`)
+}
 </script>
 
 <template>
@@ -80,7 +89,7 @@ function copySyntax(code: string) {
             组件预览
           </h1>
           <p class="text-base sm:text-[19px] text-[#888] m-0">
-            悬停卡片翻转查看组件语法
+            悬停卡片查看组件用法
           </p>
         </div>
 
@@ -89,32 +98,34 @@ function copySyntax(code: string) {
           <div
             v-for="comp in componentExamples"
             :key="comp.id"
-            class="flip-card"
+            class="spotlight-card"
+            @mousemove="onMouseMove"
           >
-            <div class="flip-card-inner">
-              <!-- 正面：渲染预览 -->
-              <div class="flip-card-front card-surface">
-                <div class="p-6">
-                  <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content"></div>
-                  <div v-else class="text-[13px] text-[#ccc] italic py-8 text-center">暂无示例</div>
-                </div>
-              </div>
+            <!-- 高光层 -->
+            <div class="spotlight-glow"></div>
 
-              <!-- 背面：语法用法 -->
-              <div v-if="comp.example" class="flip-card-back card-surface">
-                <div class="back-content">
-                  <div class="back-header">
-                    <span class="back-title">{{ comp.name }} <span class="back-id">{{ comp.idSuffix }}</span></span>
-                    <button class="copy-btn" @click.stop="copySyntax(comp.example)">
-                      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="5" y="5" width="9" height="9" rx="1.5"/>
-                        <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/>
-                      </svg>
-                      复制
-                    </button>
-                  </div>
-                  <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
+            <!-- 正面：渲染预览 -->
+            <div class="card-front">
+              <div class="p-6">
+                <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content"></div>
+                <div v-else class="text-[13px] text-[#ccc] italic py-8 text-center">暂无示例</div>
+              </div>
+            </div>
+
+            <!-- 悬浮层：语法用法 -->
+            <div v-if="comp.example" class="card-overlay">
+              <div class="overlay-content">
+                <div class="overlay-header">
+                  <span class="overlay-title">{{ comp.name }} <span class="overlay-id">{{ comp.idSuffix }}</span></span>
+                  <button class="copy-btn" @click.stop="copySyntax(comp.example)">
+                    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+                      <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/>
+                    </svg>
+                    复制
+                  </button>
                 </div>
+                <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
               </div>
             </div>
           </div>
@@ -154,63 +165,80 @@ function copySyntax(code: string) {
   }
 }
 
-/* ── 翻转卡片 ── */
-.flip-card {
+/* ── 聚光灯卡片 ── */
+.spotlight-card {
   break-inside: avoid;
   margin-bottom: 1.5rem;
-  perspective: 1200px;
-  cursor: default;
-}
-
-.flip-card-inner {
   position: relative;
-  width: 100%;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-style: preserve-3d;
-}
-
-.flip-card:hover .flip-card-inner {
-  transform: rotateY(180deg);
-}
-
-.flip-card-front,
-.flip-card-back {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   border-radius: 1rem;
-}
-
-/* 正面 */
-.flip-card-front {
-  position: relative;
-  z-index: 2;
+  overflow: hidden;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  cursor: default;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
 }
 
-/* 背面 */
-.flip-card-back {
+/* 高光层：从鼠标位置扩散的径向渐变 */
+.spotlight-glow {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(
+    350px circle at var(--mouse-x) var(--mouse-y),
+    rgba(108, 92, 231, 0.15),
+    rgba(108, 92, 231, 0.05) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.spotlight-card:hover .spotlight-glow {
+  opacity: 1;
+}
+
+/* 正面渲染预览 */
+.card-front {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
+.spotlight-card:hover .card-front {
+  opacity: 0.15;
+  filter: blur(2px);
+}
+
+/* 悬浮语法层 */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.spotlight-card:hover .card-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlay-content {
   width: 100%;
   height: 100%;
-  z-index: 1;
-  transform: rotateY(180deg);
-  background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.back-content {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: 1.25rem;
 }
 
-.back-header {
+.overlay-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -218,14 +246,14 @@ function copySyntax(code: string) {
   flex-shrink: 0;
 }
 
-.back-title {
+.overlay-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: #333;
 }
 
-.back-id {
-  color: #a78bfa;
+.overlay-id {
+  color: #6c5ce7;
   font-weight: 500;
 }
 
@@ -235,24 +263,25 @@ function copySyntax(code: string) {
   gap: 4px;
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(108, 92, 231, 0.08);
+  color: #6c5ce7;
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .copy-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: #6c5ce7;
   color: white;
+  border-color: #6c5ce7;
 }
 
 .syntax-code {
   flex: 1;
   margin: 0;
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.25);
+  background: #1e1e2e;
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
   color: #e0e0e0;
@@ -289,9 +318,33 @@ function copySyntax(code: string) {
 [data-theme='dark'] .nav-link:hover {
   color: #f0f0f0 !important;
 }
-[data-theme='dark'] .flip-card-front {
+[data-theme='dark'] .spotlight-card {
   background: #1a1a1e;
   border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .spotlight-glow {
+  background: radial-gradient(
+    350px circle at var(--mouse-x) var(--mouse-y),
+    rgba(167, 139, 250, 0.2),
+    rgba(167, 139, 250, 0.06) 40%,
+    transparent 70%
+  );
+}
+[data-theme='dark'] .overlay-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+[data-theme='dark'] .overlay-id {
+  color: #a78bfa;
+}
+[data-theme='dark'] .copy-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(167, 139, 250, 0.1);
+  color: #a78bfa;
+}
+[data-theme='dark'] .copy-btn:hover {
+  background: #a78bfa;
+  color: #1a1a1e;
+  border-color: #a78bfa;
 }
 [data-theme='dark'] footer {
   border-color: rgba(255, 255, 255, 0.06);
