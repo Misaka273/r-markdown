@@ -52,6 +52,29 @@ function onMouseMove(e: MouseEvent) {
   card.style.setProperty('--mouse-x', `${x}px`)
   card.style.setProperty('--mouse-y', `${y}px`)
 }
+
+function onCardEnter(e: MouseEvent) {
+  const card = e.currentTarget as HTMLElement
+  const overlay = card.querySelector('.card-overlay') as HTMLElement
+  if (overlay) {
+    // 计算 overlay 内容实际需要的高度
+    overlay.style.position = 'relative'
+    overlay.style.visibility = 'hidden'
+    overlay.style.opacity = '0'
+    overlay.style.pointerEvents = 'none'
+    const h = overlay.scrollHeight
+    overlay.style.position = ''
+    overlay.style.visibility = ''
+    overlay.style.opacity = ''
+    overlay.style.pointerEvents = ''
+    card.style.minHeight = h + 'px'
+  }
+}
+
+function onCardLeave(e: MouseEvent) {
+  const card = e.currentTarget as HTMLElement
+  card.style.minHeight = ''
+}
 </script>
 
 <template>
@@ -97,11 +120,13 @@ function onMouseMove(e: MouseEvent) {
 
         <!-- Components Waterfall -->
         <div class="waterfall">
-          <div
+                    <div
             v-for="comp in componentExamples"
             :key="comp.id"
             class="spotlight-card"
             @mousemove="onMouseMove"
+            @mouseenter="onCardEnter"
+            @mouseleave="onCardLeave"
           >
             <!-- 高光层 -->
             <div class="spotlight-glow"></div>
@@ -219,8 +244,6 @@ function onMouseMove(e: MouseEvent) {
 
 /* 正面渲染预览 */
 .card-front {
-  grid-row: 1;
-  grid-column: 1;
   position: relative;
   z-index: 1;
   transition: opacity 0.35s ease, filter 0.35s ease;
@@ -234,9 +257,8 @@ function onMouseMove(e: MouseEvent) {
 
 /* 悬浮语法层 */
 .card-overlay {
-  grid-row: 1;
-  grid-column: 1;
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 4;
   padding: 1.25rem;
   opacity: 0;
