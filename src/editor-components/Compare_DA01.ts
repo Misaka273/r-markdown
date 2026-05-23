@@ -25,7 +25,7 @@ import type { ThemeColors } from '@/composables/useTheme'
 
 export const Compare_DA01 = {
   id: 'Compare_DA01',
-  name: '左右对比',
+  name: '对比',
   tag: 'compare',
     attrs: [
     { key: 'left-label',  label: '左侧标签',  required: false, default: '' },

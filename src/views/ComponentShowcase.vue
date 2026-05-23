@@ -89,15 +89,9 @@ function copySyntax(code: string) {
             :key="comp.id"
             class="showcase-card group"
           >
-            <!-- 渲染预览（始终完整展示） -->
+                        <!-- 渲染预览（始终完整展示） -->
             <div class="card-preview bg-white rounded-2xl border border-black/[0.06] shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-visible">
               <div class="p-6">
-                <div class="flex items-center gap-2 mb-4">
-                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#6c5ce7]/10 text-[#6c5ce7] text-[12px] font-bold shrink-0">
-                    {{ comp.id.split('_')[1] || comp.id.slice(-2) }}
-                  </span>
-                  <span class="text-[14px] font-semibold text-[#111]">{{ comp.name }}</span>
-                </div>
                 <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content"></div>
                 <div v-else class="text-[13px] text-[#ccc] italic py-8 text-center">暂无示例</div>
               </div>
@@ -106,7 +100,7 @@ function copySyntax(code: string) {
             <!-- 悬停语法遮罩 -->
             <div v-if="comp.example" class="syntax-overlay">
               <div class="syntax-header">
-                <span class="text-[11px] text-white/60 font-medium uppercase tracking-wider">语法</span>
+                <span class="text-[13px] text-white/80 font-semibold">{{ comp.name }} <span class="text-[#a78bfa]">{{ comp.id.split('_').slice(1).join('_') }}</span></span>
                 <button class="copy-btn" @click.stop="copySyntax(comp.example)">
                   <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="5" y="5" width="9" height="9" rx="1.5"/>

@@ -29,7 +29,7 @@ import type { ThemeColors } from '@/composables/useTheme'
 
 // ── 组件定义 ──────────────────────────────────────────
 export const PTitle = {
-  id: 'PTitle',
+  id: 'PTitle_DA01',
   name: '段落标题',
   tag: 'p-title',
   attrs: [
