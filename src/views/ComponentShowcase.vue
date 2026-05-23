@@ -17,7 +17,6 @@ const demoColors: ThemeColors = {
   rgb: '108,92,231',
 }
 
-// 组件示例数据
 const componentExamples = ref<Array<{
   id: string
   name: string
@@ -28,8 +27,6 @@ const componentExamples = ref<Array<{
 
 onMounted(() => {
   requestAnimationFrame(() => { visible.value = true })
-  
-  // 生成组件示例
   componentExamples.value = components.map(comp => ({
     id: comp.id,
     name: comp.name,
@@ -38,6 +35,10 @@ onMounted(() => {
     rendered: comp.example ? parseMarkdown(comp.example, demoColors) : ''
   }))
 })
+
+function copySyntax(code: string) {
+  navigator.clipboard.writeText(code)
+}
 </script>
 
 <template>
@@ -52,7 +53,7 @@ onMounted(() => {
           </svg>
           <span class="text-[17px] font-bold text-[#111] tracking-tight logo-text">R-Markdown</span>
         </router-link>
-        
+
         <nav class="nav-pill relative hidden sm:flex items-center rounded-full bg-black/5 px-0.5 py-0.5 ml-auto">
           <router-link to="/" class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]">
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l7-8 7 8"/></svg>
@@ -64,7 +65,7 @@ onMounted(() => {
             编辑器
           </router-link>
         </nav>
-        
+
         <DarkModeToggle :mode="darkMode" @select="setDarkMode" class="shrink-0 ml-auto sm:ml-3" />
       </div>
     </header>
@@ -72,7 +73,6 @@ onMounted(() => {
     <!-- Main Content -->
     <main class="px-4 sm:px-8 py-8 sm:py-12">
       <div class="mx-auto max-w-[1100px]">
-        <!-- Page Title -->
         <div class="mb-8 sm:mb-12">
           <h1 class="text-[28px] sm:text-[40px] font-extrabold tracking-tight text-[#111] m-0 mb-2">
             组件预览
@@ -87,43 +87,35 @@ onMounted(() => {
           <div
             v-for="comp in componentExamples"
             :key="comp.id"
-            class="flip-card"
+            class="showcase-card group"
           >
-            <div class="flip-card-inner">
-              <!-- Front: Preview -->
-              <div class="flip-card-front bg-white rounded-2xl border border-black/[0.06] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-                <div class="preview-area p-6 min-h-[180px] flex flex-col">
-                  <div class="flex items-center gap-2 mb-4">
-                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#6c5ce7]/10 text-[#6c5ce7] text-[12px] font-bold">
-                      {{ comp.id.split('_')[1] || comp.id.slice(-2) }}
-                    </span>
-                    <span class="text-[14px] font-semibold text-[#111]">{{ comp.name }}</span>
-                  </div>
-                  <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content flex-1"></div>
-                  <div v-else class="text-[13px] text-[#ccc] italic flex-1 flex items-center justify-center">暂无示例</div>
+            <!-- 渲染预览（始终完整展示） -->
+            <div class="card-preview bg-white rounded-2xl border border-black/[0.06] shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-visible">
+              <div class="p-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#6c5ce7]/10 text-[#6c5ce7] text-[12px] font-bold shrink-0">
+                    {{ comp.id.split('_')[1] || comp.id.slice(-2) }}
+                  </span>
+                  <span class="text-[14px] font-semibold text-[#111]">{{ comp.name }}</span>
                 </div>
+                <div v-if="comp.rendered" v-html="comp.rendered" class="preview-content"></div>
+                <div v-else class="text-[13px] text-[#ccc] italic py-8 text-center">暂无示例</div>
               </div>
+            </div>
 
-              <!-- Back: Syntax -->
-              <div class="flip-card-back bg-white rounded-2xl border border-black/[0.06] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-                <div class="p-6 h-full flex flex-col">
-                  <div class="flex items-center gap-2 mb-3">
-                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#6c5ce7]/10 text-[#6c5ce7] text-[12px] font-bold">
-                      {{ comp.id.split('_')[1] || comp.id.slice(-2) }}
-                    </span>
-                    <span class="text-[14px] font-semibold text-[#111]">{{ comp.name }}</span>
-                  </div>
-                  
-                  <p v-if="comp.description" class="text-[12px] text-[#666] m-0 mb-3 leading-relaxed">
-                    {{ comp.description }}
-                  </p>
-                  
-                  <div class="flex-1 flex flex-col">
-                    <div class="text-[11px] text-[#999] font-medium mb-2 uppercase tracking-wider">语法示例</div>
-                    <pre class="bg-[#f5f5f7] rounded-lg p-4 text-[12px] text-[#444] overflow-x-auto m-0 font-mono leading-relaxed flex-1"><code>{{ comp.example }}</code></pre>
-                  </div>
-                </div>
+            <!-- 悬停语法遮罩 -->
+            <div v-if="comp.example" class="syntax-overlay">
+              <div class="syntax-header">
+                <span class="text-[11px] text-white/60 font-medium uppercase tracking-wider">语法</span>
+                <button class="copy-btn" @click.stop="copySyntax(comp.example)">
+                  <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+                    <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/>
+                  </svg>
+                  复制
+                </button>
               </div>
+              <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
             </div>
           </div>
         </div>
@@ -150,40 +142,86 @@ onMounted(() => {
   cursor: pointer;
 }
 
-/* 卡片翻转 */
-.flip-card {
-  perspective: 1200px;
-  height: 240px;
-}
-
-.flip-card-inner {
+/* ── 卡片容器 ── */
+.showcase-card {
   position: relative;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-style: preserve-3d;
+  cursor: default;
 }
 
-.flip-card:hover .flip-card-inner {
-  transform: rotateY(180deg);
+.card-preview {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
 }
 
-.flip-card-front,
-.flip-card-back {
+.showcase-card:hover .card-preview {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(108, 92, 231, 0.12);
+}
+
+/* ── 语法遮罩 ── */
+.syntax-overlay {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  inset: 0;
+  z-index: 10;
+  background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.flip-card-front {
-  z-index: 2;
+.showcase-card:hover .syntax-overlay {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
-.flip-card-back {
-  transform: rotateY(180deg);
-  z-index: 1;
+.syntax-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+}
+
+.syntax-code {
+  flex: 1;
+  margin: 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e0e0e0;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .preview-content :deep(section) {
@@ -211,18 +249,9 @@ onMounted(() => {
 [data-theme='dark'] .nav-link:hover {
   color: #f0f0f0 !important;
 }
-[data-theme='dark'] .flip-card-front,
-[data-theme='dark'] .flip-card-back {
+[data-theme='dark'] .card-preview {
   background: #1a1a1e;
   border-color: rgba(255, 255, 255, 0.08);
-}
-[data-theme='dark'] .flip-card-front .preview-area,
-[data-theme='dark'] .flip-card-back {
-  background: #1a1a1e;
-}
-[data-theme='dark'] .flip-card-back pre {
-  background: #222226;
-  color: #ccc;
 }
 [data-theme='dark'] footer {
   border-color: rgba(255, 255, 255, 0.06);
