@@ -155,20 +155,22 @@ function onCardLeave(e: MouseEvent) {
                                 <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
                 <!-- 属性说明表 -->
                 <div v-if="comp.attrs && comp.attrs.length" class="attrs-table">
-                  <div class="attrs-header">属性说明</div>
+                                  <div class="attrs-header">属性说明</div>
                   <div class="attrs-row attrs-label-row">
                     <span class="attr-col-key">属性</span>
                     <span class="attr-col-label">说明</span>
                     <span class="attr-col-default">默认值</span>
+                    <span class="attr-col-options">可选值</span>
                   </div>
-                                    <div v-for="attr in comp.attrs" :key="attr.key" class="attrs-row">
+                  <div v-for="attr in comp.attrs" :key="attr.key" class="attrs-row">
                     <span class="attr-col-key"><code>{{ attr.key }}</code><span v-if="attr.required" class="attr-required">必填</span></span>
                     <span class="attr-col-label">{{ attr.label }}</span>
-                    <span class="attr-col-default">
-                      <template v-if="attr.options">
+                    <span class="attr-col-default">{{ attr.default || '—' }}</span>
+                    <span class="attr-col-options">
+                      <template v-if="attr.options && attr.options.length">
                         <span v-for="(opt, i) in attr.options" :key="opt" class="attr-option"><code>{{ opt }}</code><span v-if="i < attr.options.length - 1" class="attr-option-sep">/</span></span>
                       </template>
-                      <template v-else>{{ attr.default || '—' }}</template>
+                      <template v-else>—</template>
                     </span>
                   </div>
                 </div>
@@ -424,6 +426,12 @@ function onCardLeave(e: MouseEvent) {
   color: #555;
   font-family: 'SF Mono', monospace;
   font-size: 10px;
+}
+
+.attr-col-options {
+  color: #555;
+  font-size: 10px;
+  min-width: 120px;
 }
 
 .preview-content :deep(section) {
