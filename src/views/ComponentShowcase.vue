@@ -155,22 +155,21 @@ function onCardLeave(e: MouseEvent) {
                                 <pre class="syntax-code"><code>{{ comp.example }}</code></pre>
                 <!-- 属性说明表 -->
                 <div v-if="comp.attrs && comp.attrs.length" class="attrs-table">
-                                  <div class="attrs-header">属性说明</div>
+                                                    <div class="attrs-header">属性说明</div>
                   <div class="attrs-row attrs-label-row">
                     <span class="attr-col-key">属性</span>
                     <span class="attr-col-label">说明</span>
                     <span class="attr-col-default">默认值</span>
-                    <span class="attr-col-options">可选值</span>
                   </div>
                   <div v-for="attr in comp.attrs" :key="attr.key" class="attrs-row">
                     <span class="attr-col-key"><code>{{ attr.key }}</code><span v-if="attr.required" class="attr-required">必填</span></span>
                     <span class="attr-col-label">{{ attr.label }}</span>
-                    <span class="attr-col-default">{{ attr.default || '—' }}</span>
-                    <span class="attr-col-options">
+                    <span class="attr-col-default">
                       <template v-if="attr.options && attr.options.length">
-                        <span v-for="(opt, i) in attr.options" :key="opt" class="attr-option"><code>{{ opt }}</code><span v-if="i < attr.options.length - 1" class="attr-option-sep">/</span></span>
+                        <span class="attr-default-val">{{ attr.default || '—' }}</span>
+                        <span class="attr-options-inline">可选：<code v-for="(opt, i) in attr.options" :key="opt">{{ opt }}<template v-if="i < attr.options.length - 1"> / </template></code></span>
                       </template>
-                      <template v-else>—</template>
+                      <template v-else>{{ attr.default || '—' }}</template>
                     </span>
                   </div>
                 </div>
@@ -428,10 +427,25 @@ function onCardLeave(e: MouseEvent) {
   font-size: 10px;
 }
 
-.attr-col-options {
+.attr-default-val {
   color: #555;
+  font-family: 'SF Mono', monospace;
   font-size: 10px;
-  min-width: 120px;
+}
+
+.attr-options-inline {
+  margin-left: 6px;
+  color: #999;
+  font-size: 10px;
+}
+
+.attr-options-inline code {
+  font-family: 'SF Mono', monospace;
+  font-size: 10px;
+  color: #6c5ce7;
+  background: rgba(108, 92, 231, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
 .preview-content :deep(section) {
