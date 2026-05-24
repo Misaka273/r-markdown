@@ -10,23 +10,40 @@
  *   color     — 主题色 red|green|yellow（默认 green）
  */
 export const Engage_DA02 = {
-        id: 'Engage_DA02',
-    tag: 'engage',
-    name: '底部引导卡片',
-    icon: '💬',
-        example: `<engage type="DA02" title="感谢你的阅读与支持！" subtitle="喜欢就互动一下吧～ 💚" color="red|green|yellow"></engage>`,
-    attrs: [
-        { key: 'title', label: '主标题文字', required: false, default: '感谢你的阅读与支持！' },
-        { key: 'subtitle', label: '副标题文字', required: false, default: '喜欢就互动一下吧～ 💚' },
-        { key: 'color', label: '主题色', required: false, default: 'red|green|yellow', options: ['green', 'red', 'yellow', 'blue', 'purple', 'orange', 'pink', 'teal', 'gray', '其他十六进制颜色'] },
-    ],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    render(attrs: any = {}, _body: any = '', _t: any = ''): string {
-        const title = attrs.title || '感谢你的阅读与支持！';
-        const subtitle = attrs.subtitle || '喜欢就互动一下吧～ 💚';
-        const colors = parseColors(attrs.color);
+  id: 'Engage_DA02',
+  tag: 'engage',
+  name: '底部引导卡片',
+  icon: '💬',
+  example: `<engage type="DA02" title="感谢你的阅读与支持！" subtitle="喜欢就互动一下吧～ 💚" color="red|green|yellow"></engage>`,
+  attrs: [
+    { key: 'title', label: '主标题文字', required: false, default: '感谢你的阅读与支持！' },
+    { key: 'subtitle', label: '副标题文字', required: false, default: '喜欢就互动一下吧～ 💚' },
+    {
+      key: 'color',
+      label: '主题色',
+      required: false,
+      default: 'red|green|yellow',
+      options: [
+        'green',
+        'red',
+        'yellow',
+        'blue',
+        'purple',
+        'orange',
+        'pink',
+        'teal',
+        'gray',
+        '其他十六进制颜色',
+      ],
+    },
+  ],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  render(attrs: any = {}, _body: any = '', _t: any = ''): string {
+    const title = attrs.title || '感谢你的阅读与支持！'
+    const subtitle = attrs.subtitle || '喜欢就互动一下吧～ 💚'
+    const colors = parseColors(attrs.color)
 
-                return `
+    return `
 <section style="margin:24px 0;padding:0;position:relative;">
     <section style="background:linear-gradient(135deg,${colors[0].bgLight} 0%,${colors[1].bgLight} 50%,${colors[2].bgLight} 100%);border-radius:16px;padding:24px 16px 20px;position:relative;overflow:hidden;border:1px dashed rgba(229,231,235,0.9);">
 
@@ -77,63 +94,73 @@ export const Engage_DA02 = {
 
     </section>
   </section>
-</section>`;
-    },
-};
+</section>`
+  },
+}
 
 interface ColorItem {
-    icon: string;
-    bg: string;
-    glow: string;
-    bgLight: string;
+  icon: string
+  bg: string
+  glow: string
+  bgLight: string
 }
 
 function hexToRgba(hex: string, alpha: number): string {
-    hex = hex.replace('#', '');
-    if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
+  hex = hex.replace('#', '')
+  if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2]
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
 }
 
 function resolveColor(raw: string): string | null {
-    const palettes: Record<string, string> = {
-        red: '#e8636f', green: '#5fa55a', yellow: '#f3c885',
-        blue: '#5b8dd9', purple: '#9b6fc3', orange: '#e8943a',
-        pink: '#e87ba4', teal: '#4db8a0', gray: '#888888',
-    };
-    const key = raw.trim().toLowerCase();
-    if (palettes[key]) return palettes[key];
-    if (/^#?[0-9a-f]{3,6}$/i.test(raw.trim())) {
-        return raw.trim().startsWith('#') ? raw.trim() : '#' + raw.trim();
-    }
-    return null;
+  const palettes: Record<string, string> = {
+    red: '#e8636f',
+    green: '#5fa55a',
+    yellow: '#f3c885',
+    blue: '#5b8dd9',
+    purple: '#9b6fc3',
+    orange: '#e8943a',
+    pink: '#e87ba4',
+    teal: '#4db8a0',
+    gray: '#888888',
+  }
+  const key = raw.trim().toLowerCase()
+  if (palettes[key]) return palettes[key]
+  if (/^#?[0-9a-f]{3,6}$/i.test(raw.trim())) {
+    return raw.trim().startsWith('#') ? raw.trim() : '#' + raw.trim()
+  }
+  return null
 }
 
 function makeColorSet(hex: string): ColorItem {
-    return {
-        icon: hex,
-        bg: hexToRgba(hex, 0.10),
-        glow: hexToRgba(hex, 0.15),
-        bgLight: hexToRgba(hex, 0.05),
-    };
+  return {
+    icon: hex,
+    bg: hexToRgba(hex, 0.1),
+    glow: hexToRgba(hex, 0.15),
+    bgLight: hexToRgba(hex, 0.05),
+  }
 }
 
 function parseColors(raw: string | undefined): ColorItem[] {
-    const defaultSets: ColorItem[] = [makeColorSet('#e8636f'), makeColorSet('#5fa55a'), makeColorSet('#f3c885')];
-    if (!raw) return defaultSets;
-    const parts = raw.split('|').map(s => s.trim());
-    if (parts.length === 1) {
-        const hex = resolveColor(parts[0]);
-        if (!hex) return defaultSets;
-        const c = makeColorSet(hex);
-        return [c, c, c];
-    }
-    const result: ColorItem[] = parts.slice(0, 3).map(p => {
-        const hex = resolveColor(p);
-        return hex ? makeColorSet(hex) : makeColorSet('#888888');
-    });
-    while (result.length < 3) result.push(result[result.length - 1]);
-    return result;
+  const defaultSets: ColorItem[] = [
+    makeColorSet('#e8636f'),
+    makeColorSet('#5fa55a'),
+    makeColorSet('#f3c885'),
+  ]
+  if (!raw) return defaultSets
+  const parts = raw.split('|').map((s) => s.trim())
+  if (parts.length === 1) {
+    const hex = resolveColor(parts[0])
+    if (!hex) return defaultSets
+    const c = makeColorSet(hex)
+    return [c, c, c]
+  }
+  const result: ColorItem[] = parts.slice(0, 3).map((p) => {
+    const hex = resolveColor(p)
+    return hex ? makeColorSet(hex) : makeColorSet('#888888')
+  })
+  while (result.length < 3) result.push(result[result.length - 1])
+  return result
 }

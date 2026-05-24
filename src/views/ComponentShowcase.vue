@@ -40,10 +40,10 @@ const componentCategoryMap: Record<string, string> = {
   CaseFlow_DA01: 'layout',
   Compare_DA01: 'layout',
   Compare_DA02: 'layout',
-  TimeLine_DA01: 'layout',
-    Badges_DA01: 'other',
+  Timeline_DA01: 'layout',
+  Badges_DA01: 'other',
   CTA_DA01: 'interactive',
-    Engage_DA01: 'interactive',
+  Engage_DA01: 'interactive',
   Engage_DA02: 'interactive',
 }
 

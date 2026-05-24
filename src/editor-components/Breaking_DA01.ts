@@ -32,17 +32,17 @@ export const Breaking_DA01 = {
 这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。
 </breaking>`,
 
-        render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
+  render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const color = attrs.color || t.accent
 
     /** 将任意 CSS 颜色转为带透明度的 rgba 字符串 */
     function withAlpha(c: string, alpha: number): string {
       if (/^#[0-9a-fA-F]{3,8}$/.test(c)) {
         // hex → 8位 hex（带 alpha）
-        const hex = c.length === 4
-          ? '#' + c[1]+c[1]+c[2]+c[2]+c[3]+c[3]
-          : c.slice(0, 7)
-        const aHex = Math.round(alpha * 255).toString(16).padStart(2, '0')
+        const hex = c.length === 4 ? '#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3] : c.slice(0, 7)
+        const aHex = Math.round(alpha * 255)
+          .toString(16)
+          .padStart(2, '0')
         return hex + aHex
       }
       // 命名颜色等：用临时元素解析 RGB

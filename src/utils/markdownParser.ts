@@ -23,7 +23,7 @@ import { Statement_DA01 } from '@/editor-components/Statement_DA01'
 import { Lead_DA01 } from '@/editor-components/Lead_DA01'
 import { Engage_DA01 } from '@/editor-components/Engage_DA01'
 import { Engage_DA02 } from '@/editor-components/Engage_DA02'
-import { TimeLine_DA01 } from '@/editor-components/TimeLine_DA01'
+import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -43,7 +43,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     html += renderFrontMatter(meta, md, t)
   }
 
-    // 收集 p-title level1（用于 <reading-path> 标签）
+  // 收集 p-title level1（用于 <reading-path> 标签）
   const pTitleLevel1List: { num: string; title: string; subtitle: string }[] = []
   for (let j = 0; j < lines.length; j++) {
     // 匹配 <p-title ...> 标签
@@ -342,10 +342,10 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         i++
       }
       i++ // skip </timeline>
-      html += TimeLine_DA01.render(attrs, body.trim(), t)
+      html += Timeline_DA01.render(attrs, body.trim(), t)
       continue
     }
-            // : engage 或 <engage>
+    // : engage 或 <engage>
     if (/^:\s*engage\b/.test(line) || /^<engage\b/.test(line)) {
       const attrs = parseAttrs(line)
       // type="DA02" 使用彩色图标版，否则默认 DA01
@@ -358,7 +358,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-        // 标题 — Markdown 原生语法，不走 PTitle
+    // 标题 — Markdown 原生语法，不走 PTitle
     const h1m = line.match(/^#\s+(.+)/)
     if (h1m) {
       html += `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h1m[1], t)}</h1>`
@@ -451,7 +451,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-        // 有序列表
+    // 有序列表
     if (/^\d+\.\s/.test(line)) {
       let idx = 1
       html += `<section style="margin:10px 0px;padding-left:24px">`

@@ -81,9 +81,7 @@ export const Compare_DA01 = {
         .map((line) => {
           const trimmed = line.trim()
           // 图片行
-          const imgMatch = trimmed.match(
-            /^!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?$/,
-          )
+          const imgMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?$/)
           if (imgMatch) {
             const [, alt, src, size] = imgMatch
             if (size) {

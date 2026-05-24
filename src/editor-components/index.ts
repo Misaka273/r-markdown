@@ -30,7 +30,7 @@ export interface ComponentDef {
     default?: string
     options?: string[]
   }>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (attrs: any, body: any, t: ThemeColors, ...rest: any[]) => string
 }
 
@@ -50,7 +50,7 @@ import { Statement_DA01 } from './Statement_DA01'
 import { Lead_DA01 } from './Lead_DA01'
 import { Engage_DA01 } from './Engage_DA01'
 import { Engage_DA02 } from './Engage_DA02'
-import { TimeLine_DA01 } from './TimeLine_DA01'
+import { Timeline_DA01 } from './Timeline_DA01'
 
 export const components: ComponentDef[] = [
   Title_DA01,
@@ -67,9 +67,9 @@ export const components: ComponentDef[] = [
   Badges_DA01,
   Statement_DA01,
   Lead_DA01,
-    Engage_DA01,
+  Engage_DA01,
   Engage_DA02,
-  TimeLine_DA01,
+  Timeline_DA01,
 ]
 
 /** 按 id 索引 */
