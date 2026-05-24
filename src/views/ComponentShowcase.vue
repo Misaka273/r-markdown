@@ -498,6 +498,7 @@ function onCardLeave(e: MouseEvent) {
   color: var(--text-secondary);
   font-size: 11px;
   line-height: 1.6;
+  flex-wrap: wrap;
 }
 
 .attr-default-inline {
