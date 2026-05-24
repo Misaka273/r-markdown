@@ -11,7 +11,7 @@
  *   <right>新版内容</right>
  *   </compare>
  */
-import { leaf } from '@/utils/helpers'
+import { leaf, esc } from '@/utils/helpers'
 import { resolveColor } from '@/utils/colorUtils'
 import type { ThemeColors } from '@/composables/useTheme'
 
@@ -26,12 +26,16 @@ export const Compare_DA02 = {
     { key: 'right-title', label: '右侧标题', required: false, default: '' },
     { key: 'color', label: '自定义颜色', required: false, default: '' },
   ],
-  example: `<compare type="DA02" left-label="BEFORE" left-title="旧版" right-label="AFTER" right-title="新版">
+    example: `<compare type="DA02" left-label="BEFORE" left-title="旧版" right-label="AFTER" right-title="新版">
 <left>
-旧版内容：界面简单，功能较少，适合轻量使用场景。
+旧版界面设计较为传统
+![旧版](https://picsum.photos/400/120?random=5)[100% 120px]
+交互体验一般
 </left>
 <right>
-新版内容：全新设计，功能丰富，支持多种高级特性。
+新版采用全新设计语言
+![新版](https://picsum.photos/400/120?random=6)[100% 120px]
+用户体验大幅提升
 </right>
 </compare>`,
 
@@ -53,16 +57,29 @@ export const Compare_DA02 = {
     const hex = resolveColor(attrs.color || t.accent)
     const { left, right } = this.parseSides(body)
 
-    const renderContent = (md: string): string => {
+        const renderContent = (md: string): string => {
       if (!md) return ''
-      if (inlineRenderer) return inlineRenderer(md)
-      return md.replace(/!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?/g, (_, alt, src, size) => {
-        if (size) {
-          const parts = size.split(/\s+/)
-          return `<img src="${src}" alt="${alt}" style="width:${parts[0] || '100%'};max-height:${parts[1] || '120px'};border-radius:6px;display:block">`
-        }
-        return `<img src="${src}" alt="${alt}" style="width:100%;max-height:120px;border-radius:6px;display:block">`
-      })
+      const lines = md.split('\n').filter((l) => l.trim())
+      return lines
+        .map((line) => {
+          const trimmed = line.trim()
+          // 图片行
+          const imgMatch = trimmed.match(
+            /^!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?$/,
+          )
+          if (imgMatch) {
+            const [, alt, src, size] = imgMatch
+            if (size) {
+              const parts = size.split(/\s+/)
+              return `<img src="${esc(src)}" alt="${esc(alt)}" style="width:${parts[0] || '100%'};max-height:${parts[1] || '120px'};border-radius:6px;display:block;margin:6px 0">`
+            }
+            return `<img src="${esc(src)}" alt="${esc(alt)}" style="width:100%;max-height:120px;border-radius:6px;display:block;margin:6px 0">`
+          }
+          // 文字行
+          const rendered = inlineRenderer ? inlineRenderer(trimmed) : leaf(trimmed)
+          return `<p style="margin:4px 0;font-size:14px;color:rgb(100,116,139);line-height:1.6">${rendered}</p>`
+        })
+        .join('')
     }
 
     const renderSide = (
