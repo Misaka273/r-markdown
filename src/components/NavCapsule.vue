@@ -69,7 +69,7 @@ function onNavLeave() {
         class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]"
         @mouseenter="onNavEnter($event, item.key)"
       >
-                <svg v-if="item.iconPath" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        <svg v-if="item.iconPath" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path :d="item.iconPath" />
         </svg>
         {{ item.label }}
@@ -81,7 +81,7 @@ function onNavLeave() {
         class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]"
         @mouseenter="onNavEnter($event, item.key)"
       >
-                <svg
+        <svg
           v-if="item.iconPath"
           viewBox="0 0 24 24"
           width="16"

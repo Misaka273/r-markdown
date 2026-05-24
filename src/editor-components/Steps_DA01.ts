@@ -23,13 +23,18 @@ export const Steps_DA01 = {
   id: 'Steps_DA01',
   name: '步骤流',
   tag: 'steps',
-    attrs: [
+  attrs: [
     { key: 'label', label: '顶部标签', required: false, default: '' },
     { key: 'title', label: '标题', required: false, default: '' },
     { key: 'hint', label: '提示文字', required: false, default: '' },
     { key: 'active', label: '当前步骤（1/2/3）', required: false, default: '1' },
     { key: 'color', label: '自定义颜色', required: false, default: '' },
-    { key: 'direction', label: '布局方向（horizontal/vertical）', required: false, default: 'horizontal' },
+    {
+      key: 'direction',
+      label: '布局方向（horizontal/vertical）',
+      required: false,
+      default: 'horizontal',
+    },
   ],
   example: `<steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2">
 - 输入 | 往知识库里喂东西
@@ -55,7 +60,7 @@ export const Steps_DA01 = {
     if (attrs.hint)
       html += `<p style="margin:0px 0px 16px;font-size:12px;color:rgb(153,153,153)">${leaf(attrs.hint)}</p>`
 
-        const isVertical = (attrs.direction || 'horizontal') === 'vertical'
+    const isVertical = (attrs.direction || 'horizontal') === 'vertical'
 
     if (isVertical) {
       // 竖向布局（table 兼容 html2canvas）
@@ -65,7 +70,7 @@ export const Steps_DA01 = {
         const borderColor = isActive ? color : 'rgb(238,238,238)'
         const bgColor = isActive ? withAlpha(color) : 'rgb(255,255,255)'
         const mb = idx < steps.length - 1 ? 'margin-bottom:12px;' : ''
-                html += `<section style="${mb}padding:16px;background:${bgColor};border-radius:10px;border:${borderWidth} solid ${borderColor}">`
+        html += `<section style="${mb}padding:16px;background:${bgColor};border-radius:10px;border:${borderWidth} solid ${borderColor}">`
         html += `<section style="display:inline-block;vertical-align:top;width:32px;margin-right:12px"><section style="width:32px;height:32px;border-radius:50%;background:${isActive ? color : 'rgb(238,238,238)'};text-align:center;line-height:32px"><span style="font-size:14px;font-weight:900;color:${isActive ? '#fff' : 'rgb(153,153,153)'}">${leaf(idx + 1)}</span></section></section>`
         html += `<section style="display:inline-block;vertical-align:top;padding-top:4px">`
         html += `<p style="margin:0px 0px 2px;font-size:14px;font-weight:700;color:rgb(51,65,85)">${leaf(s.name)}</p>`

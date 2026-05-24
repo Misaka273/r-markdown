@@ -2,7 +2,7 @@
 
 /* ── Theme CSS Variables ── */
 :root {
-    --accent: #6c5ce7;
+  --accent: #6c5ce7;
   --accent-dark: #5a4bd1;
   --accent-light: #6c5ce726;
   --accent-border: #6c5ce733;
@@ -75,7 +75,7 @@ body {
     'Segoe UI',
     system-ui,
     sans-serif;
-    background: var(--bg-primary);
+  background: var(--bg-primary);
   color: var(--text-primary);
   height: 100%;
   -webkit-font-smoothing: antialiased;

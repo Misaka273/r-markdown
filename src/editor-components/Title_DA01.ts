@@ -75,7 +75,7 @@ export const Title_DA01 = {
   id: 'Title_DA01',
   name: '标题卡片',
   tag: 'title',
-    attrs: [
+  attrs: [
     { key: 'type', label: '样式类型', required: false, default: 'DA01', options: ['DA01', 'DA02'] },
     { key: 'badge', label: '标签', required: false, default: '' },
     { key: 'subtitle', label: '副标题', required: false, default: '' },
@@ -84,7 +84,7 @@ export const Title_DA01 = {
   ],
   example: `<title badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>`,
 
-    render(attrs: Record<string, string>, body: string, t: ThemeColors, raw: string = ''): string {
+  render(attrs: Record<string, string>, body: string, t: ThemeColors, raw: string = ''): string {
     const { chars, minutes } = countChars(raw)
     const color = attrs.color || t.accent
 

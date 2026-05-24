@@ -29,12 +29,12 @@ export const Lead_DA01 = {
   ],
   example: `<lead>在开始之前，先聊一个背景：最近几年，越来越多的人开始重新审视自己的生活方式。</lead>`,
 
-    render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
+  render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const color = attrs.color || t.accent
     const textColor = attrs['text-color'] || 'rgb(85,85,85)'
     const wrapperStyle = [
       attrs.bg ? `background:${attrs.bg};` : '',
-                  attrs.round ? 'border-radius:8px;overflow:clip;' : '',
+      attrs.round ? 'border-radius:8px;overflow:clip;' : '',
     ].join('')
     return `<section style="${wrapperStyle}"><p style="font-size:16px;color:${textColor};line-height:1.8;padding:16px;border-left:3px solid ${color};margin:14px 0px;overflow-wrap:break-word;word-break:break-word">${leaf(body)}</p></section>`
   },

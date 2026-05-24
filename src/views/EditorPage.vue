@@ -247,18 +247,21 @@ onBeforeUnmount(() => {
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
-                <a
+        <a
           href="https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4"
           target="_blank"
           rel="noopener noreferrer"
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97] no-underline"
         >
-                    <svg
+          <svg
             class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
             viewBox="0 0 24 24"
           >
-            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
-            <path d="M20 3v4" /><path d="M22 5h-4" />
+            <path
+              d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+            />
+            <path d="M20 3v4" />
+            <path d="M22 5h-4" />
           </svg>
           AI排版示例
         </a>

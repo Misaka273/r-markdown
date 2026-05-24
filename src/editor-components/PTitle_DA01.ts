@@ -88,7 +88,7 @@ export const PTitle = {
 </section>`
     }
 
-                            // ── Level 2: 二级标题（##）──
+    // ── Level 2: 二级标题（##）──
     if (level === 2) {
       const titleText = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
       if (hasNum) {

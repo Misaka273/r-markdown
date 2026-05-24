@@ -8,16 +8,16 @@
 
 ## 技术栈
 
-| 类别 | 技术 | 版本 |
-|------|------|------|
-| 框架 | Vue 3 (Composition API) | 3.6.x |
-| 语言 | TypeScript | 6.x |
-| 构建 | Vite | 5.x |
-| 样式 | Tailwind CSS 4 | 4.2.x |
-| 编辑器 | CodeMirror 6 | 6.x |
-| 路由 | Vue Router | 4.6.x |
-| 包管理 | pnpm | - |
-| Node | >= 20.0.0 | - |
+| 类别   | 技术                    | 版本  |
+| ------ | ----------------------- | ----- |
+| 框架   | Vue 3 (Composition API) | 3.6.x |
+| 语言   | TypeScript              | 6.x   |
+| 构建   | Vite                    | 5.x   |
+| 样式   | Tailwind CSS 4          | 4.2.x |
+| 编辑器 | CodeMirror 6            | 6.x   |
+| 路由   | Vue Router              | 4.6.x |
+| 包管理 | pnpm                    | -     |
+| Node   | >= 20.0.0               | -     |
 
 ## 目录结构
 
@@ -80,14 +80,14 @@ pnpm format       # Prettier 格式化
 
 ```json
 {
-  "semi": false,           // 不加分号
-  "singleQuote": true,     // 单引号
-  "tabWidth": 2,           // 2 空格缩进
-  "trailingComma": "all",  // 尾逗号
-  "printWidth": 100,       // 行宽 100
-  "bracketSpacing": true,  // 括号空格
+  "semi": false, // 不加分号
+  "singleQuote": true, // 单引号
+  "tabWidth": 2, // 2 空格缩进
+  "trailingComma": "all", // 尾逗号
+  "printWidth": 100, // 行宽 100
+  "bracketSpacing": true, // 括号空格
   "arrowParens": "always", // 箭头函数参数加括号
-  "endOfLine": "lf"        // LF 换行
+  "endOfLine": "lf" // LF 换行
 }
 ```
 
@@ -95,23 +95,23 @@ pnpm format       # Prettier 格式化
 
 ### 文件命名
 
-| 类型 | 格式 | 示例 |
-|------|------|------|
-| Vue 组件 | PascalCase | `DarkModeToggle.vue` |
-| 组合式函数 | camelCase（use 前缀） | `useTheme.ts` |
-| 工具函数 | camelCase | `inlineFormat.ts` |
-| 路由 | camelCase | `index.ts` |
-| 样式 | kebab-case | `style.css` |
+| 类型       | 格式                  | 示例                 |
+| ---------- | --------------------- | -------------------- |
+| Vue 组件   | PascalCase            | `DarkModeToggle.vue` |
+| 组合式函数 | camelCase（use 前缀） | `useTheme.ts`        |
+| 工具函数   | camelCase             | `inlineFormat.ts`    |
+| 路由       | camelCase             | `index.ts`           |
+| 样式       | kebab-case            | `style.css`          |
 
 ### 代码命名
 
-| 类型 | 格式 | 示例 |
-|------|------|------|
-| 变量/函数 | camelCase | `formatText`, `isDark` |
-| 类型/接口 | PascalCase | `ThemeColors`, `CalloutConfig` |
-| 常量 | UPPER_SNAKE_CASE | `DEFAULT_THEME` |
-| CSS 类名 | kebab-case（Tailwind） | `bg-white`, `text-gray-500` |
-| 私有属性 | `_` 前缀 | `_m`, `_p1`（正则回调参数） |
+| 类型      | 格式                   | 示例                           |
+| --------- | ---------------------- | ------------------------------ |
+| 变量/函数 | camelCase              | `formatText`, `isDark`         |
+| 类型/接口 | PascalCase             | `ThemeColors`, `CalloutConfig` |
+| 常量      | UPPER_SNAKE_CASE       | `DEFAULT_THEME`                |
+| CSS 类名  | kebab-case（Tailwind） | `bg-white`, `text-gray-500`    |
+| 私有属性  | `_` 前缀               | `_m`, `_p1`（正则回调参数）    |
 
 ## Vue 组件规范
 
@@ -181,11 +181,11 @@ onMounted(() => {
 
 ```typescript
 interface ThemeColors {
-  accent: string    // 主题强调色（如 #6366f1）
-  dark: string      // 深色变体
-  light: string     // 浅色变体
-  rgb: string       // RGB 值（如 "99,102,241"）
-  border: string    // 边框色
+  accent: string // 主题强调色（如 #6366f1）
+  dark: string // 深色变体
+  light: string // 浅色变体
+  rgb: string // RGB 值（如 "99,102,241"）
+  border: string // 边框色
 }
 ```
 
@@ -193,38 +193,38 @@ interface ThemeColors {
 
 在 `src/utils/inlineFormat.ts` 中定义：
 
-| 语法 | 效果 | HTML 输出 |
-|------|------|-----------|
-| `==文字==` | 渐变背景 | `<span style="background:linear-gradient(...)">` |
-| `::文字::` | 柔光重点 | `<span style="color:...;font-weight:700">` |
-| `!!文字!!` | 胶囊文字 | `<span style="background:...;border-radius:20px">` |
-| `^^文字^^` | 上标强调 | `<strong style="color:...">` |
-| `__文字__` | 下划线 | `<span style="text-decoration:underline">` |
-| `~~文字~~` | 删除线 | `<del>` |
-| `**文字**` | 加粗 | `<strong>` |
-| `*文字*` | 斜体 | `<em>` |
-| `` `文字` `` | 行内代码 | `<code>` |
+| 语法         | 效果     | HTML 输出                                          |
+| ------------ | -------- | -------------------------------------------------- |
+| `==文字==`   | 渐变背景 | `<span style="background:linear-gradient(...)">`   |
+| `::文字::`   | 柔光重点 | `<span style="color:...;font-weight:700">`         |
+| `!!文字!!`   | 胶囊文字 | `<span style="background:...;border-radius:20px">` |
+| `^^文字^^`   | 上标强调 | `<strong style="color:...">`                       |
+| `__文字__`   | 下划线   | `<span style="text-decoration:underline">`         |
+| `~~文字~~`   | 删除线   | `<del>`                                            |
+| `**文字**`   | 加粗     | `<strong>`                                         |
+| `*文字*`     | 斜体     | `<em>`                                             |
+| `` `文字` `` | 行内代码 | `<code>`                                           |
 
 ### 组件解析语法
 
 在 `src/utils/components.ts` 中定义：
 
-| 语法 | 组件 |
-|------|------|
-| `:::callout` | 提示框（支持 green/yellow/dark/accent 色调） |
-| `:::timeline` | 时间线 |
-| `:::steps` | 步骤指引 |
-| `:::compare` | 对比卡片 |
-| `:::engage` | 互动区 |
-| `:::quiz` | 选择题 |
-| `:::prose` | 散文段落 |
-| `:::gallery` | 图片画廊 |
-| `:::rating` | 评分卡片 |
-| `:::dialogue` | 对话气泡 |
-| `:::feature` | 特性卡片 |
-| `:::bible-verse` | 圣经经文 |
-| `:::devotion` | 灵修卡片 |
-| `:::worship` | 敬拜卡片 |
+| 语法             | 组件                                         |
+| ---------------- | -------------------------------------------- |
+| `:::callout`     | 提示框（支持 green/yellow/dark/accent 色调） |
+| `:::timeline`    | 时间线                                       |
+| `:::steps`       | 步骤指引                                     |
+| `:::compare`     | 对比卡片                                     |
+| `:::engage`      | 互动区                                       |
+| `:::quiz`        | 选择题                                       |
+| `:::prose`       | 散文段落                                     |
+| `:::gallery`     | 图片画廊                                     |
+| `:::rating`      | 评分卡片                                     |
+| `:::dialogue`    | 对话气泡                                     |
+| `:::feature`     | 特性卡片                                     |
+| `:::bible-verse` | 圣经经文                                     |
+| `:::devotion`    | 灵修卡片                                     |
+| `:::worship`     | 敬拜卡片                                     |
 
 ## Git 工作流
 
@@ -249,6 +249,7 @@ type 类型：
 ```
 
 示例：
+
 ```
 feat: 添加时间线组件
 fix: 修复渐变背景文字颜色不显示
@@ -321,7 +322,7 @@ pnpm preview
 ## 注意事项
 
 1. **不要手动编辑 `.vue.js` 文件**：这些是 Vue 编译器生成的临时文件，已在 `.gitignore` 中排除
-2. **不要提交 `src/**/*.js` 文件**：TypeScript 源码编译产物，已在 `.gitignore` 中排除
+2. **不要提交 `src/**/\*.js`文件**：TypeScript 源码编译产物，已在`.gitignore` 中排除
 3. **修改行内格式化语法后**：同步更新本文档的语法对照表
 4. **新增组件后**：同步更新本文档的目录结构和组件解析语法表
 5. **构建前确认**：确保 `pnpm check` 通过，无 ESLint/Prettier 错误

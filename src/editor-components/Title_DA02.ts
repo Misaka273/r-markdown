@@ -23,11 +23,11 @@ const S = {
     'border-radius:14px;border:1px solid rgba(229,231,235,0.9);' +
     'overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)',
   body: 'padding:20px;background:rgba(255,255,255,0.92)',
-    badgeRow: 'margin:0px 0px 10px;white-space:nowrap',
-    badge: (color: string) =>
+  badgeRow: 'margin:0px 0px 10px;white-space:nowrap',
+  badge: (color: string) =>
     `margin:0px;padding:0px;font-size:10px;color:${color};` +
     'letter-spacing:2.4px;text-transform:uppercase;font-weight:800;white-space:nowrap',
-    stat:
+  stat:
     'margin:0px 0px 0px 12px;display:inline-block;font-size:10px;color:rgb(148,163,184);' +
     'font-weight:700;letter-spacing:0.3px;line-height:1;white-space:nowrap',
   statNum: (color: string) => `font-size:12px;font-weight:900;color:${color}`,
@@ -65,7 +65,7 @@ export const Title_DA02 = {
   id: 'Title_DA02',
   name: '标题卡片',
   tag: 'title',
-    attrs: [
+  attrs: [
     { key: 'type', label: '样式类型', required: false, default: 'DA02', options: ['DA01', 'DA02'] },
     { key: 'badge', label: '标签', required: false, default: '' },
     { key: 'subtitle', label: '副标题', required: false, default: '' },
@@ -74,7 +74,7 @@ export const Title_DA02 = {
   ],
   example: `<title type="DA02" badge="UPDATE" subtitle="新增了段落标题、步骤流程、时间线等组件，优化了深色模式适配。" chips="新组件|深色模式|性能优化">v2.0 版本更新说明</title>`,
 
-    render(attrs: Record<string, string>, body: string, t: ThemeColors, raw: string = ''): string {
+  render(attrs: Record<string, string>, body: string, t: ThemeColors, raw: string = ''): string {
     const { chars, minutes } = countChars(raw)
     const color = attrs.color || t.accent
 
