@@ -89,9 +89,11 @@ export const DEMO_CONTENT = `<title type="DA02" badge="GUIDE" subtitle="这是�
 <p-title num="02" title="Before / After 对比（纵向）" level="2"></p-title>
 <compare left-label="BEFORE" left-title="回味过去" right-label="AFTER" right-title="展望未来" direction="vertical">
 <left>
+一切仿佛就在昨天
 ![旧版](https://robocopmao.github.io/r-markdown/banner1.webp)[100% 120px]
 </left>
 <right>
+愿明天会更美好
 ![新版](https://robocopmao.github.io/r-markdown/banner2.webp)[100% 120px]
 </right>
 </compare>
