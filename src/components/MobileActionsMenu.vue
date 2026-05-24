@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
             <!-- 编辑模式：AI排版示例 + 扩展组件 + 加载示例 -->
       <template v-if="mode === 'editor'">
         <a
-          href="https://chat.deepseek.com/share/mzp10fvra0zijftyrn"
+          href="https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4"
           target="_blank"
           rel="noopener noreferrer"
           class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5 no-underline"

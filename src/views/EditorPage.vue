@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
                 <a
-          href="https://chat.deepseek.com/share/mzp10fvra0zijftyrn"
+          href="https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4"
           target="_blank"
           rel="noopener noreferrer"
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97] no-underline"
