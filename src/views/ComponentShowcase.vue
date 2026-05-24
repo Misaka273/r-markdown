@@ -22,6 +22,7 @@ const categories = [
   { key: 'content', label: '内容' },
   { key: 'layout', label: '布局' },
   { key: 'interactive', label: '互动' },
+  { key: 'other', label: '其他' },
 ]
 const activeCategory = ref('all')
 
@@ -40,9 +41,10 @@ const componentCategoryMap: Record<string, string> = {
   Compare_DA01: 'layout',
   Compare_DA02: 'layout',
   TimeLine_DA01: 'layout',
-  Badges_DA01: 'interactive',
+    Badges_DA01: 'other',
   CTA_DA01: 'interactive',
-  Engage_DA01: 'interactive',
+    Engage_DA01: 'interactive',
+  Engage_DA02: 'interactive',
 }
 
 const filteredComponents = computed(() => {

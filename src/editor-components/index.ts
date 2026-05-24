@@ -49,6 +49,7 @@ import { Badges_DA01 } from './Badges_DA01'
 import { Statement_DA01 } from './Statement_DA01'
 import { Lead_DA01 } from './Lead_DA01'
 import { Engage_DA01 } from './Engage_DA01'
+import { Engage_DA02 } from './Engage_DA02'
 import { TimeLine_DA01 } from './TimeLine_DA01'
 
 export const components: ComponentDef[] = [
@@ -66,7 +67,8 @@ export const components: ComponentDef[] = [
   Badges_DA01,
   Statement_DA01,
   Lead_DA01,
-  Engage_DA01,
+    Engage_DA01,
+  Engage_DA02,
   TimeLine_DA01,
 ]
 
