@@ -23,7 +23,7 @@ import { Statement_DA01 } from '@/editor-components/Statement_DA01'
 import { Lead_DA01 } from '@/editor-components/Lead_DA01'
 import { Engage_DA01 } from '@/editor-components/Engage_DA01'
 import { Engage_DA02 } from '@/editor-components/Engage_DA02'
-import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
+import { TimeLine_DA01 } from '@/editor-components/TimeLine_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -342,7 +342,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         i++
       }
       i++ // skip </timeline>
-      html += Timeline_DA01.render(attrs, body.trim(), t)
+      html += TimeLine_DA01.render(attrs, body.trim(), t)
       continue
     }
     // : engage 或 <engage>
