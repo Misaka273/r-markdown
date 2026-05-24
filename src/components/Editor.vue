@@ -169,7 +169,7 @@ onMounted(async () => {
       rectangularSelection(),
       highlightSelectionMatches(),
       history(),
-      keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+                  keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
       markdown({ codeLanguages: languages }),
       syntaxHighlighting(warmHighlight),
       warmTheme,

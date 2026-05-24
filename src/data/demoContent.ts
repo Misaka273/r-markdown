@@ -1,6 +1,6 @@
 export const DEMO_CONTENT = `<title type="DA02" badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>
 
-<reading-path />
+<reading-path></reading-path>
 
 <p-title num="01" title="图片增强特性" subtitle="IMAGES · 窗口化与并排" level="1"></p-title>
 
@@ -158,5 +158,5 @@ Lead 组件会生成一段带有左侧边框的引导文字，适合用来引入
 
 所有组件都支持公众号无损复制，您可以根据需要自由组合。
 
-<engage title="如果这份文档对你有帮助，欢迎点赞、转发、推荐！" label="THANKS FOR READING" />
+<engage title="如果这份文档对你有帮助，欢迎点赞、转发、推荐！" label="THANKS FOR READING"></engage>
 `

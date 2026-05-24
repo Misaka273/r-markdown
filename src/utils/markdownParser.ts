@@ -22,6 +22,7 @@ import { Badges_DA01 } from '@/editor-components/Badges_DA01'
 import { Statement_DA01 } from '@/editor-components/Statement_DA01'
 import { Lead_DA01 } from '@/editor-components/Lead_DA01'
 import { Engage_DA01 } from '@/editor-components/Engage_DA01'
+import { Engage_DA02 } from '@/editor-components/Engage_DA02'
 import { TimeLine_DA01 } from '@/editor-components/TimeLine_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
@@ -344,10 +345,15 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += TimeLine_DA01.render(attrs, body.trim(), t)
       continue
     }
-    // : engage 或 <engage>
+            // : engage 或 <engage>
     if (/^:\s*engage\b/.test(line) || /^<engage\b/.test(line)) {
       const attrs = parseAttrs(line)
-      html += Engage_DA01.render(attrs, '', t)
+      // type="DA02" 使用彩色图标版，否则默认 DA01
+      if (attrs.type && attrs.type.toUpperCase() === 'DA02') {
+        html += Engage_DA02.render(attrs, '', t)
+      } else {
+        html += Engage_DA01.render(attrs, '', t)
+      }
       i++
       continue
     }

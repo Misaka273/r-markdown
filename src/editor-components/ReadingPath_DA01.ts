@@ -5,7 +5,7 @@ import type { ThemeColors } from '@/composables/useTheme'
  * Reading Path - 阅读路线导航
  *
  * 编辑器语法：
- *   <reading-path />
+  *   <reading-path></reading-path>
  *
  * 自动从文档的 h2 标题中提取章节列表，渲染为横向导航卡片。
  * 需要在 markdownParser 中先收集 h2List，再传入 render。
