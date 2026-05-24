@@ -123,17 +123,9 @@ function onCardEnter(e: MouseEvent) {
   const card = e.currentTarget as HTMLElement
   const overlay = card.querySelector('.card-overlay') as HTMLElement
   if (overlay) {
-    // 计算 overlay 内容实际需要的高度
-    overlay.style.position = 'relative'
-    overlay.style.visibility = 'hidden'
-    overlay.style.opacity = '0'
-    overlay.style.pointerEvents = 'none'
-    const h = overlay.scrollHeight
-    overlay.style.position = ''
-    overlay.style.visibility = ''
-    overlay.style.opacity = ''
-    overlay.style.pointerEvents = ''
-    card.style.minHeight = h + 'px'
+    requestAnimationFrame(() => {
+      card.style.minHeight = overlay.scrollHeight + 'px'
+    })
   }
 }
 
@@ -333,9 +325,9 @@ function onCardLeave(e: MouseEvent) {
   break-inside: avoid;
   margin-bottom: 1.5rem;
   position: relative;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   border-radius: 1rem;
-  overflow: hidden;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-panel);
@@ -368,35 +360,15 @@ function onCardLeave(e: MouseEvent) {
 .card-front {
   position: relative;
   z-index: 1;
-  transition:
-    opacity 0.35s ease,
-    filter 0.35s ease;
   overflow: hidden;
 }
 
-.spotlight-card:hover .card-front {
-  opacity: 0.15;
-  filter: blur(2px);
-  pointer-events: none;
-}
-
-/* 悬浮语法层 */
+/* 说明层 */
 .card-overlay {
-  position: absolute;
-  inset: 0;
+  position: relative;
   z-index: 4;
-  padding: 1.25rem;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  pointer-events: none;
-  overflow-y: auto;
-  background: var(--bg-primary);
-  backdrop-filter: blur(8px);
-}
-
-.spotlight-card:hover .card-overlay {
-  opacity: 1;
-  pointer-events: auto;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .overlay-content {

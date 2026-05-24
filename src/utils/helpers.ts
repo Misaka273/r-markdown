@@ -73,8 +73,10 @@ export function withAlpha(color: string, alpha = 0.06): string {
 
 export function parseAttrs(s: string): Record<string, string> {
   const attrs: Record<string, string> = {}
-  s.replace(/([\w-]+)="([^"]*)"/g, (_, k: string, v: string) => {
-    attrs[k] = v
+  // 匹配 key="value" 和无值布尔属性（如 round）
+  s.replace(/([\w-]+)="([^"]*)"|([\w-]+)/g, (_, k1: string, v: string, k2: string) => {
+    if (k1) attrs[k1] = v
+    else if (k2) attrs[k2] = 'true'
     return ''
   })
   return attrs

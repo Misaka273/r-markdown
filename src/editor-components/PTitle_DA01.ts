@@ -88,18 +88,19 @@ export const PTitle = {
 </section>`
     }
 
-    // ── Level 2: 二级标题（##）──
+                            // ── Level 2: 二级标题（##）──
     if (level === 2) {
       const titleText = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
       if (hasNum) {
         return `
-<section style="margin:36px 0px 20px">
-  <p style="margin:0px;display:flex;align-items:baseline;gap:10px"><strong style="font-size:24px;font-weight:900;color:${numColor};line-height:1.4;letter-spacing:-0.3px;flex-shrink:0"><span leaf="">${num}</span></strong><span style="font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></span></p>
+<section style="margin:36px 0px 20px;overflow:hidden">
+    <section style="float:left;white-space:nowrap;font-size:24px;font-weight:900;color:${numColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${num}</span></section>
+    <section style="margin-left:32px;font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></section>
 </section>`
       }
       return `
 <section style="margin:36px 0px 20px">
-  <p style="margin:0px;font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></p>
+  <section style="font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></section>
 </section>`
     }
 
@@ -108,13 +109,14 @@ export const PTitle = {
       const titleText3 = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
       if (hasNum) {
         return `
-<section style="margin:28px 0px 16px">
-  <p style="margin:0px;display:flex;align-items:baseline;gap:8px"><strong style="font-size:20px;font-weight:900;color:${numColor};line-height:1.45;flex-shrink:0"><span leaf="">${num}</span></strong><span style="font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></span></p>
+<section style="margin:28px 0px 16px;overflow:hidden">
+    <section style="float:left;white-space:nowrap;font-size:20px;font-weight:900;color:${numColor};line-height:1.45"><span leaf="">${num}</span></section>
+    <section style="margin-left:32px;font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></section>
 </section>`
       }
       return `
 <section style="margin:28px 0px 16px">
-  <p style="margin:0px;font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></p>
+  <section style="font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></section>
 </section>`
     }
 
@@ -122,13 +124,14 @@ export const PTitle = {
     const titleText4 = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
     if (hasNum) {
       return `
-<section style="margin:24px 0px 12px">
-  <p style="margin:0px;display:flex;align-items:baseline;gap:8px"><strong style="font-size:16px;font-weight:900;color:${numColor};line-height:1.5;flex-shrink:0"><span leaf="">${num}</span></strong><span style="font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></span></p>
+<section style="margin:24px 0px 12px;overflow:hidden">
+    <section style="float:left;white-space:nowrap;font-size:16px;font-weight:900;color:${numColor};line-height:1.5"><span leaf="">${num}</span></section>
+    <section style="margin-left:32px;font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></section>
 </section>`
     }
     return `
 <section style="margin:24px 0px 12px">
-  <p style="margin:0px;font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></p>
+  <section style="font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></section>
 </section>`
   },
 }

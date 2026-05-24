@@ -32,10 +32,36 @@ export const Breaking_DA01 = {
 这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。
 </breaking>`,
 
-  render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
+        render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const color = attrs.color || t.accent
 
-    let html = `<section style="margin:24px 0px;padding:28px 24px;background:radial-gradient(circle 60px at 92% 30px,${t.light} 96%,transparent 100%),linear-gradient(135deg,${t.light},rgba(255,255,255,0.8));border:1px solid ${t.border};border-radius:16px">`
+    /** 将任意 CSS 颜色转为带透明度的 rgba 字符串 */
+    function withAlpha(c: string, alpha: number): string {
+      if (/^#[0-9a-fA-F]{3,8}$/.test(c)) {
+        // hex → 8位 hex（带 alpha）
+        const hex = c.length === 4
+          ? '#' + c[1]+c[1]+c[2]+c[2]+c[3]+c[3]
+          : c.slice(0, 7)
+        const aHex = Math.round(alpha * 255).toString(16).padStart(2, '0')
+        return hex + aHex
+      }
+      // 命名颜色等：用临时元素解析 RGB
+      if (typeof document !== 'undefined') {
+        const el = document.createElement('div')
+        el.style.color = c
+        document.body.appendChild(el)
+        const computed = getComputedStyle(el).color
+        document.body.removeChild(el)
+        const m = computed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+        if (m) return `rgba(${m[1]},${m[2]},${m[3]},${alpha})`
+      }
+      return c // 兜底
+    }
+
+    const light = attrs.color ? withAlpha(color, 0.15) : t.light
+    const border = attrs.color ? withAlpha(color, 0.2) : t.border
+
+    let html = `<section style="margin:24px 0px;padding:28px 24px;background:radial-gradient(circle 60px at 92% 30px,${light} 96%,transparent 100%),linear-gradient(135deg,${light},rgba(255,255,255,0.8));border:1px solid ${border};border-radius:16px">`
 
     if (attrs.badge)
       html += `<span style="display:inline-block;padding:4px 12px;background:${color};color:rgb(255,255,255);border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:12px">${leaf(attrs.badge)}</span>`
@@ -46,7 +72,7 @@ export const Breaking_DA01 = {
     if (attrs.chips) {
       html += `<section style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">`
       attrs.chips.split('|').forEach((c) => {
-        html += `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(255,255,255,0.8);color:${color};border:1px solid ${t.border}">${leaf('#' + c.trim())}</span>`
+        html += `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(255,255,255,0.8);color:${color};border:1px solid ${border}">${leaf('#' + c.trim())}</span>`
       })
       html += `</section>`
     }

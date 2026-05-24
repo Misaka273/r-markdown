@@ -23,12 +23,13 @@ export const Steps_DA01 = {
   id: 'Steps_DA01',
   name: '步骤流',
   tag: 'steps',
-  attrs: [
+    attrs: [
     { key: 'label', label: '顶部标签', required: false, default: '' },
     { key: 'title', label: '标题', required: false, default: '' },
     { key: 'hint', label: '提示文字', required: false, default: '' },
     { key: 'active', label: '当前步骤（1/2/3）', required: false, default: '1' },
     { key: 'color', label: '自定义颜色', required: false, default: '' },
+    { key: 'direction', label: '布局方向（horizontal/vertical）', required: false, default: 'horizontal' },
   ],
   example: `<steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2">
 - 输入 | 往知识库里喂东西
@@ -54,20 +55,40 @@ export const Steps_DA01 = {
     if (attrs.hint)
       html += `<p style="margin:0px 0px 16px;font-size:12px;color:rgb(153,153,153)">${leaf(attrs.hint)}</p>`
 
-    // 横向布局
-    html += `<section style="display:flex;gap:12px;overflow-x:auto">`
-    steps.forEach((s, idx) => {
-      const isActive = idx + 1 === active
-      const itemStyle = isActive
-        ? `flex:1;min-width:100px;padding:16px 12px;background:${withAlpha(color)};border-radius:10px;border:2px solid ${color};text-align:center;position:relative`
-        : `flex:1;min-width:100px;padding:16px 12px;background:rgb(255,255,255);border-radius:10px;border:1px solid rgb(238,238,238);text-align:center;position:relative`
-      html += `<section style="${itemStyle}">`
-      html += `<p style="margin:0px 0px 4px;font-size:20px;font-weight:900;color:${color}">${leaf(idx + 1)}</p>`
-      html += `<p style="margin:0px 0px 2px;font-size:13px;font-weight:700;color:rgb(51,65,85)">${leaf(s.name)}</p>`
-      html += `<p style="margin:0px;font-size:11px;color:rgb(153,153,153)">${leaf(s.desc)}</p>`
-      html += `</section>`
-    })
-    html += `</section>`
+        const isVertical = (attrs.direction || 'horizontal') === 'vertical'
+
+    if (isVertical) {
+      // 竖向布局（table 兼容 html2canvas）
+      steps.forEach((s, idx) => {
+        const isActive = idx + 1 === active
+        const borderWidth = isActive ? '2px' : '1px'
+        const borderColor = isActive ? color : 'rgb(238,238,238)'
+        const bgColor = isActive ? withAlpha(color) : 'rgb(255,255,255)'
+        const mb = idx < steps.length - 1 ? 'margin-bottom:12px;' : ''
+                html += `<section style="${mb}padding:16px;background:${bgColor};border-radius:10px;border:${borderWidth} solid ${borderColor}">`
+        html += `<section style="display:inline-block;vertical-align:top;width:32px;margin-right:12px"><section style="width:32px;height:32px;border-radius:50%;background:${isActive ? color : 'rgb(238,238,238)'};text-align:center;line-height:32px"><span style="font-size:14px;font-weight:900;color:${isActive ? '#fff' : 'rgb(153,153,153)'}">${leaf(idx + 1)}</span></section></section>`
+        html += `<section style="display:inline-block;vertical-align:top;padding-top:4px">`
+        html += `<p style="margin:0px 0px 2px;font-size:14px;font-weight:700;color:rgb(51,65,85)">${leaf(s.name)}</p>`
+        html += `<p style="margin:0px;font-size:12px;color:rgb(153,153,153)">${leaf(s.desc)}</p>`
+        html += `</section>`
+        html += `</section>`
+      })
+    } else {
+      // 横向布局（table 兼容 html2canvas）
+      html += `<table border="0" cellpadding="0" cellspacing="12" style="margin:0;border-collapse:separate;border-spacing:12px 0;border:none;width:100%"><tr>`
+      steps.forEach((s, idx) => {
+        const isActive = idx + 1 === active
+        const borderWidth = isActive ? '2px' : '1px'
+        const borderColor = isActive ? color : 'rgb(238,238,238)'
+        const bgColor = isActive ? withAlpha(color) : 'rgb(255,255,255)'
+        html += `<td style="vertical-align:top;padding:16px 12px;background:${bgColor};border-radius:10px;border:${borderWidth} solid ${borderColor};text-align:center;width:${Math.floor(100 / steps.length)}%">`
+        html += `<p style="margin:0px 0px 4px;font-size:20px;font-weight:900;color:${color}">${leaf(idx + 1)}</p>`
+        html += `<p style="margin:0px 0px 2px;font-size:13px;font-weight:700;color:rgb(51,65,85)">${leaf(s.name)}</p>`
+        html += `<p style="margin:0px;font-size:11px;color:rgb(153,153,153)">${leaf(s.desc)}</p>`
+        html += `</td>`
+      })
+      html += `</tr></table>`
+    }
 
     html += `</section>`
     return html

@@ -56,7 +56,7 @@ export const CaseFlow_DA01 = {
       .map(
         (item) => `
       <section style="display:flex;align-items:center;gap:16px;padding:20px;margin-bottom:12px;border:1px solid rgba(0,0,0,0.06);border-radius:12px;background:#fff;">
-                <span style="flex-shrink:0;background:${tagBg};color:${hex};font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;letter-spacing:0.5px;">案例 ${item.num}</span>
+                <span style="flex-shrink:0;white-space:nowrap;background:${tagBg};color:${hex};font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;letter-spacing:0.5px;">案例 ${item.num}</span>
         <span style="flex:1;font-size:15px;line-height:1.6;color:#333;">${item.text}</span>
       </section>
     `,

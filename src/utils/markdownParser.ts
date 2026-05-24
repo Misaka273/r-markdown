@@ -445,11 +445,14 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-    // 有序列表
+        // 有序列表
     if (/^\d+\.\s/.test(line)) {
+      let idx = 1
       html += `<section style="margin:10px 0px;padding-left:24px">`
       while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-        html += `<section style="margin:5px 0px">${inlineFormat(lines[i].replace(/^\d+\.\s/, ''), t)}</section>`
+        const content = lines[i].replace(/^\d+\.\s/, '')
+        html += `<section style="margin:5px 0px"><span style="color:rgb(148,163,184);font-weight:700;margin-right:6px">${idx}.</span>${inlineFormat(content, t)}</section>`
+        idx++
         i++
       }
       html += `</section>`

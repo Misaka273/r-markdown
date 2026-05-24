@@ -36,7 +36,6 @@ function parseTimelineItems(body: string): TimelineItem[] {
   const lines = body.split('\n').filter((l) => l.trim())
 
   for (const line of lines) {
-    // 匹配：- 日期 | 标题 | 描述 [| ![alt](src)[宽 高]]
     const m = line.match(
       /^-\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)(?:\s*\|\s*!\[(.*?)\]\((.*?)\)\[(\S+)\s+(\S+)\])?\s*$/,
     )
@@ -85,15 +84,16 @@ export const TimeLine_DA01 = {
           imageHtml = `<img src="${item.image.src}" alt="${item.image.alt}" style="${style.join(';')};" />`
         }
 
+                        // 左侧圆点（float），圆心 = 4px(margin) + 6px(半径) = 10px
+        const dotHtml = `<section style="float:left;width:12px;height:12px;border-radius:50%;background:${hex};box-shadow:0 0 0 4px ${dotBg};margin:5px 0 0 4px;"></section>`
+
+        // 右侧内容（border-left 做竖线，对齐圆心 10px）
+        const borderStyle = isLast ? 'border-left:2px solid transparent;' : `border-left:2px solid ${lineColor};`
+
         return `
-        <section style="display:flex;gap:20px;position:relative;${isLast ? '' : 'padding-bottom:32px;'}">
-          <!-- 左侧时间轴 -->
-          <section style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px;">
-            <span style="width:12px;height:12px;border-radius:50%;background:${hex};box-shadow:0 0 0 4px ${dotBg};flex-shrink:0;z-index:1;"></span>
-            ${isLast ? '' : `<span style="flex:1;width:2px;background:linear-gradient(180deg, ${hex}, ${lineColor});margin-top:4px;"></span>`}
-          </section>
-          <!-- 右侧内容 -->
-          <section style="flex:1;">
+        <section style="margin-bottom:${isLast ? '0' : '32px'};overflow:hidden;">
+          ${dotHtml}
+          <section style="margin-left:9px;${borderStyle}padding-left:18px;">
             <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:${hex};letter-spacing:0.5px;">${leaf(item.date)}</p>
             <p style="margin:0 0 6px;font-size:17px;font-weight:800;color:rgb(17,24,39);line-height:1.4;">${leaf(item.title)}</p>
             <p style="margin:0;font-size:14px;color:rgb(100,116,139);line-height:1.6;">${leaf(item.desc)}</p>
