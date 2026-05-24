@@ -11,32 +11,46 @@
 - **滚动同步** — 编辑器与预览面板滚动位置按比例联动
 - **自动保存** — 内容实时保存到 localStorage，刷新不丢失
 - **可调面板** — 拖拽调整编辑器与预览区宽度
+- **组件展示** — 内置排版组件库，可视化浏览所有可用组件及效果
 
 ## 🎨 排版能力
 
 基于 [awesome-design-md](https://www.npmjs.com/package/awesome-design-md) 排版引擎，支持丰富的公众号扩展语法：
 
-| 语法               | 效果                  |
-| ------------------ | --------------------- |
-| `==渐变背景文字==` | 渐变背景强调          |
-| `::柔光重点文字::` | 柔光蓝紫色文字        |
-| `!!胶囊文字!!`     | 超圆角胶囊背景        |
-| `^^加重强调^^`     | 靛青加重文字          |
-| `::: badges`       | 彩色标签徽章          |
-| ` ``` `            | 代码块                |
-| `::: statement`    | 居中强调语            |
-| `::: lead`         | 引导文字段            |
-| `<breaking>`       | 突发/重大更新卡片     |
-| `<compare>`        | Before/After 对比布局 |
-| `<cta>`            | 行动召唤卡片          |
-| `::: steps`        | 横向步骤流            |
-| `> [TIP]`          | 提示框                |
+### 内联语法
+
+| 语法 | 效果 |
+| --- | --- |
+| `==渐变背景文字==` | 渐变背景强调 |
+| `::柔光重点文字::` | 柔光蓝紫色文字 |
+| `!!胶囊文字!!` | 超圆角胶囊背景 |
+| `^^加重强调^^` | 靛青加重文字 |
+| `<badges>` | 彩色标签徽章 |
+
+### 块级组件
+
+| 组件 | 说明 |
+| --- | --- |
+| `<statement>` | 居中强调语 |
+| `<lead>` | 引导文字段 |
+| `<breaking>` | 突发/重大更新卡片 |
+| `<compare>` | Before/After 对比布局 |
+| `<cta>` | 行动召唤卡片 |
+| `<steps>` | 横向步骤流 |
+| `<timeline>` | 时间线组件 |
+| `<title>` | 标题组件 |
+| `<ptitle>` | 副标题组件 |
+| `<engage>` | 互动引导组件 |
+| `<caseflow>` | 案例流程组件 |
+| `<readingpath>` | 阅读路径组件 |
+| ` ``` ` | 代码块 |
+| `> [TIP]` | 提示框 |
 
 ## 🚀 快速开始
 
 ### 环境要求
 
-- Node.js >= 18
+- Node.js >= 20
 - pnpm
 
 ### 安装与运行
@@ -69,36 +83,83 @@ pnpm build
 pnpm preview
 ```
 
+### 代码检查
+
+```bash
+pnpm check    # ESLint + Prettier 检查
+pnpm lint     # ESLint 自动修复
+pnpm format   # Prettier 格式化
+```
+
 ## 📦 技术栈
 
 - **Vue 3** (Composition API + `<script setup>`)
 - **TypeScript**
 - **Vite** — 构建工具
+- **Vue Router** — 路由管理
 - **CodeMirror 6** — Markdown 编辑器内核
 - **Tailwind CSS 4** — 样式系统
 - **html-to-image** — 图片导出
+- **awesome-design-md** — 公众号排版引擎
 
 ## 📁 项目结构
 
 ```
 r-markdown/
 ├── src/
-│   ├── components/
-│   │   ├── Editor.vue        # CodeMirror 编辑器
-│   │   ├── Preview.vue       # 公众号预览面板
-│   │   ├── ThemePicker.vue   # 主题色选择器
-│   │   └── DarkModeToggle.vue # 暗色模式切换
-│   ├── composables/
-│   │   ├── useTheme.ts       # 主题管理（颜色、CSS 变量）
-│   │   └── useDarkMode.ts    # 暗色模式状态
-│   ├── utils/
-│   │   └── markdownParser.ts # Markdown → HTML 解析
-│   ├── styles/
-│   │   └── ...               # 全局样式
-│   ├── App.vue               # 主布局（工具栏 + 双栏编辑）
-│   └── main.ts               # 入口
+│   ├── components/            # UI 组件
+│   │   ├── Editor.vue         # CodeMirror 编辑器
+│   │   ├── Preview.vue        # 公众号预览面板
+│   │   ├── ThemePicker.vue    # 主题色选择器
+│   │   ├── DarkModeToggle.vue # 暗色模式切换
+│   │   ├── NavCapsule.vue     # 顶部导航胶囊
+│   │   ├── SiteLogo.vue       # 站点 Logo
+│   │   ├── SiteFooter.vue     # 页脚
+│   │   ├── Toast.vue          # 轻提示
+│   │   ├── MobileActionsMenu.vue  # 移动端操作菜单
+│   │   └── MobileNavMenu.vue  # 移动端导航菜单
+│   ├── editor-components/     # 排版组件库
+│   │   ├── index.ts           # 组件注册与导出
+│   │   ├── Badges_DA01.ts     # 标签徽章
+│   │   ├── Breaking_DA01.ts   # 突发新闻卡片
+│   │   ├── CaseFlow_DA01.ts   # 案例流程
+│   │   ├── Compare_DA01.ts    # 对比布局 v1
+│   │   ├── Compare_DA02.ts    # 对比布局 v2
+│   │   ├── Cta_DA01.ts        # 行动召唤
+│   │   ├── Engage_DA01.ts     # 互动引导 v1
+│   │   ├── Engage_DA02.ts     # 互动引导 v2
+│   │   ├── Lead_DA01.ts       # 引导文段
+│   │   ├── PTitle_DA01.ts     # 副标题
+│   │   ├── ReadingPath_DA01.ts # 阅读路径
+│   │   ├── Statement_DA01.ts  # 居中强调语
+│   │   ├── Steps_DA01.ts      # 步骤流 v1
+│   │   ├── Steps_DA02.ts      # 步骤流 v2
+│   │   ├── Timeline_DA01.ts   # 时间线
+│   │   ├── Title_DA01.ts      # 标题 v1
+│   │   └── Title_DA02.ts      # 标题 v2
+│   ├── composables/           # 组合式函数
+│   │   ├── useTheme.ts        # 主题管理
+│   │   ├── useDarkMode.ts     # 暗色模式
+│   │   └── useDropdownGroup.ts # 下拉菜单组
+│   ├── views/                 # 页面视图
+│   │   ├── HomePage.vue       # 首页
+│   │   ├── EditorPage.vue     # 编辑器页
+│   │   └── ComponentShowcase.vue # 组件展示页
+│   ├── utils/                 # 工具函数
+│   │   ├── markdownParser.ts  # Markdown → HTML 解析
+│   │   ├── colorUtils.ts      # 颜色处理
+│   │   ├── components.ts      # 组件工具
+│   │   ├── helpers.ts         # 通用辅助函数
+│   │   └── inlineFormat.ts    # 内联格式化
+│   ├── data/
+│   │   └── demoContent.ts     # 示例内容
+│   ├── router/
+│   │   └── index.ts           # 路由配置
+│   ├── styles/                # 全局样式
+│   ├── App.vue                # 根组件
+│   └── main.ts                # 入口
 ├── .github/workflows/
-│   └── deploy.yml            # GitHub Actions 自动部署
+│   └── deploy.yml             # GitHub Actions 自动部署
 ├── package.json
 ├── vite.config.ts
 └── tsconfig.json
