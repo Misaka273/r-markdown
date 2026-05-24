@@ -50,7 +50,7 @@ import { Statement_DA01 } from './Statement_DA01'
 import { Lead_DA01 } from './Lead_DA01'
 import { Engage_DA01 } from './Engage_DA01'
 import { Engage_DA02 } from './Engage_DA02'
-import { TimeLine_DA01 } from './TimeLine_DA01'
+import { Timeline_DA01 } from './Timeline_DA01'
 
 export const components: ComponentDef[] = [
   Title_DA01,
@@ -69,7 +69,7 @@ export const components: ComponentDef[] = [
   Lead_DA01,
   Engage_DA01,
   Engage_DA02,
-  TimeLine_DA01,
+  Timeline_DA01,
 ]
 
 /** 按 id 索引 */
