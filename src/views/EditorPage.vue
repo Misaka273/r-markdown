@@ -247,6 +247,22 @@ onBeforeUnmount(() => {
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
+                <a
+          href="https://chat.deepseek.com/share/mzp10fvra0zijftyrn"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97] no-underline"
+        >
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
+            <path d="M9 14h6" /><path d="M12 14v4" /><path d="M8 22h8" />
+            <circle cx="12" cy="6" r="1.5" fill="currentColor" stroke="none" />
+          </svg>
+          AI排版示例
+        </a>
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="$router.push('/components')"

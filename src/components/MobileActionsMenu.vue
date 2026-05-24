@@ -68,8 +68,31 @@ onBeforeUnmount(() => {
       class="mobile-actions-dropdown absolute top-full right-0 mt-2 p-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 w-44"
       :class="{ show: isVisible }"
     >
-      <!-- 编辑模式：扩展组件 + 加载示例 -->
+            <!-- 编辑模式：AI排版示例 + 扩展组件 + 加载示例 -->
       <template v-if="mode === 'editor'">
+        <a
+          href="https://chat.deepseek.com/share/mzp10fvra0zijftyrn"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5 no-underline"
+          @click="handleAction(() => {})"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
+            <path d="M9 14h6" /><path d="M12 14v4" /><path d="M8 22h8" />
+            <circle cx="12" cy="6" r="1.5" fill="currentColor" stroke="none" />
+          </svg>
+          AI排版示例
+        </a>
         <button
           class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
           @click="handleAction(() => emit('go-components'))"
