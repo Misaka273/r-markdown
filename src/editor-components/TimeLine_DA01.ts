@@ -1,5 +1,5 @@
 /**
- * TimeLine_DA01 - 时间线（默认A型01号样式）
+ * Timeline_DA01 - 时间线（默认A型01号样式）
  *
  * 编辑器语法：
  *   <timeline>
@@ -51,8 +51,8 @@ function parseTimelineItems(body: string): TimelineItem[] {
   return items
 }
 
-export const TimeLine_DA01 = {
-  id: 'TimeLine_DA01',
+export const Timeline_DA01 = {
+  id: 'Timeline_DA01',
   name: '时间线',
   tag: 'timeline',
   attrs: [{ key: 'color', label: '自定义颜色', required: false, default: '' }],
@@ -84,11 +84,13 @@ export const TimeLine_DA01 = {
           imageHtml = `<img src="${item.image.src}" alt="${item.image.alt}" style="${style.join(';')};" />`
         }
 
-                        // 左侧圆点（float），圆心 = 4px(margin) + 6px(半径) = 10px
+        // 左侧圆点（float），圆心 = 4px(margin) + 6px(半径) = 10px
         const dotHtml = `<section style="float:left;width:12px;height:12px;border-radius:50%;background:${hex};box-shadow:0 0 0 4px ${dotBg};margin:5px 0 0 4px;"></section>`
 
         // 右侧内容（border-left 做竖线，对齐圆心 10px）
-        const borderStyle = isLast ? 'border-left:2px solid transparent;' : `border-left:2px solid ${lineColor};`
+        const borderStyle = isLast
+          ? 'border-left:2px solid transparent;'
+          : `border-left:2px solid ${lineColor};`
 
         return `
         <section style="margin-bottom:${isLast ? '0' : '32px'};overflow:hidden;">
