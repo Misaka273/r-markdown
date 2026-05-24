@@ -339,7 +339,7 @@ const homeNavItems: NavItem[] = [
   {
     key: 'components',
     label: '扩展组件',
-    iconPath: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+        iconPath: 'M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z',
     to: '/components',
   },
   {
