@@ -19,7 +19,7 @@
  *   color       - 自定义颜色（默认使用主题色）
  *   direction   - 布局方向：horizontal（默认）/ vertical（竖向）
  */
-import { leaf } from '@/utils/helpers'
+import { leaf, esc } from '@/utils/helpers'
 import { resolveColor } from '@/utils/colorUtils'
 import type { ThemeColors } from '@/composables/useTheme'
 
@@ -41,12 +41,16 @@ export const Compare_DA01 = {
       options: ['horizontal', 'vertical'],
     },
   ],
-  example: `<compare left-label="BEFORE" left-title="旧版绿色" right-label="AFTER" right-title="新版靛青">
+    example: `<compare left-label="BEFORE" left-title="旧版绿色" right-label="AFTER" right-title="新版靛青">
 <left>
-![旧版](https://robocopmao.github.io/r-markdown/banner1.webp)[100% 120px]
+旧版界面设计较为传统
+![旧版](https://picsum.photos/400/120?random=3)[100% 120px]
+交互体验一般
 </left>
 <right>
-![新版](https://robocopmao.github.io/r-markdown/banner2.webp)[100% 120px]
+新版采用全新设计语言
+![新版](https://picsum.photos/400/120?random=4)[100% 120px]
+用户体验大幅提升
 </right>
 </compare>`,
 
@@ -70,16 +74,29 @@ export const Compare_DA01 = {
     const isVertical = direction === 'vertical'
     const { left, right } = this.parseSides(body)
 
-    const renderContent = (md: string): string => {
+        const renderContent = (md: string): string => {
       if (!md) return ''
-      if (inlineRenderer) return inlineRenderer(md)
-      return md.replace(/!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?/g, (_, alt, src, size) => {
-        if (size) {
-          const parts = size.split(/\s+/)
-          return `<img src="${src}" alt="${alt}" style="width:${parts[0] || '100%'};max-height:${parts[1] || '120px'};border-radius:6px;display:block">`
-        }
-        return `<img src="${src}" alt="${alt}" style="width:100%;max-height:120px;border-radius:6px;display:block">`
-      })
+      const lines = md.split('\n').filter((l) => l.trim())
+      return lines
+        .map((line) => {
+          const trimmed = line.trim()
+          // 图片行
+          const imgMatch = trimmed.match(
+            /^!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?$/,
+          )
+          if (imgMatch) {
+            const [, alt, src, size] = imgMatch
+            if (size) {
+              const parts = size.split(/\s+/)
+              return `<img src="${esc(src)}" alt="${esc(alt)}" style="width:${parts[0] || '100%'};max-height:${parts[1] || '120px'};border-radius:6px;display:block;margin:6px 0">`
+            }
+            return `<img src="${esc(src)}" alt="${esc(alt)}" style="width:100%;max-height:120px;border-radius:6px;display:block;margin:6px 0">`
+          }
+          // 文字行
+          const rendered = inlineRenderer ? inlineRenderer(trimmed) : leaf(trimmed)
+          return `<p style="margin:4px 0;font-size:14px;color:rgb(100,116,139);line-height:1.6">${rendered}</p>`
+        })
+        .join('')
     }
 
     const renderSide = (
