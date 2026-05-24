@@ -26,7 +26,7 @@ export const Compare_DA02 = {
     { key: 'right-title', label: '右侧标题', required: false, default: '' },
     { key: 'color', label: '自定义颜色', required: false, default: '' },
   ],
-  example: `<compare type="DA02" left-label="BEFORE" left-title="旧版" right-label="AFTER" right-title="新版">
+    example: `<compare type="DA02" left-label="BEFORE" left-title="旧版" right-label="AFTER" right-title="新版">
 <left>
 旧版界面设计较为传统
 ![旧版](https://picsum.photos/400/120?random=5)[100% 120px]
@@ -57,7 +57,7 @@ export const Compare_DA02 = {
     const hex = resolveColor(attrs.color || t.accent)
     const { left, right } = this.parseSides(body)
 
-    const renderContent = (md: string): string => {
+        const renderContent = (md: string): string => {
       if (!md) return ''
       const lines = md.split('\n').filter((l) => l.trim())
       return lines
