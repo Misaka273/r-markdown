@@ -75,7 +75,15 @@ const saved = localStorage.getItem(STORAGE_KEY)
 const markdown = ref(saved !== null ? saved : DEMO_CONTENT)
 const previewRef = ref()
 const savedTime = localStorage.getItem(SAVE_TIME_KEY)
-const saveHint = ref(savedTime ? '已保存 ' + savedTime : '')
+function formatTime(full: string) {
+  if (!isMobile.value) return full
+  let s = full
+  if (s.length >= 4 && s[4] === '-') s = s.slice(5)
+  const lastColon = s.lastIndexOf(':')
+  if (lastColon > 0) s = s.slice(0, lastColon)
+  return s
+}
+const saveHint = ref(savedTime ? '已保存 ' + formatTime(savedTime) : '')
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 function onInput(value: string) {
@@ -83,7 +91,7 @@ function onInput(value: string) {
   saveHint.value = '输入中…'
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    localStorage.setItem(STORAGE_KEY, value)
+        localStorage.setItem(STORAGE_KEY, value)
     const now = new Date()
     const timeStr =
       now.getFullYear() +
@@ -98,13 +106,13 @@ function onInput(value: string) {
       ':' +
       String(now.getSeconds()).padStart(2, '0')
     localStorage.setItem(SAVE_TIME_KEY, timeStr)
-    saveHint.value = '已保存 ' + timeStr
+    saveHint.value = '已保存 ' + formatTime(timeStr)
   }, 500)
 }
 
 function loadDemo() {
   markdown.value = DEMO_CONTENT
-  localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
+    localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
   const now = new Date()
   const timeStr =
     now.getFullYear() +
@@ -119,7 +127,19 @@ function loadDemo() {
     ':' +
     String(now.getSeconds()).padStart(2, '0')
   localStorage.setItem(SAVE_TIME_KEY, timeStr)
-  saveHint.value = '已保存 ' + timeStr
+  saveHint.value = '已保存 ' + formatTime(timeStr)
+}
+
+function downloadDemo() {
+  const blob = new Blob([DEMO_CONTENT], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'R-Markdown示例.md'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 function handleCopyRichText() {
@@ -246,7 +266,22 @@ onBeforeUnmount(() => {
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
       </div>
       <div class="flex items-center gap-1.5">
-        <!-- 桌面端：显示所有按钮 -->
+                <!-- 桌面端：显示所有按钮 -->
+        <button
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="$router.push('/components')"
+        >
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          扩展组件
+        </button>
         <a
           href="https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4"
           target="_blank"
@@ -267,18 +302,17 @@ onBeforeUnmount(() => {
         </a>
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="$router.push('/components')"
+          @click="downloadDemo"
         >
           <svg
             class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
             viewBox="0 0 24 24"
           >
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          扩展组件
+          下载示例
         </button>
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
@@ -336,9 +370,10 @@ onBeforeUnmount(() => {
           复制富文本
         </button>
         <!-- 移动端：下拉菜单 -->
-        <MobileActionsMenu
+                <MobileActionsMenu
           :mode="mobileTab"
           @load-demo="loadDemo"
+          @download-demo="downloadDemo"
           @copy-html="handleCopyHTML"
           @save-image="handleSaveImage"
           @copy-rich-text="handleCopyRichText"

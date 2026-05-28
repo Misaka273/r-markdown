@@ -8,6 +8,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'load-demo': []
+  'download-demo': []
   'copy-html': []
   'save-image': []
   'copy-rich-text': []
@@ -68,8 +69,29 @@ onBeforeUnmount(() => {
       class="mobile-actions-dropdown absolute top-full right-0 mt-2 p-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 w-44"
       :class="{ show: isVisible }"
     >
-      <!-- 编辑模式：AI排版示例 + 扩展组件 + 加载示例 -->
+            <!-- 编辑模式：扩展组件 + AI排版示例 + 下载示例 + 加载示例 -->
       <template v-if="mode === 'editor'">
+        <button
+          class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
+          @click="handleAction(() => emit('go-components'))"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          扩展组件
+        </button>
         <a
           href="https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4"
           target="_blank"
@@ -97,7 +119,7 @@ onBeforeUnmount(() => {
         </a>
         <button
           class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
-          @click="handleAction(() => emit('go-components'))"
+          @click="handleAction(() => emit('download-demo'))"
         >
           <svg
             viewBox="0 0 24 24"
@@ -109,12 +131,11 @@ onBeforeUnmount(() => {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          扩展组件
+          下载示例
         </button>
         <button
           class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"

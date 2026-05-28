@@ -160,5 +160,5 @@ Lead 组件会生成一段带有左侧边框的引导文字，适合用来引入
 
 所有组件都支持公众号无损复制，您可以根据需要自由组合。
 
-<engage title="如果这份文档对你有帮助，欢迎点赞、转发、推荐！" label="THANKS FOR READING"></engage>
+<engage type="DA02" title="感谢你的阅读与支持！" subtitle="喜欢就互动一下吧～ ♥️" color="red|green|yellow"></engage>
 `
