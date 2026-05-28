@@ -24,6 +24,7 @@ import { Lead_DA01 } from '@/editor-components/Lead_DA01'
 import { Engage_DA01 } from '@/editor-components/Engage_DA01'
 import { Engage_DA02 } from '@/editor-components/Engage_DA02'
 import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
+import { Slider_DA01 } from '@/editor-components/Slider_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   const lines = md.split('\n')
@@ -331,7 +332,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += CaseFlow_DA01.render({}, caseLines.join('\n'), t)
       continue
     }
-    // <timeline> 标签
+        // <timeline> 标签
     if (/^<timeline\b/.test(line)) {
       const openMatch = line.match(/^<timeline\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -343,6 +344,28 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       }
       i++ // skip </timeline>
       html += Timeline_DA01.render(attrs, body.trim(), t)
+      continue
+    }
+    // <slider> 标签
+        if (/^<slider\b/.test(line)) {
+      const openMatch = line.match(/^<slider\b([^>]*)>(.*)$/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+      // 单行模式：<slider ...>content</slider>
+      if (openMatch && openMatch[2] && /<\/slider>\s*$/.test(openMatch[2])) {
+        const body = openMatch[2].replace(/<\/slider>\s*$/, '').trim()
+        html += Slider_DA01.render(attrs, body, t)
+        i++
+        continue
+      }
+      // 多行模式：内容在后续行
+      let body = openMatch && openMatch[2] ? openMatch[2] + '\n' : ''
+      i++
+      while (i < lines.length && !/^<\/slider>/.test(lines[i])) {
+        body += lines[i] + '\n'
+        i++
+      }
+      i++ // skip </slider>
+      html += Slider_DA01.render(attrs, body.trim(), t)
       continue
     }
     // : engage 或 <engage>

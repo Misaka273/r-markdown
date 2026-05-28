@@ -21,6 +21,7 @@ const categories = [
   { key: 'title', label: '标题' },
   { key: 'content', label: '内容' },
   { key: 'layout', label: '布局' },
+  { key: 'image', label: '图片' },
   { key: 'interactive', label: '互动' },
   { key: 'other', label: '其他' },
 ]
@@ -34,6 +35,7 @@ const componentCategoryMap: Record<string, string> = {
   Breaking_DA01: 'title',
   ReadingPath_DA01: 'content',
   Lead_DA01: 'content',
+  Slider_DA01: 'image',
   Statement_DA01: 'content',
   Steps_DA01: 'layout',
   Steps_DA02: 'layout',
@@ -494,6 +496,7 @@ function onCardLeave(e: MouseEvent) {
   color: #e74c3c;
   margin-left: 4px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .attr-col-desc {
