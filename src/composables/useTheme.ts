@@ -47,7 +47,7 @@ function lightenHex(hex: string, factor: number): string {
 
 export function useTheme() {
   const saved = localStorage.getItem(STORAGE_KEY)
-  let init = THEMES[0]
+    let init = THEMES[3]
   let isCustom = false
   if (saved) {
     try {
