@@ -8,6 +8,7 @@ import Preview from '../components/Preview.vue'
 import ThemePicker from '../components/ThemePicker.vue'
 import DarkModeToggle from '../components/DarkModeToggle.vue'
 import MobileActionsMenu from '../components/MobileActionsMenu.vue'
+import XhsExporter from '../components/XhsExporter.vue'
 
 const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
 const { mode: darkMode, isDark, setMode: setDarkMode } = useDarkMode()
@@ -74,6 +75,7 @@ const SAVE_TIME_KEY = 'wechat-md-editor-save-time'
 const saved = localStorage.getItem(STORAGE_KEY)
 const markdown = ref(saved !== null ? saved : DEMO_CONTENT)
 const previewRef = ref()
+const xhsVisible = ref(false)
 const savedTime = localStorage.getItem(SAVE_TIME_KEY)
 const saveHint = ref(savedTime ? '已保存 ' + savedTime : '')
 
@@ -323,6 +325,19 @@ onBeforeUnmount(() => {
           保存图片
         </button>
         <button
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="xhsVisible = true"
+        >
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <path d="M8 7h8M8 11h8M8 15h5" />
+          </svg>
+          小红书图
+        </button>
+        <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
           @click="handleCopyRichText"
         >
@@ -342,6 +357,7 @@ onBeforeUnmount(() => {
           @copy-html="handleCopyHTML"
           @save-image="handleSaveImage"
           @copy-rich-text="handleCopyRichText"
+          @export-xhs="xhsVisible = true"
           @go-components="$router.push('/components')"
         />
         <ThemePicker
@@ -460,6 +476,13 @@ onBeforeUnmount(() => {
         <Preview ref="previewRef" :markdown="markdown" :colors="colors" />
       </div>
     </div>
+
+    <XhsExporter
+      :visible="xhsVisible"
+      :markdown="markdown"
+      :colors="colors"
+      @close="xhsVisible = false"
+    />
   </div>
 </template>
 

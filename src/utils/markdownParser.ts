@@ -273,7 +273,8 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       if (ptMatch) {
         const attrs = parseAttrs(ptMatch[1])
         const body = ptMatch[2].trim()
-        html += PTitle.render(attrs, body, t)
+        // 给根节点打个标记（不影响样式），分页时用它避免小节标题落在页底跟正文分家
+        html += PTitle.render(attrs, body, t).replace('<section', '<section data-block="ptitle"')
       }
       i++
       continue

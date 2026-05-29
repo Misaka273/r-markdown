@@ -11,6 +11,7 @@ const emit = defineEmits<{
   'copy-html': []
   'save-image': []
   'copy-rich-text': []
+  'export-xhs': []
   'go-components': []
 }>()
 
@@ -178,6 +179,25 @@ onBeforeUnmount(() => {
             <path d="M21 15l-5-5L5 21" />
           </svg>
           保存图片
+        </button>
+        <button
+          class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
+          @click="handleAction(() => emit('export-xhs'))"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <path d="M8 7h8M8 11h8M8 15h5" />
+          </svg>
+          小红书图
         </button>
         <button
           class="mobile-action-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
