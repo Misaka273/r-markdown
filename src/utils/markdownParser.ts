@@ -1,5 +1,56 @@
 import type { ThemeColors } from '../composables/useTheme'
+import hljs from 'highlight.js/lib/common'
 import { leaf, esc, parseAttrs } from './helpers'
+
+// 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
+// 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
+const HL_COLORS: Record<string, string> = {
+  keyword: '#c678dd',
+  built_in: '#56b6c2',
+  type: '#e5c07b',
+  literal: '#56b6c2',
+  number: '#d19a66',
+  string: '#98c379',
+  regexp: '#98c379',
+  comment: '#7f848e',
+  doctag: '#7f848e',
+  meta: '#7f848e',
+  title: '#61afef',
+  attr: '#d19a66',
+  attribute: '#d19a66',
+  variable: '#e06c75',
+  tag: '#e06c75',
+  name: '#e06c75',
+  params: '#abb2bf',
+  property: '#e06c75',
+  operator: '#56b6c2',
+  symbol: '#56b6c2',
+  selector: '#e06c75',
+  bullet: '#61afef',
+  link: '#98c379',
+  quote: '#98c379',
+  addition: '#98c379',
+  deletion: '#e06c75',
+  section: '#61afef',
+  function: '#61afef',
+}
+
+// 单行高亮：highlight.js 出 class 标记，再把 class 换成内联 color（自包含，不依赖外部样式表）。
+function highlightLine(rest: string, lang: string): string {
+  let out: string
+  try {
+    out =
+      lang && hljs.getLanguage(lang)
+        ? hljs.highlight(rest, { language: lang }).value
+        : hljs.highlightAuto(rest).value
+  } catch {
+    out = esc(rest)
+  }
+  return out.replace(/class="hljs-([a-z_]+)[^"]*"/g, (_m, c: string) =>
+    HL_COLORS[c] ? `style="color:${HL_COLORS[c]}"` : '',
+  )
+}
+
 import { inlineFormat } from './inlineFormat'
 import {
   renderFrontMatter,
@@ -387,17 +438,28 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       continue
     }
 
-    // 代码块
+    // 代码块：用微信自带的 code-snippet 结构（外层 <section> + <pre class="…code-snippet_nowrap">
+    // + 每行一个 block <code> + <span leaf>）。微信识别这套 class 后会渲染成原生代码块：不换行、
+    // 可左右滑。行首缩进转 &nbsp;（微信会吞普通空格），行内空格保留（方便复制）。token 颜色由
+    // highlight.js 内联上去（自包含，预览和公众号都能显示高亮）。
     if (/^```/.test(line)) {
-      const _lang = line.replace(/^```/, '').trim()
+      const lang = line.replace(/^`+/, '').trim() || 'text'
       i++
-      let code = ''
+      const codeLines: string[] = []
       while (i < lines.length && !/^```/.test(lines[i])) {
-        code += lines[i] + '\n'
+        codeLines.push(lines[i])
         i++
       }
-      i++
-      html += `<section style="background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;overflow-x:auto;margin:14px 0px;font-size:12.5px;line-height:1.6"><code style="background:none;color:inherit;padding:0;font-size:inherit;white-space:pre">${esc(code.trimEnd())}</code></section>`
+      i++ // 跳过结尾的 ```
+      let codeInner = ''
+      for (const ln of codeLines) {
+        const lead = (ln.match(/^[ \t]*/) || [''])[0]
+        const indent = lead.replace(/\t/g, '  ').replace(/ /g, '&nbsp;')
+        const rest = ln.slice(lead.length)
+        const body = (indent + (rest ? highlightLine(rest, lang) : '')) || '&nbsp;'
+        codeInner += `<code style="display:block;background:none;color:inherit;font-family:inherit">${leaf(body)}</code>`
+      }
+      html += `<section class="code-snippet__js"><pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="${esc(lang)}" style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</pre></section>`
       continue
     }
 
