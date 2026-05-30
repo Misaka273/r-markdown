@@ -6,6 +6,7 @@ export interface MobileNavItem {
   key: string
   label: string
   iconPath?: string
+  iconViewBox?: string
   external?: boolean
   to?: string
 }
@@ -80,7 +81,7 @@ onBeforeUnmount(() => {
           rel="noopener noreferrer"
           class="mobile-nav-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 no-underline transition-colors duration-150 hover:bg-black/5"
         >
-          <svg v-if="item.iconPath" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                    <svg v-if="item.iconPath" :viewBox="item.iconViewBox || '0 0 24 24'" width="14" height="14" fill="currentColor">
             <path :d="item.iconPath" />
           </svg>
           {{ item.label }}
@@ -91,9 +92,9 @@ onBeforeUnmount(() => {
           class="mobile-nav-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
           @click="handleItemClick(item.key)"
         >
-          <svg
+                    <svg
             v-if="item.iconPath"
-            viewBox="0 0 24 24"
+            :viewBox="item.iconViewBox || '0 0 24 24'"
             width="14"
             height="14"
             fill="none"
