@@ -191,7 +191,13 @@ onBeforeUnmount(() => {
 </style>
 
 <style>
-/* Dark mode overrides for DarkModeToggle dropdown */
+/* Dark mode overrides for DarkModeToggle */
+[data-theme='dark'] .dark-mode-toggle > button {
+  background: #2d3436 !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
 [data-theme='dark'] .dark-mode-menu {
   background: #2a2a2e !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
