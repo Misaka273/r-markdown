@@ -40,9 +40,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="dark-mode-toggle relative">
-        <button
+    <button
       class="w-7 h-7 rounded-full border-2 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110"
-      :class="mode === 'dark' ? 'bg-[#2d3436] text-white border-white/30 hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]' : 'bg-white text-gray-700 border-gray-300 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.15)]'"
+      :class="
+        mode === 'dark'
+          ? 'bg-[#2d3436] text-white border-white/30 hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]'
+          : 'bg-white text-gray-700 border-gray-300 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.15)]'
+      "
       title="切换亮暗模式"
       @click.stop="toggle"
     >

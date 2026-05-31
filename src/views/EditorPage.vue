@@ -91,7 +91,7 @@ function onInput(value: string) {
   saveHint.value = '输入中…'
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-        localStorage.setItem(STORAGE_KEY, value)
+    localStorage.setItem(STORAGE_KEY, value)
     const now = new Date()
     const timeStr =
       now.getFullYear() +
@@ -112,7 +112,7 @@ function onInput(value: string) {
 
 function loadDemo() {
   markdown.value = DEMO_CONTENT
-    localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
+  localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
   const now = new Date()
   const timeStr =
     now.getFullYear() +
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
       </div>
       <div class="flex items-center gap-1.5">
-                <!-- 桌面端：显示所有按钮 -->
+        <!-- 桌面端：显示所有按钮 -->
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="$router.push('/components')"
@@ -370,7 +370,7 @@ onBeforeUnmount(() => {
           复制富文本
         </button>
         <!-- 移动端：下拉菜单 -->
-                <MobileActionsMenu
+        <MobileActionsMenu
           :mode="mobileTab"
           @load-demo="loadDemo"
           @download-demo="downloadDemo"

@@ -22,8 +22,8 @@ import type { ThemeColors } from '@/composables/useTheme'
  *   color           - 标题文字颜色（可选，默认 rgb(17,24,39)）
  *   num-color       - 序号数字颜色（可选，默认使用主题色）
  *   subtitle-color  - 副标题颜色（可选，默认使用主题色）
-  *   level           - 层级：1=一级标题(#)，2=二级标题(##)，3=三级标题(###)，4=四级标题(####)
-  *   size            - 尺寸（仅 level=1 有效）：normal=默认，medium=中等，small=缩小版
+ *   level           - 层级：1=一级标题(#)，2=二级标题(##)，3=三级标题(###)，4=四级标题(####)
+ *   size            - 尺寸（仅 level=1 有效）：normal=默认，medium=中等，small=缩小版
  *   prefix          - 标题前缀图标，如 🚀、⚡、🔥（可选）
  *   suffix          - 标题后缀图标，如 ✅、💡、→（可选）
  */
@@ -41,7 +41,13 @@ export const PTitle = {
     { key: 'num-color', label: '序号颜色', required: false, default: '' },
     { key: 'subtitle-color', label: '副标题颜色', required: false, default: '' },
     { key: 'level', label: '层级', required: false, default: '1', options: ['1', '2', '3', '4'] },
-    { key: 'size', label: '尺寸（level=1）', required: false, default: 'normal', options: ['normal', 'medium', 'small'] },
+    {
+      key: 'size',
+      label: '尺寸（level=1）',
+      required: false,
+      default: 'normal',
+      options: ['normal', 'medium', 'small'],
+    },
     { key: 'prefix', label: '前缀图标', required: false, default: '' },
     { key: 'suffix', label: '后缀图标', required: false, default: '' },
   ],
@@ -62,24 +68,43 @@ export const PTitle = {
     const hasPrefix = prefix !== ''
     const hasSuffix = suffix !== ''
 
-        // ── Level 1: 完整章节标题（CHAPTER + 大号装饰数字 + 标题 + 副标题）──
+    // ── Level 1: 完整章节标题（CHAPTER + 大号装饰数字 + 标题 + 副标题）──
     if (level === 1) {
-            const size = attrs.size || 'normal'
+      const size = attrs.size || 'normal'
       // 根据 size 计算尺寸：normal > medium > small
-      let numFontSize: string, titleFontSize: string, titleMarginTop: string, titleMarginLeft: string
+      let numFontSize: string,
+        titleFontSize: string,
+        titleMarginTop: string,
+        titleMarginLeft: string
       let subtitleMarginLeft: string, subtitleFontSize: string, chapterFontSize: string
-                        if (size === 'small') {
-        numFontSize = '40px'; titleFontSize = '20px'; titleMarginTop = '-40px'
-        titleMarginLeft = '34px'; subtitleMarginLeft = '34px'
-        subtitleFontSize = '9px'; chapterFontSize = '8px'
+      let outerMargin: string
+      if (size === 'small') {
+        numFontSize = '40px'
+        titleFontSize = '20px'
+        titleMarginTop = '-40px'
+        titleMarginLeft = '34px'
+        subtitleMarginLeft = '34px'
+        subtitleFontSize = '9px'
+        chapterFontSize = '8px'
+        outerMargin = '28px 0px 16px'
       } else if (size === 'medium') {
-        numFontSize = '48px'; titleFontSize = '24px'; titleMarginTop = '-48px'
-        titleMarginLeft = '40px'; subtitleMarginLeft = '40px'
-        subtitleFontSize = '10px'; chapterFontSize = '9px'
+        numFontSize = '48px'
+        titleFontSize = '24px'
+        titleMarginTop = '-48px'
+        titleMarginLeft = '40px'
+        subtitleMarginLeft = '40px'
+        subtitleFontSize = '10px'
+        chapterFontSize = '9px'
+        outerMargin = '36px 0px 20px'
       } else {
-        numFontSize = '60px'; titleFontSize = '30px'; titleMarginTop = '-60px'
-        titleMarginLeft = '50px'; subtitleMarginLeft = '50px'
-        subtitleFontSize = '11px'; chapterFontSize = '10px'
+        numFontSize = '60px'
+        titleFontSize = '30px'
+        titleMarginTop = '-60px'
+        titleMarginLeft = '50px'
+        subtitleMarginLeft = '50px'
+        subtitleFontSize = '11px'
+        chapterFontSize = '10px'
+        outerMargin = '48px 0px 30px'
       }
 
       const numBlock = hasNum
@@ -96,7 +121,7 @@ export const PTitle = {
         : ''
 
       return `
-<section style="margin:48px 0px 30px">
+<section style="margin:${outerMargin}">
   <section style="clear:both">
     ${chapterLine}
     <section style="margin:0">

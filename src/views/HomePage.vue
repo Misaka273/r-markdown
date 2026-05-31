@@ -343,7 +343,7 @@ const homeNavItems: NavItem[] = [
     iconPath: 'M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z',
     to: '/components',
   },
-    {
+  {
     key: 'github',
     label: 'GitHub',
     iconPath:

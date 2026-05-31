@@ -68,20 +68,26 @@ onBeforeUnmount(() => {
         <circle cx="12" cy="19" r="1" fill="currentColor" />
       </svg>
     </button>
-        <div
+    <div
       class="mobile-nav-dropdown absolute top-full right-0 mt-2 p-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 w-40"
       :class="{ show: isVisible }"
     >
       <template v-for="(item, idx) in items" :key="item.key">
         <!-- 外部链接 -->
-                <a
+        <a
           v-if="item.external"
           :href="item.to"
           target="_blank"
           rel="noopener noreferrer"
           class="mobile-nav-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 no-underline transition-colors duration-150 hover:bg-black/5"
         >
-                    <svg v-if="item.iconPath" :viewBox="item.iconViewBox || '0 0 24 24'" width="14" height="14" fill="currentColor">
+          <svg
+            v-if="item.iconPath"
+            :viewBox="item.iconViewBox || '0 0 24 24'"
+            width="14"
+            height="14"
+            fill="currentColor"
+          >
             <path :d="item.iconPath" />
           </svg>
           {{ item.label }}
@@ -92,7 +98,7 @@ onBeforeUnmount(() => {
           class="mobile-nav-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
           @click="handleItemClick(item.key)"
         >
-                    <svg
+          <svg
             v-if="item.iconPath"
             :viewBox="item.iconViewBox || '0 0 24 24'"
             width="14"
