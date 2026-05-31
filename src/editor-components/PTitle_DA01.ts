@@ -68,8 +68,8 @@ export const PTitle = {
       // 根据 size 计算尺寸：normal > medium > small
       let numFontSize: string, titleFontSize: string, titleMarginTop: string, titleMarginLeft: string
       let subtitleMarginLeft: string, subtitleFontSize: string, chapterFontSize: string
-            if (size === 'small') {
-        numFontSize = '20px'; titleFontSize = '20px'; titleMarginTop = '-20px'
+                  if (size === 'small') {
+        numFontSize = '40px'; titleFontSize = '20px'; titleMarginTop = '-20px'
         titleMarginLeft = '26px'; subtitleMarginLeft = '26px'
         subtitleFontSize = '9px'; chapterFontSize = '8px'
       } else if (size === 'medium') {
