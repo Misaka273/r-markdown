@@ -462,9 +462,13 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += `<section style="margin:10px 0px;padding-left:24px">`
       while (i < lines.length && /^[-*+]\s/.test(lines[i])) {
         const li = lines[i].replace(/^[-*+]\s/, '')
-                        const cb = li.match(/^\[([ x])\]\s*(.*)/)
+                                const cb = li.match(/^\[([ x])\]\s*(.*)/)
         if (cb) {
-          html += `<section style="margin:5px 0px"><input type="checkbox" ${cb[1] === 'x' ? 'checked' : ''} disabled style="accent-color:${t.accent};opacity:1"> ${inlineFormat(cb[2], t)}</section>`
+          const isChecked = cb[1] === 'x'
+          const boxStyle = isChecked
+            ? `background:${t.accent};border-color:${t.accent}`
+            : `border-color:${t.border}`
+          html += `<section style="margin:5px 0px"><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;border-radius:4px;border:2px solid ${t.border};display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;${isChecked ? `background:${t.accent};border-color:${t.accent}` : ''}">${isChecked ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}</span><span>${inlineFormat(cb[2], t)}</span></span></section>`
         } else {
           html += `<section style="margin:5px 0px">${inlineFormat(li, t)}</section>`
         }
