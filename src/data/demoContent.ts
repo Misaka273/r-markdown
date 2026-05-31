@@ -173,7 +173,7 @@ Lead 组件会生成一段带有左侧边框的引导文字，适合用来引入
 
 <p-title num="06" title="脚注" level="2"></p-title>
 
-现在，[^R-Markdown](https://robocopmao.github.io/r-markdown)[R-Markdown是一款开源免费公众号扩展排版编辑器]已在GitHub开源。
+现在，[R-Markdown](https://robocopmao.github.io/r-markdown "R-Markdown是一款开源免费公众号扩展排版编辑器") 已在GitHub开源。
 
 <p-title num="07" title="写在最后" subtitle="CONCLUSION · 结尾互动" level="1"></p-title>
 

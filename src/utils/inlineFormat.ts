@@ -77,7 +77,7 @@ export function inlineFormat(text: string, t: ThemeColors): string {
   )
   // 链接 [text](url)
   text = text.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
+    /\[([^\]]+)\]\(([^)\s]+)\)/g,
     (_m, p1: string, p2: string) => `<a href="${p2}" style="color:${t.accent}">${leaf(p1)}</a>`,
   )
   return text

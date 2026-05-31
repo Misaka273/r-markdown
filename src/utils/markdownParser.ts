@@ -27,9 +27,9 @@ import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
 import { Slider_DA01 } from '@/editor-components/Slider_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
-  // 收集脚注并替换语法
+  // 收集脚注：[text](url "desc") 带引号标题的链接 → 脚注
   const footnotes: { label: string; url: string; desc: string }[] = []
-  const footnoteRegex = /\[\^([^\]]+)\]\(([^)]+)\)\[([^\]]+)\]/g
+  const footnoteRegex = /\[([^\]]+)\]\(([^)\s]+)\s+"([^"]+)"\)/g
   const processedMd = md.replace(footnoteRegex, (_match, _label, url, desc) => {
     // 检查是否已存在相同的脚注（根据 url 和 desc 判断）
     const existing = footnotes.findIndex((f) => f.url === url && f.desc === desc)
