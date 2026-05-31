@@ -448,7 +448,7 @@ const features = [
 
 <template>
   <div
-    class="landing relative"
+    class="home relative"
     :class="{ 'opacity-100 translate-y-0': visible, 'opacity-0 translate-y-3': !visible }"
   >
     <!-- Cloud canvas – spans header + hero for seamless transition -->
@@ -686,7 +686,7 @@ const features = [
 </template>
 
 <style scoped>
-.landing {
+.home {
   min-height: 100vh;
   background: #f5f5f7;
   --cloud-bg: #f5f5f7;
@@ -762,7 +762,7 @@ const features = [
 
 <style>
 /* ── 深色模式（非 scoped，确保优先级） ── */
-[data-theme='dark'] .landing {
+[data-theme='dark'] .home {
   background: #111114;
   --cloud-bg: #111114;
 }
