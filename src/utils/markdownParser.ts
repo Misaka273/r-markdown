@@ -462,9 +462,9 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += `<section style="margin:10px 0px;padding-left:24px">`
       while (i < lines.length && /^[-*+]\s/.test(lines[i])) {
         const li = lines[i].replace(/^[-*+]\s/, '')
-        const cb = li.match(/^\[([ x])\]\s*(.*)/)
+                const cb = li.match(/^\[([ x])\]\s*(.*)/)
         if (cb) {
-          html += `<section style="margin:5px 0px"><input type="checkbox" ${cb[1] === 'x' ? 'checked' : ''} disabled> ${inlineFormat(cb[2], t)}</section>`
+          html += `<section style="margin:5px 0px"><input type="checkbox" ${cb[1] === 'x' ? 'checked' : ''} disabled style="accent-color:${t.accent}"> ${inlineFormat(cb[2], t)}</section>`
         } else {
           html += `<section style="margin:5px 0px">${inlineFormat(li, t)}</section>`
         }
