@@ -80,8 +80,8 @@ export const Steps_DA01 = {
       })
         } else {
       // 横向布局（table 兼容 html2canvas，支持横向滚动）
-      html += `<section style="overflow-x:auto;-webkit-overflow-scrolling:touch">`
-      html += `<table border="0" cellpadding="0" cellspacing="12" style="margin:0;border-collapse:separate;border-spacing:12px 0;border:none;min-width:${steps.length * 140}px"><tr>`
+            html += `<section style="overflow-x:auto;-webkit-overflow-scrolling:touch">`
+      html += `<table border="0" cellpadding="0" cellspacing="12" style="margin:0;border-collapse:separate;border-spacing:12px 0;border:none;min-width:${steps.length * 120}px"><tr>`
       steps.forEach((s, idx) => {
         const isActive = idx + 1 === active
         const borderWidth = isActive ? '2px' : '1px'
