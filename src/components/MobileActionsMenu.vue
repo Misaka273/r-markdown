@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
-import { useDropdownGroup } from '../composables/useDropdownGroup'
+import { useDropdownGroup } from '@/composables/useDropdownGroup'
 
 const props = defineProps<{
   mode?: 'editor' | 'preview'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useDropdownGroup } from '../composables/useDropdownGroup'
+import { useDropdownGroup } from '@/composables/useDropdownGroup'
 
 const props = defineProps<{
   themes: { accent: string; dark: string }[]

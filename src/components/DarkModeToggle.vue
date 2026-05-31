@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
-import type { DarkMode } from '../composables/useDarkMode'
-import { useDropdownGroup } from '../composables/useDropdownGroup'
+import type { DarkMode } from '@/composables/useDarkMode'
+import { useDropdownGroup } from '@/composables/useDropdownGroup'
 
 defineProps<{
   mode: DarkMode

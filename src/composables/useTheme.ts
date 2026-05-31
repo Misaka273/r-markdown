@@ -10,7 +10,7 @@ export interface ThemeColors {
 
 const THEMES = [
   { accent: '#6c5ce7', dark: '#5a4bd1' },
-  { accent: '#667eea', dark: '#764ba2' },
+  { accent: '#667eea', dark: '#536DFE' },
   { accent: '#e74c3c', dark: '#c0392b' },
   { accent: '#27ae60', dark: '#1e8449' },
   { accent: '#f39c12', dark: '#e67e22' },
