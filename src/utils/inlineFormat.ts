@@ -30,10 +30,20 @@ export function inlineFormat(text: string, t: ThemeColors): string {
     (_m, p1: string) =>
       `<span style="text-decoration:underline;text-decoration-color:${t.accent};text-underline-offset:3px">${leaf(p1)}</span>`,
   )
-  // ~~删除线~~
+    // ~~删除线~~
   text = text.replace(
     /~~([^~]+)~~/g,
     (_m, p1: string) => `<del style="color:#9ca3af">${leaf(p1)}</del>`,
+  )
+  // ~下标~
+  text = text.replace(
+    /~([^~]+)~/g,
+    (_m, p1: string) => `<sub>${leaf(p1)}</sub>`,
+  )
+  // ^上标^
+  text = text.replace(
+    /\^([^^]+)\^/g,
+    (_m, p1: string) => `<sup>${leaf(p1)}</sup>`,
   )
   // **粗体**
   text = text.replace(/\*\*([^*]+)\*\*/g, (_m, p1: string) => `<strong>${leaf(p1)}</strong>`)
