@@ -469,8 +469,8 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
             ? `background:${t.accent};border-color:${t.accent}`
             : `border-color:${t.border}`
                                         const uncheckedBorder = t.border === '#e2e8f0' ? '#94a3b8' : t.border
-          const checkSvg = isChecked
-            ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" fill="white" stroke="white" stroke-width="1"/><path d="M5 9l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                    const checkSvg = isChecked
+            ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
             : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="${uncheckedBorder}" stroke-width="1.5" fill="none"/></svg>`
           html += `<section style="margin:5px 0px"><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;${isChecked ? `background:${t.accent};border-radius:4px` : ''}">${checkSvg}</span><span>${inlineFormat(cb[2], t)}</span></span></section>`
         } else {
