@@ -68,7 +68,7 @@ export const components: ComponentDef[] = [
   Badges_DA01,
   Statement_DA01,
   Lead_DA01,
-    Engage_DA01,
+  Engage_DA01,
   Engage_DA02,
   Timeline_DA01,
   Slider_DA01,

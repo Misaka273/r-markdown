@@ -41,7 +41,7 @@ export const Compare_DA01 = {
       options: ['horizontal', 'vertical'],
     },
   ],
-    example: `<compare left-label="BEFORE" left-title="旧版绿色" right-label="AFTER" right-title="新版靛青">
+  example: `<compare left-label="BEFORE" left-title="旧版绿色" right-label="AFTER" right-title="新版靛青">
 <left>
 旧版界面设计较为传统
 ![旧版](https://picsum.photos/400/120?random=3)[100% 120px]
@@ -74,7 +74,7 @@ export const Compare_DA01 = {
     const isVertical = direction === 'vertical'
     const { left, right } = this.parseSides(body)
 
-        const renderContent = (md: string): string => {
+    const renderContent = (md: string): string => {
       if (!md) return ''
       const lines = md.split('\n').filter((l) => l.trim())
       return lines

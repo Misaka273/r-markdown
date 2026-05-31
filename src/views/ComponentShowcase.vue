@@ -55,8 +55,8 @@ const filteredComponents = computed(() => {
 })
 
 const showcaseNavItems = computed(() => [
-    { key: 'home', label: '首页', to: '/', iconPath: 'M12 3L3 12h3v8h12v-8h3L12 3z' },
-                    { key: 'editor', label: '编辑器', to: '/editor', iconPath: 'M17 3l4 4L7 21H3v-4L17 3z' },
+  { key: 'home', label: '首页', to: '/', iconPath: 'M12 3L3 12h3v8h12v-8h3L12 3z' },
+  { key: 'editor', label: '编辑器', to: '/editor', iconPath: 'M17 3l4 4L7 21H3v-4L17 3z' },
 ])
 
 const componentExamples = ref<
