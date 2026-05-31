@@ -40,8 +40,8 @@ export const PTitle = {
     { key: 'color', label: '标题颜色', required: false, default: '' },
     { key: 'num-color', label: '序号颜色', required: false, default: '' },
     { key: 'subtitle-color', label: '副标题颜色', required: false, default: '' },
-        { key: 'level', label: '层级', required: false, default: '1', options: ['1', '2', '3', '4'] },
-        { key: 'size', label: '尺寸（level=1）', required: false, default: 'normal', options: ['normal', 'medium', 'small'] },
+    { key: 'level', label: '层级', required: false, default: '1', options: ['1', '2', '3', '4'] },
+    { key: 'size', label: '尺寸（level=1）', required: false, default: 'normal', options: ['normal', 'medium', 'small'] },
     { key: 'prefix', label: '前缀图标', required: false, default: '' },
     { key: 'suffix', label: '后缀图标', required: false, default: '' },
   ],
@@ -68,9 +68,9 @@ export const PTitle = {
       // 根据 size 计算尺寸：normal > medium > small
       let numFontSize: string, titleFontSize: string, titleMarginTop: string, titleMarginLeft: string
       let subtitleMarginLeft: string, subtitleFontSize: string, chapterFontSize: string
-      if (size === 'small') {
-        numFontSize = '36px'; titleFontSize = '18px'; titleMarginTop = '-36px'
-        titleMarginLeft = '30px'; subtitleMarginLeft = '30px'
+            if (size === 'small') {
+        numFontSize = '20px'; titleFontSize = '20px'; titleMarginTop = '-20px'
+        titleMarginLeft = '26px'; subtitleMarginLeft = '26px'
         subtitleFontSize = '9px'; chapterFontSize = '8px'
       } else if (size === 'medium') {
         numFontSize = '48px'; titleFontSize = '24px'; titleMarginTop = '-48px'
