@@ -49,9 +49,9 @@ export const PTitle = {
       default: 'normal',
       options: ['normal', 'medium', 'small'],
     },
-        { key: 'prefix', label: '前缀图标', required: false, default: '' },
+    { key: 'prefix', label: '前缀图标', required: false, default: '' },
     { key: 'suffix', label: '后缀图标', required: false, default: '' },
-    { key: 'hide', label: '隐藏元素', required: false, default: '', options: ['', 'num', 'line'] },
+    { key: 'hide', label: '隐藏元素（level=1）', required: false, default: '', options: ['num', 'line'] },
   ],
   example: `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,
 
