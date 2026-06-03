@@ -1,4 +1,4 @@
-import type { ThemeColors } from '../composables/useTheme'
+import type { ThemeColors } from '@/composables/useTheme'
 import { leaf, esc, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import {
@@ -7,7 +7,6 @@ import {
   parseCtaTag,
   parseCompare,
   parseCallout,
-  parseEngage,
   parseGallery,
 } from './components'
 import { Title_DA01 } from '@/editor-components/Title_DA01'
