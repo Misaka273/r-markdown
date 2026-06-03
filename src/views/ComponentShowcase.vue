@@ -21,6 +21,7 @@ const categories = [
   { key: 'title', label: '标题' },
   { key: 'content', label: '内容' },
   { key: 'layout', label: '布局' },
+  { key: 'image', label: '图片' },
   { key: 'interactive', label: '互动' },
   { key: 'other', label: '其他' },
 ]
@@ -34,6 +35,7 @@ const componentCategoryMap: Record<string, string> = {
   Breaking_DA01: 'title',
   ReadingPath_DA01: 'content',
   Lead_DA01: 'content',
+  Slider_DA01: 'image',
   Statement_DA01: 'content',
   Steps_DA01: 'layout',
   Steps_DA02: 'layout',
@@ -53,8 +55,8 @@ const filteredComponents = computed(() => {
 })
 
 const showcaseNavItems = computed(() => [
-  { key: 'home', label: '首页', to: '/', iconPath: 'M3 12l7-8 7 8' },
-  { key: 'editor', label: '编辑器', to: '/editor', iconPath: 'M11.5 3.5l5 5L7 18H2v-5L11.5 3.5z' },
+  { key: 'home', label: '首页', to: '/', iconPath: 'M12 3L3 12h3v8h12v-8h3L12 3z' },
+  { key: 'editor', label: '编辑器', to: '/editor', iconPath: 'M17 3l4 4L7 21H3v-4L17 3z' },
 ])
 
 const componentExamples = ref<
@@ -494,6 +496,7 @@ function onCardLeave(e: MouseEvent) {
   color: #e74c3c;
   margin-left: 4px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .attr-col-desc {

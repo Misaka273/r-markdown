@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
-import type { DarkMode } from '../composables/useDarkMode'
-import { useDropdownGroup } from '../composables/useDropdownGroup'
+import type { DarkMode } from '@/composables/useDarkMode'
+import { useDropdownGroup } from '@/composables/useDropdownGroup'
 
 defineProps<{
   mode: DarkMode
@@ -41,7 +41,12 @@ onBeforeUnmount(() => {
 <template>
   <div class="dark-mode-toggle relative">
     <button
-      class="w-7 h-7 rounded-full border-2 border-white/30 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110 hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)] bg-[#2d3436] text-white"
+      class="w-7 h-7 rounded-full border-2 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110"
+      :class="
+        mode === 'dark'
+          ? 'bg-[#2d3436] text-white border-white/30 hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]'
+          : 'bg-white text-gray-700 border-gray-300 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.15)]'
+      "
       title="切换亮暗模式"
       @click.stop="toggle"
     >
@@ -190,7 +195,13 @@ onBeforeUnmount(() => {
 </style>
 
 <style>
-/* Dark mode overrides for DarkModeToggle dropdown */
+/* Dark mode overrides for DarkModeToggle */
+[data-theme='dark'] .dark-mode-toggle > button {
+  background: #2d3436 !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
 [data-theme='dark'] .dark-mode-menu {
   background: #2a2a2e !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;

@@ -10,7 +10,7 @@ export interface ThemeColors {
 
 const THEMES = [
   { accent: '#6c5ce7', dark: '#5a4bd1' },
-  { accent: '#667eea', dark: '#764ba2' },
+  { accent: '#667eea', dark: '#536DFE' },
   { accent: '#e74c3c', dark: '#c0392b' },
   { accent: '#27ae60', dark: '#1e8449' },
   { accent: '#f39c12', dark: '#e67e22' },
@@ -47,7 +47,7 @@ function lightenHex(hex: string, factor: number): string {
 
 export function useTheme() {
   const saved = localStorage.getItem(STORAGE_KEY)
-  let init = THEMES[0]
+  let init = THEMES[3]
   let isCustom = false
   if (saved) {
     try {

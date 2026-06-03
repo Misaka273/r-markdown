@@ -22,7 +22,7 @@ export const Engage_DA01 = {
     { key: 'title', label: '标题文字', required: false, default: '' },
     { key: 'label', label: '底部小字', required: false, default: 'THANKS FOR READING' },
   ],
-  example: `<engage title="如果这份文档对你有帮助，欢迎点赞、推荐、转发！" label="THANKS FOR READING"></engage>`,
+  example: `<engage title="如果这份文档对你有帮助，欢迎点赞、转发、推荐！" label="THANKS FOR READING"></engage>`,
 
   render(attrs: Record<string, string>, _body: string, t: ThemeColors): string {
     let html = `<section style="margin:28px 0px 28px;width:100%;max-width:677px;box-sizing:border-box;overflow:hidden;text-align:center;padding:24px;border-radius:14px;background:rgba(${t.rgb},0.05);border:1px dashed rgba(229,231,235,0.9)">`

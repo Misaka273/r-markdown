@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
+import { useDropdownGroup } from '@/composables/useDropdownGroup'
 
 export interface MobileNavItem {
   key: string
   label: string
   iconPath?: string
+  iconViewBox?: string
   external?: boolean
   to?: string
 }
@@ -17,21 +19,21 @@ const emit = defineEmits<{
   (e: 'click', key: string): void
 }>()
 
-const isOpen = ref(false)
+const { toggle: groupToggle, isVisible } = useDropdownGroup('mobile-nav')
 
 function toggle() {
-  isOpen.value = !isOpen.value
+  groupToggle(!isVisible.value)
 }
 
 function handleItemClick(key: string) {
-  isOpen.value = false
+  groupToggle(false)
   emit('click', key)
 }
 
 function close(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (!target.closest('.mobile-nav-menu')) {
-    isOpen.value = false
+    groupToggle(false)
   }
 }
 
@@ -68,7 +70,7 @@ onBeforeUnmount(() => {
     </button>
     <div
       class="mobile-nav-dropdown absolute top-full right-0 mt-2 p-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 w-40"
-      :class="{ show: isOpen }"
+      :class="{ show: isVisible }"
     >
       <template v-for="(item, idx) in items" :key="item.key">
         <!-- 外部链接 -->
@@ -79,7 +81,13 @@ onBeforeUnmount(() => {
           rel="noopener noreferrer"
           class="mobile-nav-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 no-underline transition-colors duration-150 hover:bg-black/5"
         >
-          <svg v-if="item.iconPath" viewBox="0 0 20 20" width="14" height="14" fill="currentColor">
+          <svg
+            v-if="item.iconPath"
+            :viewBox="item.iconViewBox || '0 0 24 24'"
+            width="14"
+            height="14"
+            fill="currentColor"
+          >
             <path :d="item.iconPath" />
           </svg>
           {{ item.label }}
@@ -92,7 +100,7 @@ onBeforeUnmount(() => {
         >
           <svg
             v-if="item.iconPath"
-            viewBox="0 0 20 20"
+            :viewBox="item.iconViewBox || '0 0 24 24'"
             width="14"
             height="14"
             fill="none"

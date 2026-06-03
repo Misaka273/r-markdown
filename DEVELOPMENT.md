@@ -28,6 +28,26 @@ src/
 │   ├── Editor.vue           # CodeMirror 编辑器
 │   ├── Preview.vue          # Markdown 预览
 │   └── ThemePicker.vue      # 主题选择器
+├── editor-components/   # 排版组件库
+│   ├── index.ts             # 组件注册与导出
+│   ├── Badges_DA01.ts       # 标签徽章
+│   ├── Breaking_DA01.ts     # 突发新闻卡片
+│   ├── CaseFlow_DA01.ts     # 案例流程
+│   ├── Compare_DA01.ts      # 对比布局 v1
+│   ├── Compare_DA02.ts      # 对比布局 v2
+│   ├── Cta_DA01.ts          # 行动召唤
+│   ├── Engage_DA01.ts       # 互动引导 v1
+│   ├── Engage_DA02.ts       # 互动引导 v2
+│   ├── Lead_DA01.ts         # 引导文段
+│   ├── PTitle_DA01.ts       # 副标题
+│   ├── ReadingPath_DA01.ts  # 阅读路径
+│   ├── Slider_DA01.ts       # 图片幻灯片轮播
+│   ├── Statement_DA01.ts    # 居中强调语
+│   ├── Steps_DA01.ts        # 步骤流 v1
+│   ├── Steps_DA02.ts        # 步骤流 v2
+│   ├── Timeline_DA01.ts     # 时间线
+│   ├── Title_DA01.ts        # 标题 v1
+│   └── Title_DA02.ts        # 标题 v2
 ├── composables/         # Vue 组合式函数
 │   ├── useDarkMode.ts       # 深色模式逻辑
 │   └── useTheme.ts          # 主题管理
@@ -204,27 +224,30 @@ interface ThemeColors {
 | `**文字**`   | 加粗     | `<strong>`                                         |
 | `*文字*`     | 斜体     | `<em>`                                             |
 | `` `文字` `` | 行内代码 | `<code>`                                           |
+| `[text](url "desc")` | 脚注引用 | 带引号标题的链接自动转为脚注，文末生成参考资料 |
 
 ### 组件解析语法
 
-在 `src/utils/components.ts` 中定义：
+### 编辑器组件语法
 
-| 语法             | 组件                                         |
-| ---------------- | -------------------------------------------- |
-| `:::callout`     | 提示框（支持 green/yellow/dark/accent 色调） |
-| `:::timeline`    | 时间线                                       |
-| `:::steps`       | 步骤指引                                     |
-| `:::compare`     | 对比卡片                                     |
-| `:::engage`      | 互动区                                       |
-| `:::quiz`        | 选择题                                       |
-| `:::prose`       | 散文段落                                     |
-| `:::gallery`     | 图片画廊                                     |
-| `:::rating`      | 评分卡片                                     |
-| `:::dialogue`    | 对话气泡                                     |
-| `:::feature`     | 特性卡片                                     |
-| `:::bible-verse` | 圣经经文                                     |
-| `:::devotion`    | 灵修卡片                                     |
-| `:::worship`     | 敬拜卡片                                     |
+在 `src/editor-components/` 目录下定义，通过 `<tag>` 标签使用：
+
+| 标签           | 组件           | 说明                     |
+| -------------- | -------------- | ------------------------ |
+| `<title>`      | 标题组件       | 支持 v1/v2 两种样式      |
+| `<ptitle>`     | 副标题组件     | 支持 hide 属性隐藏元素   |
+| `<statement>`  | 居中强调语     | -                        |
+| `<lead>`       | 引导文字段     | -                        |
+| `<breaking>`   | 突发新闻卡片   | -                        |
+| `<compare>`    | 对比布局       | 支持 v1/v2 两种样式      |
+| `<cta>`        | 行动召唤卡片   | -                        |
+| `<steps>`      | 横向步骤流     | 支持 v1/v2 两种样式      |
+| `<timeline>`   | 时间线组件     | -                        |
+| `<engage>`     | 互动引导组件   | 支持 v1/v2 两种样式      |
+| `<caseflow>`   | 案例流程组件   | -                        |
+| `<readingpath>`| 阅读路径组件   | -                        |
+| `<slider>`     | 图片幻灯片轮播 | 支持 4 种轮播模式        |
+| `<badges>`     | 标签徽章       | -                        |
 
 ## Git 工作流
 

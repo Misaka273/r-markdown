@@ -1,5 +1,6 @@
 import type { ThemeColors } from '../composables/useTheme'
 import hljs from 'highlight.js/lib/common'
+import type { ThemeColors } from '@/composables/useTheme'
 import { leaf, esc, parseAttrs } from './helpers'
 
 // 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
@@ -54,12 +55,10 @@ function highlightLine(rest: string, lang: string): string {
 import { inlineFormat } from './inlineFormat'
 import {
   renderFrontMatter,
-  parseCtaBlock,
   parseCtaInline,
   parseCtaTag,
   parseCompare,
   parseCallout,
-  parseEngage,
   parseGallery,
 } from './components'
 import { Title_DA01 } from '@/editor-components/Title_DA01'
@@ -75,9 +74,28 @@ import { Lead_DA01 } from '@/editor-components/Lead_DA01'
 import { Engage_DA01 } from '@/editor-components/Engage_DA01'
 import { Engage_DA02 } from '@/editor-components/Engage_DA02'
 import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
+import { Slider_DA01 } from '@/editor-components/Slider_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
-  const lines = md.split('\n')
+  // 收集脚注：[text](url "desc") 带引号标题的链接 → 脚注
+  const footnotes: { label: string; url: string; desc: string }[] = []
+  const footnoteRegex = /\[([^\]]+)\]\(([^)\s]+)\s+"([^"]+)"\)/g
+  const processedMd = md.replace(footnoteRegex, (_match, _label, url, desc) => {
+    // 检查是否已存在相同的脚注（根据 url 和 desc 判断）
+    const existing = footnotes.findIndex((f) => f.url === url && f.desc === desc)
+    let num: number
+    if (existing >= 0) {
+      // 已存在，复用序号
+      num = existing + 1
+    } else {
+      // 新脚注，分配新序号
+      num = footnotes.length + 1
+      footnotes.push({ label: _label, url, desc })
+    }
+    return `__FN_${num - 1}__|${_label}|`
+  })
+
+  const lines = processedMd.split('\n')
   let html = ''
   let i = 0
 
@@ -183,28 +201,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Badges_DA01.render(attrs, body.trim(), t)
       continue
     }
-    // ::: cta
-    if (/^:::\s*cta\b/.test(line)) {
-      const r = parseCtaBlock(lines, i, t)
-      html += r.html
-      i = r.next
-      continue
-    }
-    // ::: lead
-    if (/^:::\s*lead\b/.test(line)) {
-      const leadAttrsMatch = line.match(/^:::\s*lead\b([^>]*)/)
-      const attrs = leadAttrsMatch && leadAttrsMatch[1] ? parseAttrs(leadAttrsMatch[1]) : {}
-      i++
-      let text = ''
-      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
-        text += lines[i]
-        i++
-      }
-      i++
-      html += Lead_DA01.render(attrs, text.trim(), t)
-      continue
-    }
-    // <lead> ... </lead>
+        // <lead> ... </lead>
     if (/^<lead\b/.test(line)) {
       const openMatch = line.match(/^<lead\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -396,6 +393,28 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Timeline_DA01.render(attrs, body.trim(), t)
       continue
     }
+    // <slider> 标签
+    if (/^<slider\b/.test(line)) {
+      const openMatch = line.match(/^<slider\b([^>]*)>(.*)$/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+      // 单行模式：<slider ...>content</slider>
+      if (openMatch && openMatch[2] && /<\/slider>\s*$/.test(openMatch[2])) {
+        const body = openMatch[2].replace(/<\/slider>\s*$/, '').trim()
+        html += Slider_DA01.render(attrs, body, t)
+        i++
+        continue
+      }
+      // 多行模式：内容在后续行
+      let body = openMatch && openMatch[2] ? openMatch[2] + '\n' : ''
+      i++
+      while (i < lines.length && !/^<\/slider>/.test(lines[i])) {
+        body += lines[i] + '\n'
+        i++
+      }
+      i++ // skip </slider>
+      html += Slider_DA01.render(attrs, body.trim(), t)
+      continue
+    }
     // : engage 或 <engage>
     if (/^:\s*engage\b/.test(line) || /^<engage\b/.test(line)) {
       const attrs = parseAttrs(line)
@@ -503,7 +522,15 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         const li = lines[i].replace(/^[-*+]\s/, '')
         const cb = li.match(/^\[([ x])\]\s*(.*)/)
         if (cb) {
-          html += `<section style="margin:5px 0px"><input type="checkbox" ${cb[1] === 'x' ? 'checked' : ''} disabled> ${inlineFormat(cb[2], t)}</section>`
+          const isChecked = cb[1] === 'x'
+          const boxStyle = isChecked
+            ? `background:${t.accent};border-color:${t.accent}`
+            : `border-color:${t.border}`
+          const uncheckedBorder = t.border === '#e2e8f0' ? '#94a3b8' : t.border
+          const checkSvg = isChecked
+            ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+            : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="${uncheckedBorder}" stroke-width="1.5" fill="none"/></svg>`
+          html += `<section style="margin:5px 0px"><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;${isChecked ? `background:${t.accent};border-radius:4px` : ''}">${checkSvg}</span><span>${inlineFormat(cb[2], t)}</span></span></section>`
         } else {
           html += `<section style="margin:5px 0px">${inlineFormat(li, t)}</section>`
         }
@@ -544,6 +571,17 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     // 普通段落
     html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">${inlineFormat(line, t)}</p></section>`
     i++
+  }
+
+  // 添加脚注参考资料
+  if (footnotes.length > 0) {
+    html += `<section style="margin:32px 0px 0px;padding-top:20px;border-top:1px solid ${t.border}">`
+    html += `<h2 style="margin:0px 0px 16px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.4">参考资料</h2>`
+    html += `<section style="font-size:14px;color:rgb(100,116,139);line-height:1.8">`
+    footnotes.forEach((fn, idx) => {
+      html += `<p style="margin:6px 0px"><span style="color:${t.accent};font-weight:600">[${idx + 1}]</span> ${leaf(fn.desc)}：<a href="${esc(fn.url)}" style="color:${t.accent};word-break:break-all">${esc(fn.url)}</a></p>`
+    })
+    html += `</section></section>`
   }
 
   return html

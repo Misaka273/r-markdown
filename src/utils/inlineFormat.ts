@@ -2,6 +2,19 @@ import type { ThemeColors } from '../composables/useTheme'
 import { esc, leaf, lightenHex } from './helpers'
 
 export function inlineFormat(text: string, t: ThemeColors): string {
+  // 脚注占位符 __FN_N__（渲染为带下划线的文字 + 上标数字）
+  // 格式：__FN_N__|显示文字，其中显示文字由 markdownParser 传入
+  text = text.replace(
+    /__FN_(\d+)__\|([^|]+)\|/g,
+    (_m, p1: string, label: string) =>
+      `<span style="color:${t.accent};text-decoration:underline;text-decoration-style:dashed;text-underline-offset:3px;cursor:pointer">${leaf(label)}</span><sup style="color:${t.accent};font-size:0.75em;font-weight:600">[${parseInt(p1) + 1}]</sup>`,
+  )
+  // 兼容没有显示文字的格式
+  text = text.replace(
+    /__FN_(\d+)__/g,
+    (_m, p1: string) =>
+      `<sup style="color:${t.accent};font-weight:600;cursor:pointer">[${parseInt(p1) + 1}]</sup>`,
+  )
   // ==渐变背景==
   text = text.replace(
     /==([^=]+)==/g,
@@ -35,6 +48,10 @@ export function inlineFormat(text: string, t: ThemeColors): string {
     /~~([^~]+)~~/g,
     (_m, p1: string) => `<del style="color:#9ca3af">${leaf(p1)}</del>`,
   )
+  // ~下标~
+  text = text.replace(/~([^~]+)~/g, (_m, p1: string) => `<sub>${leaf(p1)}</sub>`)
+  // ^上标^
+  text = text.replace(/\^([^^]+)\^/g, (_m, p1: string) => `<sup>${leaf(p1)}</sup>`)
   // **粗体**
   text = text.replace(/\*\*([^*]+)\*\*/g, (_m, p1: string) => `<strong>${leaf(p1)}</strong>`)
   // *斜体*
@@ -60,7 +77,7 @@ export function inlineFormat(text: string, t: ThemeColors): string {
   )
   // 链接 [text](url)
   text = text.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
+    /\[([^\]]+)\]\(([^)\s]+)\)/g,
     (_m, p1: string, p2: string) => `<a href="${p2}" style="color:${t.accent}">${leaf(p1)}</a>`,
   )
   return text
