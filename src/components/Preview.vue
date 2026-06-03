@@ -105,6 +105,18 @@ async function saveAsImage() {
       skipFonts: true,
       cacheBust: true,
       backgroundColor: '#ffffff',
+      // 文章里有加载不出来的图（404、本地相对路径被 dev server 当 index.html 返回、跨域等）时，
+      // 用透明占位顶上、并跳过出错的图，而不是让整张导出失败抛出 [object Event]
+      imagePlaceholder:
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+      onImageErrorHandler: (e: Event | string) => {
+        if (typeof e === 'string') return
+        const t = e.target as HTMLImageElement | null
+        if (t && 'src' in t) {
+          t.src =
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+        }
+      },
       style: {
         padding: '20px 16px 40px',
       },
@@ -125,7 +137,12 @@ async function saveAsImage() {
     link.click()
     showToast('✅ 图片已保存')
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const msg =
+      err instanceof Error
+        ? err.message
+        : typeof Event !== 'undefined' && err instanceof Event
+          ? '渲染失败（可能有图片加载不出来）'
+          : String(err)
     showToast('❌ 生成失败：' + msg)
   } finally {
     saving.value = false
