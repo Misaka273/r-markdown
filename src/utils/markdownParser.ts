@@ -1,6 +1,5 @@
-import type { ThemeColors } from '../composables/useTheme'
-import hljs from 'highlight.js/lib/common'
 import type { ThemeColors } from '@/composables/useTheme'
+import hljs from 'highlight.js/lib/common'
 import { leaf, esc, parseAttrs } from './helpers'
 
 // 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
