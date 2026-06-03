@@ -1,4 +1,4 @@
-import type { ThemeColors } from '../composables/useTheme'
+import type { ThemeColors } from '@/composables/useTheme'
 import { esc, leaf, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import { Compare_DA01 } from '@/editor-components/Compare_DA01'
@@ -103,27 +103,6 @@ export function parseBadges(
   }
   i++
   const html = Badges_DA01.render(attrs, text, t)
-  return { html, next: i }
-}
-
-export function parseCtaBlock(
-  lines: string[],
-  start: number,
-  t: ThemeColors,
-): { html: string; next: number } {
-  let i = start
-  const attrs = parseAttrs(lines[i])
-  i++
-  while (i < lines.length && !/^:::\s*$/.test(lines[i])) i++
-  i++
-  let html = `<section style="margin:24px 0px;padding:32px 24px;background:linear-gradient(135deg,${t.accent},${t.dark});border-radius:16px;text-align:center;color:rgb(255,255,255)">`
-  if (attrs.label)
-    html += `<p style="margin:0px 0px 8px;font-size:11px;letter-spacing:3px;font-weight:700;opacity:0.8">${leaf(attrs.label)}</p>`
-  if (attrs.title)
-    html += `<p style="margin:0px 0px 16px;font-size:20px;font-weight:800;line-height:1.4">${leaf(attrs.title)}</p>`
-  if (attrs.button)
-    html += `<span style="display:inline-block;padding:12px 32px;background:rgba(255,255,255,0.2);border-radius:8px;font-weight:700;letter-spacing:1px;backdrop-filter:blur(4px)">${leaf(attrs.button)}</span>`
-  html += `</section>`
   return { html, next: i }
 }
 

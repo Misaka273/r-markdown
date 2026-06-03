@@ -228,25 +228,6 @@ interface ThemeColors {
 
 ### 组件解析语法
 
-在 `src/utils/components.ts` 中定义：
-
-| 语法             | 组件                                         |
-| ---------------- | -------------------------------------------- |
-| `:::callout`     | 提示框（支持 green/yellow/dark/accent 色调） |
-| `:::timeline`    | 时间线                                       |
-| `:::steps`       | 步骤指引                                     |
-| `:::compare`     | 对比卡片                                     |
-| `:::engage`      | 互动区                                       |
-| `:::quiz`        | 选择题                                       |
-| `:::prose`       | 散文段落                                     |
-| `:::gallery`     | 图片画廊                                     |
-| `:::rating`      | 评分卡片                                     |
-| `:::dialogue`    | 对话气泡                                     |
-| `:::feature`     | 特性卡片                                     |
-| `:::bible-verse` | 圣经经文                                     |
-| `:::devotion`    | 灵修卡片                                     |
-| `:::worship`     | 敬拜卡片                                     |
-
 ### 编辑器组件语法
 
 在 `src/editor-components/` 目录下定义，通过 `<tag>` 标签使用：

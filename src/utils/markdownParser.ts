@@ -3,7 +3,6 @@ import { leaf, esc, parseAttrs } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import {
   renderFrontMatter,
-  parseCtaBlock,
   parseCtaInline,
   parseCtaTag,
   parseCompare,
@@ -151,28 +150,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Badges_DA01.render(attrs, body.trim(), t)
       continue
     }
-    // ::: cta
-    if (/^:::\s*cta\b/.test(line)) {
-      const r = parseCtaBlock(lines, i, t)
-      html += r.html
-      i = r.next
-      continue
-    }
-    // ::: lead
-    if (/^:::\s*lead\b/.test(line)) {
-      const leadAttrsMatch = line.match(/^:::\s*lead\b([^>]*)/)
-      const attrs = leadAttrsMatch && leadAttrsMatch[1] ? parseAttrs(leadAttrsMatch[1]) : {}
-      i++
-      let text = ''
-      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
-        text += lines[i]
-        i++
-      }
-      i++
-      html += Lead_DA01.render(attrs, text.trim(), t)
-      continue
-    }
-    // <lead> ... </lead>
+        // <lead> ... </lead>
     if (/^<lead\b/.test(line)) {
       const openMatch = line.match(/^<lead\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
