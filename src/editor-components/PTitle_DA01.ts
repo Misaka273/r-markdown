@@ -24,7 +24,7 @@ import type { ThemeColors } from '@/composables/useTheme'
  *   subtitle-color  - 副标题颜色（可选，默认使用主题色）
  *   level           - 层级：1=一级标题(#)，2=二级标题(##)，3=三级标题(###)，4=四级标题(####)
  *   size            - 尺寸（仅 level=1 有效）：normal=默认，medium=中等，small=缩小版
-  *   prefix          - 标题前缀图标，如 🚀、⚡、🔥（可选）
+ *   prefix          - 标题前缀图标，如 🚀、⚡、🔥（可选）
  *   suffix          - 标题后缀图标，如 ✅、💡、→（可选）
  *   hide            - 隐藏元素：num=隐藏数字，line=隐藏CHAPTER和横线（可选）
  */
@@ -51,7 +51,13 @@ export const PTitle = {
     },
     { key: 'prefix', label: '前缀图标', required: false, default: '' },
     { key: 'suffix', label: '后缀图标', required: false, default: '' },
-    { key: 'hide', label: '隐藏元素（level=1）', required: false, default: '', options: ['num', 'line'] },
+    {
+      key: 'hide',
+      label: '隐藏元素（level=1）',
+      required: false,
+      default: '',
+      options: ['num', 'line'],
+    },
   ],
   example: `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,
 
@@ -64,7 +70,7 @@ export const PTitle = {
     const titleColor = attrs.color || 'rgb(17,24,39)'
     const numColor = attrs['num-color'] || accent
     const subtitleColor = attrs['subtitle-color'] || accent
-        const hasNum = num !== ''
+    const hasNum = num !== ''
     const prefix = attrs.prefix || ''
     const suffix = attrs.suffix || ''
     const hasPrefix = prefix !== ''
@@ -110,18 +116,21 @@ export const PTitle = {
         outerMargin = '48px 0px 30px'
       }
 
-            const numBlock = hasNum && hide !== 'num'
-        ? `<strong style="display:block;font-size:${numFontSize};line-height:1;color:${numColor};letter-spacing:-3px;white-space:nowrap;opacity:0.25"><span leaf="">${num}</span></strong>`
-        : ''
-      const titleBlock = hasNum && hide !== 'num'
-        ? `<strong style="display:block;font-size:${titleFontSize};font-weight:900;color:${titleColor};line-height:1.26;letter-spacing:-0.8px;margin-top:${titleMarginTop};margin-left:${titleMarginLeft}"><span leaf="">${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}</span></strong>`
-        : `<strong style="display:block;font-size:${titleFontSize};font-weight:900;color:${titleColor};line-height:1.26;letter-spacing:-0.8px"><span leaf="">${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}</span></strong>`
+      const numBlock =
+        hasNum && hide !== 'num'
+          ? `<strong style="display:block;font-size:${numFontSize};line-height:1;color:${numColor};letter-spacing:-3px;white-space:nowrap;opacity:0.25"><span leaf="">${num}</span></strong>`
+          : ''
+      const titleBlock =
+        hasNum && hide !== 'num'
+          ? `<strong style="display:block;font-size:${titleFontSize};font-weight:900;color:${titleColor};line-height:1.26;letter-spacing:-0.8px;margin-top:${titleMarginTop};margin-left:${titleMarginLeft}"><span leaf="">${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}</span></strong>`
+          : `<strong style="display:block;font-size:${titleFontSize};font-weight:900;color:${titleColor};line-height:1.26;letter-spacing:-0.8px"><span leaf="">${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}</span></strong>`
       const subtitleHtml = subtitle
         ? `<span style="display:block;margin-left:${hasNum && hide !== 'num' ? subtitleMarginLeft : '0'};font-size:${subtitleFontSize};color:${subtitleColor};font-weight:700;text-transform:uppercase;letter-spacing:1.6px"><span leaf="">${leaf(subtitle)}</span></span>`
         : ''
-      const chapterLine = hasNum && hide !== 'line'
-        ? `<section style="display:flex;align-items:center;margin:0;padding-bottom:12px"><span style="font-size:${chapterFontSize};font-weight:800;color:rgb(148,163,184);letter-spacing:2.6px;text-transform:uppercase;white-space:nowrap"><span leaf="">CHAPTER ${num}</span></span><section style="flex:1;border-top:1px solid rgb(229,231,235);margin:0 0 0 12px;height:0"></section></section>`
-        : ''
+      const chapterLine =
+        hasNum && hide !== 'line'
+          ? `<section style="display:flex;align-items:center;margin:0;padding-bottom:12px"><span style="font-size:${chapterFontSize};font-weight:800;color:rgb(148,163,184);letter-spacing:2.6px;text-transform:uppercase;white-space:nowrap"><span leaf="">CHAPTER ${num}</span></span><section style="flex:1;border-top:1px solid rgb(229,231,235);margin:0 0 0 12px;height:0"></section></section>`
+          : ''
 
       return `
 <section style="margin:${outerMargin}">

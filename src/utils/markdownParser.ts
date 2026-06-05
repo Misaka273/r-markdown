@@ -200,7 +200,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Badges_DA01.render(attrs, body.trim(), t)
       continue
     }
-        // <lead> ... </lead>
+    // <lead> ... </lead>
     if (/^<lead\b/.test(line)) {
       const openMatch = line.match(/^<lead\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
@@ -475,7 +475,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         const lead = (ln.match(/^[ \t]*/) || [''])[0]
         const indent = lead.replace(/\t/g, '  ').replace(/ /g, '&nbsp;')
         const rest = ln.slice(lead.length)
-        const body = (indent + (rest ? highlightLine(rest, lang) : '')) || '&nbsp;'
+        const body = indent + (rest ? highlightLine(rest, lang) : '') || '&nbsp;'
         codeInner += `<code style="display:block;background:none;color:inherit;font-family:inherit">${leaf(body)}</code>`
       }
       html += `<section class="code-snippet__js"><pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="${esc(lang)}" style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</pre></section>`

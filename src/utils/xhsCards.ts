@@ -121,7 +121,10 @@ export function extractXhs(md: string): { meta: XhsMeta; contentMd: string } {
     meta.summary = fm.summary || fm.subtitle || ''
     meta.hook = fm.hook || ''
     meta.brand = fm.brand || fm.author || meta.brand
-    meta.chips = (fm.chips || '').split('|').map((c) => c.trim()).filter(Boolean)
+    meta.chips = (fm.chips || '')
+      .split('|')
+      .map((c) => c.trim())
+      .filter(Boolean)
   } else {
     const tm = md.match(/<title\b([^>]*)>([\s\S]*?)<\/title>/)
     if (tm) {
@@ -131,7 +134,10 @@ export function extractXhs(md: string): { meta: XhsMeta; contentMd: string } {
       meta.summary = attrs.summary || attrs.subtitle || ''
       meta.hook = attrs.hook || ''
       meta.brand = attrs.brand || meta.brand
-      meta.chips = (attrs.chips || '').split('|').map((c) => c.trim()).filter(Boolean)
+      meta.chips = (attrs.chips || '')
+        .split('|')
+        .map((c) => c.trim())
+        .filter(Boolean)
       // 不剥掉 <title>：它既喂给大字报首图，也保留在正文里照常渲染成标题卡
     }
   }
@@ -262,4 +268,3 @@ export function buildCover(meta: XhsMeta, aspect: XhsAspect, t: ThemeColors): st
   html += `</section>`
   return html
 }
-

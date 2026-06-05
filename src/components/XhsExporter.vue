@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
 import { toPng } from 'html-to-image'
 import { parseMarkdown } from '@/utils/markdownParser'
 import type { ThemeColors } from '@/composables/useTheme'
@@ -11,8 +11,10 @@ import {
   FONT_STACK,
   CONTENT_SCALE,
   XHS,
+  DEFAULT_BRAND,
   type XhsAspect,
 } from '@/utils/xhsCards'
+import PromptDialog from './PromptDialog.vue'
 
 // 图片加载失败时的占位（透明 1px），避免一张坏图把整次渲染拖崩
 const TRANSPARENT_PX =
@@ -60,6 +62,55 @@ const building = ref(false)
 const busy = ref(false)
 const status = ref('')
 
+// 滑块动画
+const btn34 = ref<HTMLButtonElement | null>(null)
+const btn11 = ref<HTMLButtonElement | null>(null)
+const sliderStyle = ref<Record<string, string>>({})
+
+function updateSlider() {
+  const btn = aspect.value === '3:4' ? btn34.value : btn11.value
+  if (!btn) return
+  const parent = btn.parentElement
+  if (!parent) return
+  const parentRect = parent.getBoundingClientRect()
+  const btnRect = btn.getBoundingClientRect()
+  // 滑块比按钮小 4px，左边缩进 0px、右边缩进 4px
+  const gapLeft = 0
+  const gapRight = 4
+  sliderStyle.value = {
+    width: `${btnRect.width - gapLeft - gapRight}px`,
+    transform: `translateX(${btnRect.left - parentRect.left + gapLeft}px)`,
+  }
+}
+
+watch(aspect, () => nextTick(updateSlider))
+
+// 初始化滑块位置（等弹窗渲染完毕再测量）
+onMounted(() => {
+  // 多帧延迟确保弹窗完全渲染并布局
+  requestAnimationFrame(() => requestAnimationFrame(updateSlider))
+})
+
+// 品牌名设置
+const BRAND_KEY = 'r-markdown-xhs-brand'
+const brand = ref(localStorage.getItem(BRAND_KEY) || DEFAULT_BRAND)
+const showBrandInput = ref(false)
+
+function openBrandSettings() {
+  showBrandInput.value = true
+}
+
+function onBrandSave(val: string) {
+  if (val) {
+    brand.value = val
+    localStorage.setItem(BRAND_KEY, val)
+  } else {
+    brand.value = DEFAULT_BRAND
+    localStorage.removeItem(BRAND_KEY)
+  }
+  if (props.visible) generate()
+}
+
 // 首图卡的外层 DOM（导出时读它第一个子元素，即卡片 section）
 let cardEls: (HTMLElement | null)[] = []
 function setRef(el: Element | null, idx: number) {
@@ -92,7 +143,11 @@ function waitImages(el: HTMLElement): Promise<void> {
  * 每次把正文上移一屏、单独导出一张（每张都小、稳，不会因整篇太长或坏图崩掉）。
  * 底部留一条 DOM 页脚带（@品牌 + 页码），盖住被切断的半行。
  */
-async function renderSlices(contentHtml: string, brand: string, colors: ThemeColors): Promise<string[]> {
+async function renderSlices(
+  contentHtml: string,
+  brand: string,
+  colors: ThemeColors,
+): Promise<string[]> {
   // 在「放大的逻辑画布」上渲染正文：边距/页脚等比放大、正文字号不变 → 输出（仍 1080 宽）
   // 里正文相对更小、更密，而边距和页脚跟首图保持一致。
   const base = ASPECTS[aspect.value]
@@ -215,6 +270,8 @@ async function generate() {
   status.value = ''
   try {
     const { meta, contentMd } = extractXhs(props.markdown)
+    // 优先使用用户设置的品牌名
+    meta.brand = brand.value || DEFAULT_BRAND
     const cover: Card = {
       id: 'cover',
       label: '首图（大字报）',
@@ -222,7 +279,9 @@ async function generate() {
       html: buildCover(meta, aspect.value, props.colors),
     }
     const contentHtml = parseMarkdown(contentMd, props.colors)
-    const slices = contentHtml.trim() ? await renderSlices(contentHtml, meta.brand, props.colors) : []
+    const slices = contentHtml.trim()
+      ? await renderSlices(contentHtml, meta.brand, props.colors)
+      : []
 
     cardEls = []
     cards.value = [
@@ -311,182 +370,188 @@ watch(
   () => props.visible,
   (v) => {
     if (v) generate()
+    // 弹窗打开后重新计算滑块位置
+    if (v) nextTick(() => requestAnimationFrame(() => requestAnimationFrame(updateSlider)))
   },
 )
 </script>
 
 <template>
-  <div v-if="visible" class="xhs-overlay" @click.self="$emit('close')">
-    <div class="xhs-panel">
-      <header class="xhs-head">
-        <strong class="xhs-title">导出小红书图</strong>
-        <div class="xhs-aspect">
-          <button :class="{ on: aspect === '3:4' }" @click="setAspect('3:4')">3:4 竖版</button>
-          <button :class="{ on: aspect === '1:1' }" @click="setAspect('1:1')">1:1 方版</button>
+  <div
+    v-if="visible"
+    class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/55 backdrop-blur-sm"
+    @click.self="$emit('close')"
+  >
+    <div
+      class="xhs-exporter-modal w-full max-w-[960px] max-h-[90vh] flex flex-col bg-white rounded-2xl overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.3)]"
+    >
+      <!-- 头部 -->
+      <header
+        class="xhs-exporter-header flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-gray-200 shrink-0 sm:gap-3 sm:px-4 sm:py-3.5"
+      >
+        <strong class="xhs-exporter-title text-[13px] sm:text-[15px] whitespace-nowrap"
+          >导出小红书图</strong
+        >
+
+        <!-- 比例选择 -->
+        <div
+          class="xhs-ratio-selector relative flex gap-0.5 bg-[#f3f0ea] rounded-full p-0.5 sm:gap-1"
+        >
+          <!-- 滑块 -->
+          <div
+            class="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent)] transition-all duration-300 ease-out"
+            :style="sliderStyle"
+          ></div>
+          <button
+            ref="btn34"
+            class="relative border-none px-2 py-1 rounded-full text-[11px] font-semibold cursor-pointer sm:px-3 sm:text-xs whitespace-nowrap z-10"
+            :class="aspect === '3:4' ? 'text-white' : 'text-[#8a8175]'"
+            @click="setAspect('3:4')"
+          >
+            <span class="sm:hidden">3:4</span><span class="hidden sm:inline">3:4 竖版</span>
+          </button>
+          <button
+            ref="btn11"
+            class="relative border-none px-2 py-1 rounded-full text-[11px] font-semibold cursor-pointer sm:px-3 sm:text-xs whitespace-nowrap z-10"
+            :class="aspect === '1:1' ? 'text-white' : 'text-[#8a8175]'"
+            @click="setAspect('1:1')"
+          >
+            <span class="sm:hidden">1:1</span><span class="hidden sm:inline">1:1 方版</span>
+          </button>
         </div>
-        <span class="xhs-status">{{ status }}</span>
-        <button class="xhs-btn primary" :disabled="busy || building || !cards.length" @click="downloadAll">
+
+        <!-- 设置按钮 -->
+        <button
+          class="xhs-exporter-brand-btn border-none bg-transparent text-[#8a8175] cursor-pointer p-1.5 rounded-md flex items-center justify-center transition-colors hover:bg-[#f3f0ea] hover:text-[var(--accent)]"
+          @click="openBrandSettings"
+          title="设置品牌名"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+            ></path>
+          </svg>
+        </button>
+
+        <span class="hidden sm:inline flex-1 text-xs text-[#a89a86] text-right">{{ status }}</span>
+
+        <button
+          class="border border-[var(--accent)] bg-[var(--accent)] text-white rounded-lg px-2.5 py-1.5 text-[12px] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed sm:px-3 sm:text-[13px] whitespace-nowrap ml-auto sm:ml-0"
+          :disabled="busy || building || !cards.length"
+          @click="downloadAll"
+        >
           下载全部（{{ cards.length }}）
         </button>
-        <button class="xhs-close" @click="$emit('close')">✕</button>
+
+        <button
+          class="xhs-exporter-close-btn border-none bg-transparent text-base text-gray-400 cursor-pointer px-1.5 py-1 hover:text-gray-600 sm:px-2"
+          @click="$emit('close')"
+        >
+          ✕
+        </button>
       </header>
 
-      <div class="xhs-body">
-        <p v-if="building" class="xhs-hint">生成中…</p>
-        <div class="xhs-grid">
-          <div v-for="(c, idx) in cards" :key="c.id" class="xhs-item">
+      <!-- 内容区 -->
+      <div class="xhs-exporter-content overflow-auto p-5 bg-[#f6f5f2]">
+        <p v-if="building" class="text-center text-gray-400 text-[13px] p-5">生成中…</p>
+        <div class="flex flex-wrap gap-5 justify-center">
+          <div v-for="(c, idx) in cards" :key="c.id" class="flex flex-col gap-2">
             <div
               v-if="c.kind === 'html'"
-              class="xhs-frame"
+              class="w-[360px] rounded-[10px] overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.12)] leading-none"
               :ref="(el) => setRef(el as Element | null, idx)"
               v-html="c.html"
             ></div>
-            <img v-else class="xhs-frame xhs-img" :src="c.src" alt="" />
-            <div class="xhs-item-bar">
-              <span class="xhs-label">{{ c.label }}</span>
-              <button class="xhs-btn" :disabled="busy" @click="downloadOne(idx)">下载</button>
+            <img
+              v-else
+              class="w-[360px] rounded-[10px] overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.12)] leading-none block h-auto"
+              :src="c.src"
+              alt=""
+            />
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-xs text-[#8a8175] font-semibold">{{ c.label }}</span>
+              <button
+                class="xhs-exporter-download-one border border-[var(--accent)] bg-white text-[var(--accent)] rounded-lg px-3 py-1.5 text-[13px] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--accent)] hover:text-white transition-colors"
+                :disabled="busy"
+                @click="downloadOne(idx)"
+              >
+                下载
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- 品牌名设置弹窗 -->
+    <PromptDialog
+      v-model:visible="showBrandInput"
+      :value="brand"
+      title="设置品牌名"
+      description="设置后将显示在小红书图片底部"
+      placeholder="请输入品牌名"
+      @save="onBrandSave"
+    />
   </div>
 </template>
 
 <style scoped>
-.xhs-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(20, 18, 15, 0.55);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-.xhs-panel {
-  width: 100%;
-  max-width: 960px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
-}
-.xhs-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
-  border-bottom: 1px solid #eee;
-  flex-shrink: 0;
-}
-.xhs-title {
-  font-size: 15px;
+/* 亮色模式标题 */
+.xhs-exporter-title {
   color: #1f1a17;
 }
-[data-theme='dark'] .xhs-title {
-    font-size: 15px;
-    color: #ffffff;
+/* 深色模式 */
+[data-theme='dark'] .xhs-exporter-modal {
+  background: #1e1e1e;
 }
-.xhs-aspect {
-  display: flex;
-  gap: 4px;
-  background: #f3f0ea;
-  border-radius: 999px;
-  padding: 3px;
+[data-theme='dark'] .xhs-exporter-header {
+  border-color: #333;
 }
-.xhs-aspect button {
-  border: none;
-  background: transparent;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #8a8175;
-  cursor: pointer;
+/* 比例选择器暗色适配 */
+[data-theme='dark'] .xhs-ratio-selector {
+  background: #333;
 }
-.xhs-aspect button.on {
-  background: #f39c12;
+[data-theme='dark'] .xhs-ratio-selector button {
+  color: #999;
+}
+[data-theme='dark'] .xhs-ratio-selector button.text-white {
   color: #fff;
 }
-.xhs-status {
-  flex: 1;
-  font-size: 12px;
-  color: #a89a86;
-  text-align: right;
-}
-.xhs-btn {
-  border: 1px solid #f39c12;
-  background: #fff;
-  color: #e67e22;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.xhs-btn.primary {
-  background: #f39c12;
+[data-theme='dark'] .xhs-exporter-header strong,
+[data-theme='dark'] .xhs-exporter-title {
   color: #fff;
 }
-.xhs-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+[data-theme='dark'] .xhs-exporter-content {
+  background: #161616;
 }
-.xhs-close {
-  border: none;
-  background: transparent;
-  font-size: 16px;
-  color: #999;
-  cursor: pointer;
-  padding: 4px 8px;
+[data-theme='dark'] .xhs-exporter-brand-btn {
+  color: #ccc;
 }
-.xhs-body {
-  overflow: auto;
-  padding: 20px;
-  background: #f6f5f2;
+[data-theme='dark'] .xhs-exporter-brand-btn:hover {
+  background: #333;
 }
-.xhs-hint {
-  text-align: center;
-  color: #999;
-  font-size: 13px;
-  padding: 20px;
+[data-theme='dark'] .xhs-exporter-close-btn {
+  color: #888;
 }
-.xhs-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
+[data-theme='dark'] .xhs-exporter-close-btn:hover {
+  color: #ccc;
 }
-.xhs-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+[data-theme='dark'] .xhs-exporter-download-one {
+  background: #2a2a2a;
+  border-color: #444;
 }
-.xhs-frame {
-  width: 360px;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  line-height: 0;
-}
-.xhs-img {
-  display: block;
-  height: auto;
-}
-.xhs-item-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.xhs-label {
-  font-size: 12px;
-  color: #8a8175;
-  font-weight: 600;
+[data-theme='dark'] .xhs-exporter-download-one:hover {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 </style>

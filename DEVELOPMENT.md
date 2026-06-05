@@ -213,18 +213,18 @@ interface ThemeColors {
 
 在 `src/utils/inlineFormat.ts` 中定义：
 
-| 语法         | 效果     | HTML 输出                                          |
-| ------------ | -------- | -------------------------------------------------- |
-| `==文字==`   | 渐变背景 | `<span style="background:linear-gradient(...)">`   |
-| `::文字::`   | 柔光重点 | `<span style="color:...;font-weight:700">`         |
-| `!!文字!!`   | 胶囊文字 | `<span style="background:...;border-radius:20px">` |
-| `^^文字^^`   | 上标强调 | `<strong style="color:...">`                       |
-| `__文字__`   | 下划线   | `<span style="text-decoration:underline">`         |
-| `~~文字~~`   | 删除线   | `<del>`                                            |
-| `**文字**`   | 加粗     | `<strong>`                                         |
-| `*文字*`     | 斜体     | `<em>`                                             |
-| `` `文字` `` | 行内代码 | `<code>`                                           |
-| `[text](url "desc")` | 脚注引用 | 带引号标题的链接自动转为脚注，文末生成参考资料 |
+| 语法                 | 效果     | HTML 输出                                          |
+| -------------------- | -------- | -------------------------------------------------- |
+| `==文字==`           | 渐变背景 | `<span style="background:linear-gradient(...)">`   |
+| `::文字::`           | 柔光重点 | `<span style="color:...;font-weight:700">`         |
+| `!!文字!!`           | 胶囊文字 | `<span style="background:...;border-radius:20px">` |
+| `^^文字^^`           | 上标强调 | `<strong style="color:...">`                       |
+| `__文字__`           | 下划线   | `<span style="text-decoration:underline">`         |
+| `~~文字~~`           | 删除线   | `<del>`                                            |
+| `**文字**`           | 加粗     | `<strong>`                                         |
+| `*文字*`             | 斜体     | `<em>`                                             |
+| `` `文字` ``         | 行内代码 | `<code>`                                           |
+| `[text](url "desc")` | 脚注引用 | 带引号标题的链接自动转为脚注，文末生成参考资料     |
 
 ### 组件解析语法
 
@@ -232,22 +232,22 @@ interface ThemeColors {
 
 在 `src/editor-components/` 目录下定义，通过 `<tag>` 标签使用：
 
-| 标签           | 组件           | 说明                     |
-| -------------- | -------------- | ------------------------ |
-| `<title>`      | 标题组件       | 支持 v1/v2 两种样式      |
-| `<ptitle>`     | 副标题组件     | 支持 hide 属性隐藏元素   |
-| `<statement>`  | 居中强调语     | -                        |
-| `<lead>`       | 引导文字段     | -                        |
-| `<breaking>`   | 突发新闻卡片   | -                        |
-| `<compare>`    | 对比布局       | 支持 v1/v2 两种样式      |
-| `<cta>`        | 行动召唤卡片   | -                        |
-| `<steps>`      | 横向步骤流     | 支持 v1/v2 两种样式      |
-| `<timeline>`   | 时间线组件     | -                        |
-| `<engage>`     | 互动引导组件   | 支持 v1/v2 两种样式      |
-| `<caseflow>`   | 案例流程组件   | -                        |
-| `<readingpath>`| 阅读路径组件   | -                        |
-| `<slider>`     | 图片幻灯片轮播 | 支持 4 种轮播模式        |
-| `<badges>`     | 标签徽章       | -                        |
+| 标签            | 组件           | 说明                   |
+| --------------- | -------------- | ---------------------- |
+| `<title>`       | 标题组件       | 支持 v1/v2 两种样式    |
+| `<ptitle>`      | 副标题组件     | 支持 hide 属性隐藏元素 |
+| `<statement>`   | 居中强调语     | -                      |
+| `<lead>`        | 引导文字段     | -                      |
+| `<breaking>`    | 突发新闻卡片   | -                      |
+| `<compare>`     | 对比布局       | 支持 v1/v2 两种样式    |
+| `<cta>`         | 行动召唤卡片   | -                      |
+| `<steps>`       | 横向步骤流     | 支持 v1/v2 两种样式    |
+| `<timeline>`    | 时间线组件     | -                      |
+| `<engage>`      | 互动引导组件   | 支持 v1/v2 两种样式    |
+| `<caseflow>`    | 案例流程组件   | -                      |
+| `<readingpath>` | 阅读路径组件   | -                      |
+| `<slider>`      | 图片幻灯片轮播 | 支持 4 种轮播模式      |
+| `<badges>`      | 标签徽章       | -                      |
 
 ## Git 工作流
 
