@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { toPng } from 'html-to-image'
-import { parseMarkdown } from '../utils/markdownParser'
-import type { ThemeColors } from '../composables/useTheme'
+import { parseMarkdown } from '@/utils/markdownParser'
+import type { ThemeColors } from '@/composables/useTheme'
 import {
   extractXhs,
   buildCover,
@@ -12,7 +12,7 @@ import {
   CONTENT_SCALE,
   XHS,
   type XhsAspect,
-} from '../utils/xhsCards'
+} from '@/utils/xhsCards'
 
 // 图片加载失败时的占位（透明 1px），避免一张坏图把整次渲染拖崩
 const TRANSPARENT_PX =
@@ -387,6 +387,10 @@ watch(
 .xhs-title {
   font-size: 15px;
   color: #1f1a17;
+}
+[data-theme='dark'] .xhs-title {
+    font-size: 15px;
+    color: #ffffff;
 }
 .xhs-aspect {
   display: flex;
