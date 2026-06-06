@@ -25,6 +25,12 @@ export const Steps_DA02 = {
     { key: 'hint', label: '提示文字', required: false, default: '' },
     { key: 'active', label: '当前步骤（1/2/3）', required: false, default: '1' },
     { key: 'color', label: '自定义颜色', required: false, default: '' },
+    {
+      key: 'direction',
+      label: '布局方向（horizontal/vertical）',
+      required: false,
+      default: 'vertical', options: ['horizontal', 'vertical']
+    },
   ],
   example: `<steps type="DA02" label="VERTICAL STEPS" title="竖向步骤流" active="2">
 - 注册账号 | 填写基本信息完成注册

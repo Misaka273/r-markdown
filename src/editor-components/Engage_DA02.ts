@@ -16,6 +16,7 @@ export const Engage_DA02 = {
   icon: '💬',
   example: `<engage type="DA02" title="感谢你的阅读与支持！" subtitle="喜欢就互动一下吧～ 💚" color="red|green|yellow"></engage>`,
   attrs: [
+    { key: 'type', label: '样式类型', required: false, default: 'DA02', options: ['DA01', 'DA02'] },
     { key: 'title', label: '主标题文字', required: false, default: '感谢你的阅读与支持！' },
     { key: 'subtitle', label: '副标题文字', required: false, default: '喜欢就互动一下吧～ 💚' },
     {

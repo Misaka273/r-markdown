@@ -25,11 +25,63 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   scroll: [ratio: number]
+  'tag-selected': [
+    info: {
+      tagName: string
+      attrs: Record<string, string>
+      selfClose: boolean
+      from: number
+      to: number
+    } | null,
+  ]
 }>()
 
 const editorRef = ref<HTMLDivElement>()
 const { colors } = useTheme()
 let view: EditorView | null = null
+
+// ── 标签选中检测 ──
+const tagRegex = /^<(\w[\w-]*)((?:\s+[^>]*?)?)(\/?)>/s
+let lastTagSelection: { tagName: string; attrs: Record<string, string>; selfClose: boolean; from: number; to: number } | null = null
+
+function checkTagSelection(state: EditorState) {
+  const sel = state.selection.main
+  if (sel.empty) {
+    if (lastTagSelection) {
+      lastTagSelection = null
+      emit('tag-selected', null)
+    }
+    return
+  }
+  const text = state.sliceDoc(sel.from, sel.to)
+  const match = text.match(tagRegex)
+  if (!match) {
+    if (lastTagSelection) {
+      lastTagSelection = null
+      emit('tag-selected', null)
+    }
+    return
+  }
+  const [, tagName, attrStr, selfClose] = match
+  const attrs: Record<string, string> = {}
+  if (attrStr) {
+    const attrRegex = /(\w[\w-]*)="([^"]*)"/g
+    let am
+    while ((am = attrRegex.exec(attrStr)) !== null) {
+      attrs[am[1]] = am[2]
+    }
+  }
+  const newTag = { tagName, attrs, selfClose: selfClose === '/', from: sel.from, to: sel.from + match[0].length }
+  if (
+    !lastTagSelection ||
+    lastTagSelection.tagName !== newTag.tagName ||
+    lastTagSelection.from !== newTag.from ||
+    lastTagSelection.to !== newTag.to
+  ) {
+    lastTagSelection = newTag
+    emit('tag-selected', newTag)
+  }
+}
 
 // 自定义语法高亮 — 去掉 defaultHighlightStyle 的 heading 下划线
 const warmHighlight = HighlightStyle.define([
@@ -153,6 +205,9 @@ onMounted(async () => {
     if (update.docChanged) {
       emit('update:modelValue', update.state.doc.toString())
     }
+    if (update.selectionSet || update.docChanged) {
+      checkTagSelection(update.state)
+    }
   })
 
   const state = EditorState.create({
@@ -223,7 +278,15 @@ function scrollTo(ratio: number) {
   el.scrollTop = ratio * maxScroll
 }
 
-defineExpose({ scrollTo })
+function replaceRange(from: number, to: number, text: string) {
+  if (!view) return
+  view.dispatch({
+    changes: { from, to, insert: text },
+    selection: { anchor: from, head: from + text.length },
+  })
+}
+
+defineExpose({ scrollTo, replaceRange })
 </script>
 
 <template>

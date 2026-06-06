@@ -33,7 +33,7 @@ export const Steps_DA01 = {
       key: 'direction',
       label: '布局方向（horizontal/vertical）',
       required: false,
-      default: 'horizontal',
+      default: 'horizontal', options: ['horizontal', 'vertical']
     },
   ],
   example: `<steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2">

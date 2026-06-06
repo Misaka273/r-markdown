@@ -35,7 +35,7 @@ export const PTitle = {
   name: '段落标题',
   tag: 'p-title',
   attrs: [
-    { key: 'num', label: '序号（01/02）', required: false, default: '' },
+    { key: 'num', label: '序号', required: false, default: '' },
     { key: 'title', label: '标题文字', required: false, default: '' },
     { key: 'subtitle', label: '副标题', required: false, default: '' },
     { key: 'color', label: '标题颜色', required: false, default: '' },
@@ -56,7 +56,7 @@ export const PTitle = {
       label: '隐藏元素（level=1）',
       required: false,
       default: '',
-      options: ['num', 'line'],
+      options: ['', 'num', 'line'],
     },
   ],
   example: `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,

@@ -19,6 +19,7 @@ export const Engage_DA01 = {
   name: '底部引导卡片',
   tag: 'engage',
   attrs: [
+    { key: 'type', label: '样式类型', required: false, default: 'DA01', options: ['DA01', 'DA02'] },
     { key: 'title', label: '标题文字', required: false, default: '' },
     { key: 'label', label: '底部小字', required: false, default: 'THANKS FOR READING' },
   ],

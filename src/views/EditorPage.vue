@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTheme } from '../composables/useTheme'
 import { useDarkMode } from '../composables/useDarkMode'
 import { DEMO_CONTENT } from '../data/demoContent'
@@ -9,6 +9,7 @@ import ThemePicker from '../components/ThemePicker.vue'
 import DarkModeToggle from '../components/DarkModeToggle.vue'
 import MobileActionsMenu from '../components/MobileActionsMenu.vue'
 import XhsExporter from '../components/XhsExporter.vue'
+import TagPropsForm from '../components/TagPropsForm.vue'
 
 const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
 const { mode: darkMode, isDark, setMode: setDarkMode } = useDarkMode()
@@ -75,7 +76,42 @@ const SAVE_TIME_KEY = 'wechat-md-editor-save-time'
 const saved = localStorage.getItem(STORAGE_KEY)
 const markdown = ref(saved !== null ? saved : DEMO_CONTENT)
 const previewRef = ref()
+const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
+
+// ── 标签解析表单 ──
+interface TagInfo {
+  tagName: string
+  attrs: Record<string, string>
+  selfClose: boolean
+  from: number
+  to: number
+}
+const tagInfo = ref<TagInfo | null>(null)
+const showTagDialog = ref(false)
+
+function onTagSelected(info: TagInfo | null) {
+  tagInfo.value = info
+}
+
+// 光标离开标签时自动关闭侧栏
+watch(tagInfo, (val) => {
+  if (!val) showTagDialog.value = false
+})
+
+function onTagDialogUpdate(attrs: Record<string, string>) {
+  if (!tagInfo.value) return
+  const prev = tagInfo.value
+  const attrParts = Object.entries(attrs)
+    .map(([k, v]) => `${k}="${v}"`)
+    .join(' ')
+  const attrsStr = attrParts ? ` ${attrParts}` : ''
+  const newTag = prev.selfClose
+    ? `<${prev.tagName}${attrsStr} />`
+    : `<${prev.tagName}${attrsStr}>`
+  editorRef.value?.replaceRange(prev.from, prev.to, newTag)
+}
+
 const savedTime = localStorage.getItem(SAVE_TIME_KEY)
 function formatTime(full: string) {
   if (!isMobile.value) return full
@@ -474,9 +510,26 @@ onBeforeUnmount(() => {
             </svg>
             Markdown 编辑
           </span>
-          <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
+          <span class="flex items-center gap-2">
+            <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
+            <button
+              v-if="tagInfo && !showTagDialog && !isMobile"
+              class="tag-parse-btn"
+              @click="showTagDialog = true"
+            >
+              解析 &lt;{{ tagInfo.tagName }}&gt;属性
+            </button>
+          </span>
         </div>
-        <Editor :model-value="markdown" @update:model-value="onInput" @scroll="onEditorScrollAll" />
+        <div class="flex flex-1 overflow-hidden">
+          <Editor ref="editorRef" class="flex-1" :model-value="markdown" @update:model-value="onInput" @scroll="onEditorScrollAll" @tag-selected="onTagSelected" />
+          <TagPropsForm
+            :visible="showTagDialog && !isMobile"
+            :tag-info="tagInfo"
+            @close="showTagDialog = false; tagInfo = null"
+            @update="onTagDialogUpdate"
+          />
+        </div>
       </div>
 
       <!-- Resize Handle (仅桌面端) -->
@@ -588,6 +641,27 @@ onBeforeUnmount(() => {
 }
 
 .mobile-tab-btn.active {
+  color: #fff;
+}
+
+/* 标签解析按钮 */
+.tag-parse-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--accent, #6c5ce7);
+  border-radius: 5px;
+  background: var(--accent-light, rgba(108, 92, 231, 0.1));
+  color: var(--accent, #6c5ce7);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.tag-parse-btn:hover {
+  background: var(--accent, #6c5ce7);
   color: #fff;
 }
 
