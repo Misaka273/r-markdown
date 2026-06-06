@@ -27,6 +27,7 @@ export const Breaking_DA01 = {
     { key: 'subtitle', label: '副标题', required: false, default: '' },
     { key: 'chips', label: '关键词（|分隔）', required: false, default: '' },
     { key: 'color', label: '自定义颜色', required: false, default: '' },
+    { key: 'top', label: '去除上边距', required: false, default: '' },
   ],
   example: `<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观">
 这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。
@@ -61,7 +62,7 @@ export const Breaking_DA01 = {
     const light = attrs.color ? withAlpha(color, 0.15) : t.light
     const border = attrs.color ? withAlpha(color, 0.2) : t.border
 
-    let html = `<section style="margin:24px 0px;padding:28px 24px;background:radial-gradient(circle 60px at 92% 30px,${light} 96%,transparent 100%),linear-gradient(135deg,${light},rgba(255,255,255,0.8));border:1px solid ${border};border-radius:16px">`
+    let html = `<section style="margin:${attrs.top ? '0px 0px 24px' : '24px 0px'};padding:28px 24px;background:radial-gradient(circle 60px at 92% 30px,${light} 96%,transparent 100%),linear-gradient(135deg,${light},rgba(255,255,255,0.8));border:1px solid ${border};border-radius:16px">`
 
     if (attrs.badge)
       html += `<span style="display:inline-block;padding:4px 12px;background:${color};color:rgb(255,255,255);border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:12px">${leaf(attrs.badge)}</span>`

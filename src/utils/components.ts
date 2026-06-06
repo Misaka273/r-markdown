@@ -1,5 +1,6 @@
 import type { ThemeColors } from '@/composables/useTheme'
 import { esc, leaf, parseAttrs } from './helpers'
+import { resolveColor, darkenColor, colorToAlpha } from './colorUtils'
 import { inlineFormat } from './inlineFormat'
 import { Compare_DA01 } from '@/editor-components/Compare_DA01'
 import { Compare_DA02 } from '@/editor-components/Compare_DA02'
@@ -70,7 +71,24 @@ export function parseCtaInline(
   t: ThemeColors,
 ): { html: string; next: number } {
   const attrs = parseAttrs(lines[start])
-  let html = `<section style="margin:24px 0px;padding:32px 24px;background:linear-gradient(135deg,${t.accent},${t.dark});border-radius:16px;text-align:center;color:rgb(255,255,255)">`
+  const colorHex = resolveColor(attrs.color || t.accent)
+
+  if (attrs.light) {
+    // 浅色背景：6% 透明度主题色 + 深色文字 + 实色按钮
+    const bg = colorToAlpha(colorHex, 0.06)
+    let html = `<section style="margin:24px 0px;padding:32px 24px;background:${bg};border-radius:16px;text-align:center">`
+    if (attrs.label)
+      html += `<p style="margin:0px 0px 8px;font-size:11px;letter-spacing:3px;font-weight:700;color:${colorHex}">${leaf(attrs.label)}</p>`
+    if (attrs.title)
+      html += `<p style="margin:0px 0px 16px;font-size:20px;font-weight:800;line-height:1.4;color:rgb(26,26,26)">${leaf(attrs.title)}</p>`
+    if (attrs.button)
+      html += `<span style="display:inline-block;padding:12px 32px;background:${colorHex};border-radius:8px;font-weight:700;letter-spacing:1px;color:rgb(255,255,255)">${leaf(attrs.button)}</span>`
+    html += `</section>`
+    return { html, next: start + 1 }
+  }
+
+  const darkHex = darkenColor(colorHex)
+  let html = `<section style="margin:24px 0px;padding:32px 24px;background:linear-gradient(135deg,${colorHex},${darkHex});border-radius:16px;text-align:center;color:rgb(255,255,255)">`
   if (attrs.label)
     html += `<p style="margin:0px 0px 8px;font-size:11px;letter-spacing:3px;font-weight:700;opacity:0.8">${leaf(attrs.label)}</p>`
   if (attrs.title)

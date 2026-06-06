@@ -160,6 +160,12 @@ const selectChevronStyle = {
         <select v-if="getMeta(key).options" v-model="editedAttrs[key]" class="w-full py-[5px] px-2 text-xs border border-[var(--border-color,#d1d5db)] rounded-[5px] bg-[var(--bg-primary,#fff)] text-[var(--text-primary,#111)] outline-none box-border cursor-pointer appearance-none bg-no-repeat bg-[right_8px_center] pr-6 focus:border-[var(--accent,#6c5ce7)] focus:shadow-[0_0_0_2px_rgba(108,92,231,0.1)]" :style="selectChevronStyle">
           <option v-for="opt in getMeta(key).options" :key="opt" :value="opt">{{ opt }}</option>
         </select>
+        <div v-else-if="isColorField(key)" class="flex gap-1.5 items-center">
+          <input v-model="editedAttrs[key]" class="flex-1 py-[5px] px-2 text-xs border border-[var(--border-color,#d1d5db)] rounded-[5px] bg-[var(--bg-primary,#fff)] text-[var(--text-primary,#111)] outline-none box-border focus:border-[var(--accent,#6c5ce7)] focus:shadow-[0_0_0_2px_rgba(108,92,231,0.1)]" type="text" />
+          <label class="w-6 h-6 rounded-[3px] border border-[var(--border-color,#d1d5db)] cursor-pointer shrink-0" :style="{ backgroundColor: editedAttrs[key] || '#ccc' }">
+            <input type="color" :value="editedAttrs[key] || '#000000'" class="absolute opacity-0 pointer-events-none" @input="editedAttrs[key] = ($event.target as HTMLInputElement).value" />
+          </label>
+        </div>
         <input v-else v-model="editedAttrs[key]" class="w-full py-[5px] px-2 text-xs border border-[var(--border-color,#d1d5db)] rounded-[5px] bg-[var(--bg-primary,#fff)] text-[var(--text-primary,#111)] outline-none box-border focus:border-[var(--accent,#6c5ce7)] focus:shadow-[0_0_0_2px_rgba(108,92,231,0.1)]" type="text" />
         <span v-if="isColorField(key)" class="text-[10px] text-[var(--text-muted,#9ca3af)] leading-[1.3]">{{ getColorHint(key) }}</span>
         <span v-else-if="getHint(key)" class="text-[10px] text-[var(--text-muted,#9ca3af)] leading-[1.3]">{{ getHint(key) }}</span>

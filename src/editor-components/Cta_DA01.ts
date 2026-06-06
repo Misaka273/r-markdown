@@ -12,7 +12,7 @@
  *   color   - 自定义颜色（默认使用主题色）
  */
 import { leaf } from '@/utils/helpers'
-import { resolveColor } from '@/utils/colorUtils'
+import { resolveColor, darkenColor, colorToAlpha } from '@/utils/colorUtils'
 import type { ThemeColors } from '@/composables/useTheme'
 
 export const CTA_DA01 = {
@@ -24,25 +24,51 @@ export const CTA_DA01 = {
     { key: 'title', label: '标题', required: false, default: '' },
     { key: 'button', label: '按钮文字', required: false, default: '' },
     { key: 'color', label: '自定义颜色', required: false, default: '' },
+    { key: 'light', label: '浅色背景', required: false, default: '' },
   ],
   example: `<cta label="GET STARTED" title="准备好开始你的创作了吗？" button="立即复制下方代码"></cta>`,
 
   render(attrs: Record<string, string>, body: string, t: ThemeColors): string {
     const hex = resolveColor(attrs.color || t.accent)
 
-    let html = `<section style="margin:24px 0px;padding:28px 24px;background:rgb(250,251,254);border-radius:14px;text-align:center">`
+    if (attrs.light) {
+      // 浅色背景：6% 透明度主题色 + 深色文字 + 实色按钮
+      const bg = colorToAlpha(hex, 0.06)
+
+      let html = `<section style="margin:24px 0px;padding:32px 24px;background:${bg};border-radius:16px;text-align:center">`
+
+      if (attrs.label)
+        html += `<p style="margin:0px 0px 8px;font-size:11px;letter-spacing:3px;font-weight:700;color:${hex}">${leaf(attrs.label)}</p>`
+
+      if (attrs.title)
+        html += `<p style="margin:0px 0px 16px;font-size:20px;font-weight:800;line-height:1.4;color:rgb(26,26,26)">${leaf(attrs.title)}</p>`
+
+      if (attrs.button)
+        html += `<span style="display:inline-block;padding:12px 32px;background:${hex};border-radius:8px;font-weight:700;letter-spacing:1px;color:rgb(255,255,255)">${leaf(attrs.button)}</span>`
+
+      if (body.trim())
+        html += `<section style="margin-top:16px;font-size:14px;color:rgb(85,85,85);line-height:1.7">${leaf(body.trim())}</section>`
+
+      html += `</section>`
+      return html
+    }
+
+    // 深色渐变背景（默认）
+    const darkHex = darkenColor(hex)
+
+    let html = `<section style="margin:24px 0px;padding:32px 24px;background:linear-gradient(135deg,${hex},${darkHex});border-radius:16px;text-align:center;color:rgb(255,255,255)">`
 
     if (attrs.label)
-      html += `<p style="margin:0px 0px 8px;font-size:10px;font-weight:700;color:${hex};letter-spacing:3px;text-transform:uppercase">${leaf(attrs.label)}</p>`
+      html += `<p style="margin:0px 0px 8px;font-size:11px;letter-spacing:3px;font-weight:700;opacity:0.8">${leaf(attrs.label)}</p>`
 
     if (attrs.title)
-      html += `<p style="margin:0px 0px 20px;font-size:20px;font-weight:800;color:rgb(26,26,26);line-height:1.4">${leaf(attrs.title)}</p>`
+      html += `<p style="margin:0px 0px 16px;font-size:20px;font-weight:800;line-height:1.4">${leaf(attrs.title)}</p>`
 
     if (attrs.button)
-      html += `<a style="display:inline-block;padding:12px 32px;background:${hex};color:rgb(255,255,255);border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.5px">${leaf(attrs.button)}</a>`
+      html += `<span style="display:inline-block;padding:12px 32px;background:rgba(255,255,255,0.2);border-radius:8px;font-weight:700;letter-spacing:1px;backdrop-filter:blur(4px)">${leaf(attrs.button)}</span>`
 
     if (body.trim())
-      html += `<section style="margin-top:16px;font-size:14px;color:rgb(85,85,85);line-height:1.7">${leaf(body.trim())}</section>`
+      html += `<section style="margin-top:16px;font-size:14px;opacity:0.85;line-height:1.7">${leaf(body.trim())}</section>`
 
     html += `</section>`
     return html

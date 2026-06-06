@@ -238,21 +238,32 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     }
     // <cta>
     if (/^<cta\b/.test(line)) {
-      const r = parseCtaInline(lines, i, t)
-      html += r.html
-      i = r.next
+      if (/\/>\s*$/.test(line)) {
+        // 自闭合行内形式：<cta .../>
+        const r = parseCtaInline(lines, i, t)
+        html += r.html
+        i = r.next
+      } else {
+        // 前窥后续是否存在 </cta> 关闭标签，有则走标签形式，否则按行内处理
+        let hasClosingCta = false
+        for (let peek = i + 1; peek < lines.length && peek <= i + 3; peek++) {
+          if (/^<\/cta>/.test(lines[peek])) { hasClosingCta = true; break }
+        }
+        if (hasClosingCta) {
+          const r = parseCtaTag(lines, i, t)
+          html += r.html
+          i = r.next
+        } else {
+          const r = parseCtaInline(lines, i, t)
+          html += r.html
+          i = r.next
+        }
+      }
       continue
     }
     // <compare>
     if (/^<compare\b/.test(line)) {
       const r = parseCompare(lines, i, t)
-      html += r.html
-      i = r.next
-      continue
-    }
-    // <cta>
-    if (/^<cta\b/.test(line)) {
-      const r = parseCtaTag(lines, i, t)
       html += r.html
       i = r.next
       continue
