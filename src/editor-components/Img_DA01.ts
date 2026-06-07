@@ -5,16 +5,17 @@ import type { ThemeColors } from '@/composables/useTheme'
  * Img_DA01 - 图片组件（默认A型01号样式）
  *
  * 编辑器语法：
- *   <img src="data:image/png;base64,..." alt="替代文本" width="100%" height="auto" radius="8px" object-fit="cover" />
+ *   <img src="data:image/png;base64,..." alt="替代文本" width="100%" height="auto" radius="8px" fit="cover" position="center" align="left" />
  *
  * 属性：
- *   src        - 图片地址（支持 base64 / 网络 URL / 本地路径）
- *   alt        - 替代文本
- *   width      - 宽度，默认 100%
- *   height     - 高度，默认 auto
- *   radius     - 圆角，默认 8px
- *   object-fit  - 裁切方式，默认 cover
- *   object-position - 对齐位置，默认 center
+ *   src      - 图片地址（支持 base64 / 网络 URL / 本地路径）
+ *   alt      - 替代文本
+ *   width    - 宽度，默认 100%
+ *   height   - 高度，默认 auto
+ *   radius   - 圆角，默认 8px
+ *   fit      - 裁切方式，默认 cover
+ *   position - 图片在容器内的对齐位置，默认 center
+ *   align    - 容器水平对齐方式：left / center / right，默认 left
  */
 
 export const Img_DA01 = {
@@ -55,10 +56,10 @@ export const Img_DA01 = {
       label: '圆角',
       required: false,
       default: '8px',
-      description: '图片圆角大小，如 8px / 12px / 50%',
+      description: '图片圆角大小，如 8px / 12px / 50% / 10px 20px / 10px 20px 10px 20px',
     },
     {
-      key: 'object-fit',
+      key: 'fit',
       label: '裁切方式',
       required: false,
       default: 'cover',
@@ -67,7 +68,7 @@ export const Img_DA01 = {
         'CSS object-fit 裁切方式：fill 拉伸 / contain 完整显示 / cover 裁剪 / none 原始尺寸 / scale-down 缩小',
     },
     {
-      key: 'object-position',
+      key: 'position',
       label: '对齐位置',
       required: false,
       default: 'center',
@@ -84,8 +85,16 @@ export const Img_DA01 = {
       ],
       description: 'CSS object-position 对齐位置，控制图片在容器内的偏移，使用预设的值或者自定义x轴和y轴的偏移，例如：10px 20px',
     },
+    {
+      key: 'align',
+      label: '容器对齐',
+      required: false,
+      default: 'left',
+      options: ['left', 'center', 'right'],
+      description: '图片容器水平对齐方式（固定宽度时生效）：left 居左 / center 居中 / right 居右',
+    },
   ],
-  example: `<img src="https://robocopmao.github.io/r-markdown/banner4.webp" alt="示例图片" width="100%" height="auto" radius="8px" object-fit="cover" />`,
+  example: `<img src="https://robocopmao.github.io/r-markdown/banner4.webp" alt="示例图片" width="100%" height="auto" radius="8px" fit="cover" position="center" />`,
 
   render(attrs: Record<string, string>, _body: string, _t: ThemeColors): string {
     const src = attrs.src || ''
@@ -93,9 +102,16 @@ export const Img_DA01 = {
     const width = attrs.width || '100%'
     const height = attrs.height || 'auto'
     const radius = attrs.radius || '8px'
-    const fit = attrs['object-fit'] || 'cover'
-    const pos = attrs['object-position'] || 'center'
+    const fit = attrs['fit'] || 'cover'
+    const align = attrs['align'] || 'left'
+    const marginMap: Record<string, string> = {
+      left: '24px 0px',
+      center: '24px auto',
+      right: '24px 0px 24px auto',
+    }
+    const margin = marginMap[align] || marginMap.left
+    const pos = attrs['position'] || 'center'
 
-    return `<section style="margin:12px 0px;width:${width};height:${height};overflow:hidden;border-radius:${radius}"><img src="${src}" alt="${alt}" style="width:100%;height:100%;object-fit:${fit};object-position:${pos};display:block" /></section>`
+    return `<section style="margin:${margin};width:${width};height:${height};overflow:hidden;border-radius:${radius}"><img src="${src}" alt="${alt}" style="width:100%;height:100%;object-fit:${fit};object-position:${pos};display:block" /></section>`
   },
 }

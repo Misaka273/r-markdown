@@ -430,8 +430,8 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += Slider_DA01.render(attrs, body.trim(), t)
       continue
     }
-    // : engage 或 <engage>
-    if (/^:\s*engage\b/.test(line) || /^<engage\b/.test(line)) {
+    // <engage>
+    if (/^<engage\b/.test(line)) {
       const attrs = parseAttrs(line)
       // type="DA02" 使用彩色图标版，否则默认 DA01
       if (attrs.type && attrs.type.toUpperCase() === 'DA02') {
@@ -493,7 +493,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         const body = indent + (rest ? highlightLine(rest, lang) : '') || '&nbsp;'
         codeInner += `<code style="display:block;background:none;color:inherit;font-family:inherit">${leaf(body)}</code>`
       }
-      html += `<section class="code-snippet__js"><pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="${esc(lang)}" style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</pre></section>`
+      html += `<section class="code-snippet__js" style="margin:24px 0"><pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="${esc(lang)}" style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</pre></section>`
       continue
     }
 
@@ -514,7 +514,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         )
         i++
       }
-      html += `<section style="margin:0px 0px 30px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:28px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
+      html += `<section style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:28px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
       headers.forEach((h) => {
         html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">${inlineFormat(h, t)}</td>`
       })
@@ -532,7 +532,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
 
     // 无序列表
     if (/^[-*+]\s/.test(line)) {
-      html += `<section style="margin:10px 0px;padding-left:24px">`
+      html += `<section style="margin:24px 0px;padding-left:24px">`
       while (i < lines.length && /^[-*+]\s/.test(lines[i])) {
         const li = lines[i].replace(/^[-*+]\s/, '')
         const cb = li.match(/^\[([ x])\]\s*(.*)/)
@@ -575,9 +575,9 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       const [, alt, src, size] = imgMatch
       if (size) {
         const parts = size.split(/\s+/)
-        html += `<section style="max-height:${parts[1] || '250px'};overflow-y:auto;border-radius:8px;margin:12px 0px"><img src="${esc(src)}" alt="${esc(alt)}" style="width:${parts[0] || '100%'};display:block"></section>`
+        html += `<section style="max-height:${parts[1] || '250px'};overflow-y:auto;border-radius:8px;margin:24px 0px"><img src="${esc(src)}" alt="${esc(alt)}" style="width:${parts[0] || '100%'};display:block"></section>`
       } else {
-        html += `<img src="${esc(src)}" alt="${esc(alt)}" style="max-width:100%;border-radius:6px;margin:12px 0px;display:block">`
+        html += `<img src="${esc(src)}" alt="${esc(alt)}" style="max-width:100%;border-radius:6px;margin:24px 0px;display:block">`
       }
       i++
       continue

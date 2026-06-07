@@ -72,7 +72,7 @@ export const CaseFlow_DA01 = {
       .join('')
 
     return `
-      <section style="margin:20px 0;">
+      <section style="margin:24px 0;">
         ${rows}
       </section>
     `

@@ -192,7 +192,7 @@ function onImageSelected(e: Event) {
     const dataUrl = reader.result as string
     const compacted = compactBase64(dataUrl)
     editorRef.value?.insertAtCursor(
-      `<img src="${compacted}" width="100%" height="auto" radius="8px" object-fit="cover" />`,
+      `<img src="${compacted}" width="100%" height="auto" radius="8px" fit="cover" position="center" />`,
     )
     // 异步清理不再被引用的旧图片数据
     const cleanup = window.requestIdleCallback || ((fn) => setTimeout(fn, 200))

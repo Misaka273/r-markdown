@@ -73,7 +73,7 @@ export const Steps_DA02 = {
       if (m) steps.push({ name: m[1].trim(), desc: m[2].trim() })
     })
 
-    let html = `<section style="margin:0px 0px 24px;padding:20px;background:rgb(250,251,254);border-radius:12px;border:1px solid rgb(238,238,238)">`
+    let html = `<section style="margin:24px 0px;padding:20px;background:rgb(250,251,254);border-radius:12px;border:1px solid rgb(238,238,238)">`
     if (attrs.label)
       html += `<p style="margin:0px 0px 4px;font-size:10px;color:rgb(153,153,153);letter-spacing:2px;font-weight:700">${leaf(attrs.label)}</p>`
     if (attrs.title)

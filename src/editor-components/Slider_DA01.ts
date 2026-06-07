@@ -26,7 +26,7 @@ function foreignImg(url: string, x: number, w: number, h: number, extra: string 
 
 /** SVG 容器包裹 */
 function svgWrap(w: number, h: number, inner: string): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px;display:block;margin:28px auto;border-radius:8px;overflow:hidden">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px;display:block;margin:24px auto;border-radius:8px;overflow:hidden">
   ${inner}
 </svg>`
 }
@@ -266,7 +266,7 @@ export const Slider_DA01 = {
     const type = parseInt(attrs.type || '1', 10) || 1
 
     if (!imagesStr) {
-      return `<section style="margin:28px 0;width:100%;text-align:center;padding:20px;background:rgba(0,0,0,0.05);border-radius:8px;color:#999;font-size:14px">请提供图片URL列表</section>`
+      return `<section style="margin:24px 0;width:100%;text-align:center;padding:20px;background:rgba(0,0,0,0.05);border-radius:8px;color:#999;font-size:14px">请提供图片URL列表</section>`
     }
 
     const images = imagesStr
@@ -277,11 +277,11 @@ export const Slider_DA01 = {
     const count = images.length
 
     if (count === 0) {
-      return `<section style="margin:28px 0;width:100%;text-align:center;padding:20px;background:rgba(0,0,0,0.05);border-radius:8px;color:#999;font-size:14px">请提供图片URL列表</section>`
+      return `<section style="margin:24px 0;width:100%;text-align:center;padding:20px;background:rgba(0,0,0,0.05);border-radius:8px;color:#999;font-size:14px">请提供图片URL列表</section>`
     }
 
     if (count === 1) {
-      return `<section style="margin:28px 0;width:100%;text-align:center"><img src="${images[0]}" width="${width}" height="${height}" style="max-width:100%;height:auto;border-radius:8px" /></section>`
+      return `<section style="margin:24px 0;width:100%;text-align:center"><img src="${images[0]}" width="${width}" height="${height}" style="max-width:100%;height:auto;border-radius:8px" /></section>`
     }
 
     switch (type) {

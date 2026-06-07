@@ -185,7 +185,7 @@ export function parseCallout(
   }
   const bg = bgs[type] || '#f0f4fa'
   const border = borders[type] || t.accent
-  let html = `<section style="margin:16px 0px;padding:16px 18px;background:${bg};border-left:4px solid ${border};border-radius:0px 10px 10px 0px">`
+  let html = `<section style="margin:14px 0px;padding:16px 18px;background:${bg};border-left:4px solid ${border};border-radius:0px 10px 10px 0px">`
   if (title)
     html += `<p style="margin:0px 0px 6px;font-size:14px;font-weight:700;color:rgb(51,65,85)">${leaf((icons[type] || '') + ' ' + title)}</p>`
   if (body.trim())
