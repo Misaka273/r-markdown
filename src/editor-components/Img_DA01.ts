@@ -55,7 +55,7 @@ export const Img_DA01 = {
       label: '圆角',
       required: false,
       default: '8px',
-      description: '图片圆角大小，如 8px / 12px',
+      description: '图片圆角大小，如 8px / 12px / 50%',
     },
     {
       key: 'object-fit',
@@ -82,7 +82,7 @@ export const Img_DA01 = {
         'bottom left',
         'bottom right',
       ],
-      description: 'CSS object-position 对齐位置，控制图片在容器内的偏移',
+      description: 'CSS object-position 对齐位置，控制图片在容器内的偏移，使用预设的值或者自定义x轴和y轴的偏移，例如：10px 20px',
     },
   ],
   example: `<img src="https://robocopmao.github.io/r-markdown/banner4.webp" alt="示例图片" width="100%" height="auto" radius="8px" object-fit="cover" />`,
