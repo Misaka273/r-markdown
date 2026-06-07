@@ -419,14 +419,19 @@ const features = [
     desc: '内置多套配色主题，支持自定义强调色，打造专属公众号风格。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M12 16h24M12 24h16M12 32h20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="36" cy="32" r="4" stroke="currentColor" stroke-width="2.5"/></svg>`,
+    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><rect x="11" y="11" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2.5"/><rect x="29" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="2.5"/><rect x="29" y="25" width="8" height="8" rx="2" stroke="currentColor" stroke-width="2.5"/><rect x="13" y="29" width="12" height="8" rx="2" stroke="currentColor" stroke-width="2.5"/></svg>`,
     title: '自研扩展组件',
     desc: '标题卡片、步骤流、时间线、对比卡片、行动号召、轮播图等自研扩展组件。',
   },
   {
+    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><rect x="10" y="10" width="7" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M22 14h14M22 21h10M22 28h12M22 35h9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    title: '属性编辑器',
+    desc: '选中扩展组件即可通过侧栏表单编辑所有属性，实时预览，所见即所得。',
+  },
+  {
     icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M16 32V20l6 6 6-6v12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 32h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
     title: '保存为图片',
-    desc: '一键将排版好的文章导出为高清长图，方便分享到朋友圈或其他平台。',
+    desc: '一键将排版好的文章导出为高清长图、小红书图，方便分享到朋友圈或其他平台。',
   },
   {
     icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M15 15h18v18H15z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15V12h6v3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
