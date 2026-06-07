@@ -45,6 +45,7 @@
 | `<engage>`      | 互动引导组件          |
 | `<caseflow>`    | 案例流程组件          |
 | `<readingpath>` | 阅读路径组件          |
+| `<img>`         | 单图组件（宽高、圆角、裁切、容器对齐） |
 | `<slider>`      | 图片幻灯片轮播        |
 | ` ``` `         | 代码块                |
 | `> [TIP]`       | 提示框                |
@@ -135,6 +136,7 @@ r-markdown/
 │   │   ├── PTitle_DA01.ts     # 副标题
 │   │   ├── ReadingPath_DA01.ts # 阅读路径
 │   │   ├── Slider_DA01.ts     # 图片幻灯片轮播
+│   │   ├── Img_DA01.ts        # 单图组件
 │   │   ├── Statement_DA01.ts  # 居中强调语
 │   │   ├── Steps_DA01.ts      # 步骤流 v1
 │   │   ├── Steps_DA02.ts      # 步骤流 v2

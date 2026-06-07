@@ -42,6 +42,7 @@ src/
 │   ├── PTitle_DA01.ts       # 副标题
 │   ├── ReadingPath_DA01.ts  # 阅读路径
 │   ├── Slider_DA01.ts       # 图片幻灯片轮播
+│   ├── Img_DA01.ts          # 单图组件
 │   ├── Statement_DA01.ts    # 居中强调语
 │   ├── Steps_DA01.ts        # 步骤流 v1
 │   ├── Steps_DA02.ts        # 步骤流 v2
@@ -246,6 +247,7 @@ interface ThemeColors {
 | `<engage>`      | 互动引导组件   | 支持 v1/v2 两种样式    |
 | `<caseflow>`    | 案例流程组件   | -                      |
 | `<readingpath>` | 阅读路径组件   | -                      |
+| `<img>`         | 单图组件       | 支持宽高、圆角、裁切、对齐 |
 | `<slider>`      | 图片幻灯片轮播 | 支持 4 种轮播模式      |
 | `<badges>`      | 标签徽章       | -                      |
 
