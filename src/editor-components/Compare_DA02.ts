@@ -11,8 +11,9 @@
  *   <right>新版内容</right>
  *   </compare>
  */
-import { leaf, esc } from '@/utils/helpers'
+import { leaf, esc, parseAttrs } from '@/utils/helpers'
 import { resolveColor } from '@/utils/colorUtils'
+import { Img_DA01 } from '@/editor-components/Img_DA01'
 import type { ThemeColors } from '@/composables/useTheme'
 
 export const Compare_DA02 = {
@@ -93,7 +94,13 @@ export const Compare_DA02 = {
       return lines
         .map((line) => {
           const trimmed = line.trim()
-          // 图片行
+          // 自定义 img 标签（如 <img src="..." width="100%" height="200px" radius="8px" fit="cover" />）
+          const customImgMatch = trimmed.match(/^<img\s+(.*?)\s*\/?\s*>$/)
+          if (customImgMatch) {
+            const imgAttrs = parseAttrs(customImgMatch[1])
+            return Img_DA01.render(imgAttrs, '', t, '12px')
+          }
+          // 图片行（markdown 语法）
           const imgMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?$/)
           if (imgMatch) {
             const [, alt, src, size] = imgMatch

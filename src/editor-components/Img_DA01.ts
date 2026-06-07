@@ -93,7 +93,7 @@ export const Img_DA01 = {
   ],
   example: `<img src="https://robocopmao.github.io/r-markdown/banner4.webp" alt="示例图片" width="100%" height="auto" radius="8px" fit="cover" align="left" />`,
 
-  render(attrs: Record<string, string>, _body: string, _t: ThemeColors): string {
+  render(attrs: Record<string, string>, _body: string, _t: ThemeColors, marginSize: string = '24px'): string {
     const src = attrs.src || ''
     const alt = attrs.alt || ''
     const width = attrs.width || '100%'
@@ -102,9 +102,9 @@ export const Img_DA01 = {
     const fit = attrs['fit'] || 'cover'
     const align = attrs['align'] || 'left'
     const marginMap: Record<string, string> = {
-      left: '24px 0px',
-      center: '24px auto',
-      right: '24px 0px 24px auto',
+      left: `${marginSize} 0px`,
+      center: `${marginSize} auto`,
+      right: `${marginSize} 0px ${marginSize} auto`,
     }
     const margin = marginMap[align] || marginMap.left
     const imgLeft = attrs['left'] || ''

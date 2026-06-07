@@ -7,6 +7,7 @@ import Editor from '../components/Editor.vue'
 import Preview from '../components/Preview.vue'
 import ThemePicker from '../components/ThemePicker.vue'
 import DarkModeToggle from '../components/DarkModeToggle.vue'
+import Dropdown from '../components/Dropdown.vue'
 import MobileActionsMenu from '../components/MobileActionsMenu.vue'
 import XhsExporter from '../components/XhsExporter.vue'
 import TagPropsForm from '../components/TagPropsForm.vue'
@@ -192,7 +193,7 @@ function onImageSelected(e: Event) {
     const dataUrl = reader.result as string
     const compacted = compactBase64(dataUrl)
     editorRef.value?.insertAtCursor(
-      `<img src="${compacted}" width="100%" height="auto" radius="8px" fit="cover" position="center" />`,
+      `<img src="${compacted}" width="100%" height="auto" radius="8px" fit="cover" />`,
     )
     // 异步清理不再被引用的旧图片数据
     const cleanup = window.requestIdleCallback || ((fn) => setTimeout(fn, 200))
@@ -274,6 +275,35 @@ function onInput(value: string) {
   }, 500)
 }
 
+// ── 通用下拉菜单数据 ──
+const svgDoc = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'
+const svgDownload = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'
+const svgSparkle = '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/>'
+const svgImage = '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'
+const svgXhs = '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>'
+
+const exampleItems = [
+  { label: '加载示例', svgInner: svgDoc, action: 'load' },
+  { label: '下载示例', svgInner: svgDownload, action: 'download' },
+  { label: 'AI排版示例', svgInner: svgSparkle, href: 'https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4' },
+]
+
+const exportItems = [
+  { label: '保存图片', svgInner: svgImage, action: 'saveImage' },
+  { label: '小红书图', svgInner: svgXhs, action: 'xhs' },
+]
+
+function onDropdownSelect(groupId: string, action: string) {
+  if (groupId === 'example') {
+    if (action === 'download') downloadDemo()
+    else if (action === 'load') loadDemo()
+  } else if (groupId === 'export') {
+    if (action === 'saveImage') handleSaveImage()
+    else if (action === 'xhs') xhsVisible.value = true
+  }
+}
+
+// ── Markdown 自动加载 ──
 function loadDemo() {
   base64Store.clear()
   localStorage.removeItem(IMG_STORE_KEY)
@@ -448,53 +478,13 @@ onBeforeUnmount(() => {
           </svg>
           扩展组件
         </button>
-        <a
-          href="https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97] no-underline"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
-            />
-            <path d="M20 3v4" />
-            <path d="M22 5h-4" />
-          </svg>
-          AI排版示例
-        </a>
-        <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="downloadDemo"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          下载示例
-        </button>
-        <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="loadDemo"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-          加载示例
-        </button>
+        <Dropdown
+          group-id="example"
+          label="示例"
+          :svg-trigger-inner="svgDoc"
+          :items="exampleItems"
+          @select="(action: string) => onDropdownSelect('example', action)"
+        />
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleCopyHTML"
@@ -508,33 +498,13 @@ onBeforeUnmount(() => {
           </svg>
           复制 HTML
         </button>
-        <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="handleSaveImage"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="M21 15l-5-5L5 21" />
-          </svg>
-          保存图片
-        </button>
-        <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="xhsVisible = true"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <rect x="4" y="2" width="16" height="20" rx="2" />
-            <path d="M8 7h8M8 11h8M8 15h5" />
-          </svg>
-          小红书图
-        </button>
+        <Dropdown
+          group-id="export"
+          label="导出"
+          :svg-trigger-inner="svgDownload"
+          :items="exportItems"
+          @select="(action: string) => onDropdownSelect('export', action)"
+        />
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
           @click="handleCopyRichText"
@@ -642,10 +612,10 @@ onBeforeUnmount(() => {
             <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
           </span>
           <span class="flex items-center gap-2">
-            <button class="insert-image-btn" @click="handleInsertImage">插入图片</button>
+            <button class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn" @click="handleInsertImage">插入图片</button>
             <button
               v-if="tagInfo && !showTagDialog && !isMobile"
-              class="tag-parse-btn"
+              class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
               @click="showTagDialog = true"
             >
               解析 &lt;{{ tagInfo.tagName }}&gt;属性
@@ -793,47 +763,12 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
-/* 标签解析按钮 - 样式与插入图片按钮统一 */
-.tag-parse-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 10px;
+/* 面板操作按钮 - 结构用 Tailwind，仅保留 CSS 变量相关样式 */
+.panel-action-btn {
   border: 1px solid var(--border-color);
-  border-radius: 5px;
-  background: transparent;
   color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
 }
-
-.tag-parse-btn:hover {
-  border-color: var(--accent, #6c5ce7);
-  color: var(--accent, #6c5ce7);
-  background: var(--accent-light, rgba(108, 92, 231, 0.08));
-}
-
-/* 插入图片按钮 */
-.insert-image-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.insert-image-btn:hover {
+.panel-action-btn:hover {
   border-color: var(--accent, #6c5ce7);
   color: var(--accent, #6c5ce7);
   background: var(--accent-light, rgba(108, 92, 231, 0.08));
