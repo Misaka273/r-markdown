@@ -22,10 +22,34 @@ export const Lead_DA01 = {
   name: '引导文字',
   tag: 'lead',
   attrs: [
-    { key: 'color', label: '边框颜色', required: false, default: '' },
-    { key: 'text-color', label: '文字颜色', required: false, default: '' },
-    { key: 'bg', label: '背景颜色', required: false, default: '' },
-    { key: 'round', label: '圆角', required: false, default: '' },
+    {
+      key: 'color',
+      label: '边框颜色',
+      required: false,
+      default: '',
+      description: '左侧边框颜色，填入 CSS 颜色值如 #6c5ce7，使用颜色单词或十六进制颜色值',
+    },
+    {
+      key: 'text-color',
+      label: '文字颜色',
+      required: false,
+      default: '',
+      description: '文字颜色，填入 CSS 颜色值，使用颜色单词或十六进制颜色值',
+    },
+    {
+      key: 'bg',
+      label: '背景颜色',
+      required: false,
+      default: '',
+      description: '背景颜色，填入 CSS 颜色值，使用颜色单词或十六进制颜色值',
+    },
+    {
+      key: 'round',
+      label: '圆角',
+      required: false,
+      default: '',
+      description: '容器圆角大小，如 12px / 16px',
+    },
   ],
   example: `<lead>在开始之前，先聊一个背景：最近几年，越来越多的人开始重新审视自己的生活方式。</lead>`,
 

@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useTheme } from '@/composables/useTheme'
-import { EditorView, keymap, placeholder as ph } from '@codemirror/view'
-import { EditorState } from '@codemirror/state'
+import {
+  EditorView,
+  keymap,
+  placeholder as ph,
+  Decoration,
+  ViewPlugin,
+  ViewUpdate,
+  WidgetType,
+} from '@codemirror/view'
+import { EditorState, RangeSetBuilder } from '@codemirror/state'
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
@@ -42,7 +50,13 @@ let view: EditorView | null = null
 
 // ── 标签选中检测 ──
 const tagRegex = /^<(\w[\w-]*)((?:\s+[^>]*?)?)(\/?)>/s
-let lastTagSelection: { tagName: string; attrs: Record<string, string>; selfClose: boolean; from: number; to: number } | null = null
+let lastTagSelection: {
+  tagName: string
+  attrs: Record<string, string>
+  selfClose: boolean
+  from: number
+  to: number
+} | null = null
 
 function checkTagSelection(state: EditorState) {
   const sel = state.selection.main
@@ -71,7 +85,13 @@ function checkTagSelection(state: EditorState) {
       attrs[am[1]] = am[2]
     }
   }
-  const newTag = { tagName, attrs, selfClose: selfClose === '/', from: sel.from, to: sel.from + match[0].length }
+  const newTag = {
+    tagName,
+    attrs,
+    selfClose: selfClose === '/',
+    from: sel.from,
+    to: sel.from + match[0].length,
+  }
   if (
     !lastTagSelection ||
     lastTagSelection.tagName !== newTag.tagName ||
@@ -197,6 +217,56 @@ const warmTheme = EditorView.theme(
   { dark: false },
 )
 
+// ── base64 折叠插件：将长 base64 字符串折叠为短占位符 ──
+const base64Regex = /data:image\/([^;"]+);base64,([A-Za-z0-9+\/=]+)/g
+
+class Base64Placeholder extends WidgetType {
+  constructor(readonly mime: string) {
+    super()
+  }
+  eq(other: Base64Placeholder) {
+    return this.mime === other.mime
+  }
+  toDOM() {
+    const span = document.createElement('span')
+    span.className = 'cm-base64-fold'
+    span.textContent = `image/${this.mime} [base64]`
+    return span
+  }
+}
+
+const collapseBase64 = ViewPlugin.fromClass(
+  class {
+    decorations: any
+    constructor(view: EditorView) {
+      this.decorations = this.build(view)
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = this.build(update.view)
+      }
+    }
+    build(view: EditorView) {
+      const builder = new RangeSetBuilder<any>()
+      const text = view.state.doc.toString()
+      let match
+      while ((match = base64Regex.exec(text)) !== null) {
+        const dataLen = match[2].length
+        if (dataLen <= 100) continue
+        const base64Start = match.index + match[0].indexOf('base64,') + 7
+        const base64End = match.index + match[0].length
+        builder.add(
+          base64Start,
+          base64End,
+          Decoration.replace({ widget: new Base64Placeholder(match[1]) }),
+        )
+      }
+      return builder.finish()
+    }
+  },
+  { decorations: (v) => v.decorations },
+)
+
 onMounted(async () => {
   await nextTick()
   if (!editorRef.value) return
@@ -231,6 +301,7 @@ onMounted(async () => {
       ph('在此输入 Markdown...'),
       updateListener,
       EditorView.lineWrapping,
+      collapseBase64,
     ],
   })
 
@@ -286,7 +357,16 @@ function replaceRange(from: number, to: number, text: string) {
   })
 }
 
-defineExpose({ scrollTo, replaceRange })
+function insertAtCursor(text: string) {
+  if (!view) return
+  const sel = view.state.selection.main
+  view.dispatch({
+    changes: { from: sel.from, to: sel.to, insert: text },
+    selection: { anchor: sel.from + text.length },
+  })
+}
+
+defineExpose({ scrollTo, replaceRange, insertAtCursor })
 </script>
 
 <template>
@@ -311,5 +391,17 @@ defineExpose({ scrollTo, replaceRange })
 
 .editor-container :deep(.cm-scroller::-webkit-scrollbar) {
   display: none;
+}
+
+.editor-container :deep(.cm-base64-fold) {
+  display: inline;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  white-space: nowrap;
+  cursor: default;
 }
 </style>

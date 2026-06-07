@@ -24,16 +24,41 @@ export const Steps_DA01 = {
   name: '步骤流',
   tag: 'steps',
   attrs: [
-    { key: 'label', label: '顶部标签', required: false, default: '' },
-    { key: 'title', label: '标题', required: false, default: '' },
-    { key: 'hint', label: '提示文字', required: false, default: '' },
-    { key: 'active', label: '当前步骤（1/2/3）', required: false, default: '1' },
-    { key: 'color', label: '自定义颜色', required: false, default: '' },
+    {
+      key: 'label',
+      label: '顶部标签',
+      required: false,
+      default: '',
+      description: '顶部标签，如 HOW IT WORKS',
+    },
+    { key: 'title', label: '标题', required: false, default: '', description: '主标题文字' },
+    {
+      key: 'hint',
+      label: '提示文字',
+      required: false,
+      default: '',
+      description: '底部提示文字，如「左右滑动查看」',
+    },
+    {
+      key: 'active',
+      label: '当前步骤（1/2/3）',
+      required: false,
+      default: '1',
+      description: '当前高亮的步骤序号，填 1 / 2 / 3',
+    },
+    {
+      key: 'color',
+      label: '自定义颜色',
+      required: false,
+      default: '',
+      description: '自定义颜色，填入 CSS 颜色值覆盖默认主题色，使用颜色单词或十六进制颜色值',
+    },
     {
       key: 'direction',
       label: '布局方向（horizontal/vertical）',
       required: false,
-      default: 'horizontal', options: ['horizontal', 'vertical']
+      default: 'horizontal',
+      options: ['horizontal', 'vertical'],
     },
   ],
   example: `<steps label="HOW IT WORKS" title="安装好之后怎么跑起来" hint="左右滑动查看" active="2">

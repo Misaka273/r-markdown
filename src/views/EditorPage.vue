@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useTheme } from '../composables/useTheme'
-import { useDarkMode } from '../composables/useDarkMode'
-import { DEMO_CONTENT } from '../data/demoContent'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { useTheme } from '@/composables/useTheme'
+import { useDarkMode } from '@/composables/useDarkMode'
+import { DEMO_CONTENT } from '@/data/demoContent'
 import Editor from '../components/Editor.vue'
 import Preview from '../components/Preview.vue'
 import ThemePicker from '../components/ThemePicker.vue'
@@ -10,6 +10,66 @@ import DarkModeToggle from '../components/DarkModeToggle.vue'
 import MobileActionsMenu from '../components/MobileActionsMenu.vue'
 import XhsExporter from '../components/XhsExporter.vue'
 import TagPropsForm from '../components/TagPropsForm.vue'
+import Toast from '../components/Toast.vue'
+
+// base64 图片数据存储，避免长字符串撑大编辑器
+const IMG_STORE_KEY = 'wechat-md-editor-imgs'
+const base64Store = new Map<string, string>()
+
+// 初始化时从 localStorage 恢复图片数据
+;(() => {
+  try {
+    const raw = localStorage.getItem(IMG_STORE_KEY)
+    if (raw) {
+      const entries: [string, string][] = JSON.parse(raw)
+      for (const [token, b64] of entries) {
+        base64Store.set(token, b64)
+      }
+    }
+  } catch {
+    /* ignore corrupt data */
+  }
+})()
+
+function saveBase64Store() {
+  if (base64Store.size === 0) {
+    localStorage.removeItem(IMG_STORE_KEY)
+    return
+  }
+  const entries = Array.from(base64Store.entries())
+  localStorage.setItem(IMG_STORE_KEY, JSON.stringify(entries))
+}
+
+function compactBase64(dataUrl: string): string {
+  const m = dataUrl.match(/^(data:image\/\w+);base64,(.+)$/)
+  if (!m) return dataUrl
+  const [, prefix, b64] = m
+  if (b64.length <= 100) return dataUrl
+  const token = `IMG_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  base64Store.set(token, b64)
+  return `${prefix};base64,${token}`
+}
+
+function resolveBase64(text: string): string {
+  if (base64Store.size === 0) return text
+  let result = text
+  for (const [token, b64] of base64Store) {
+    result = result.split(token).join(b64)
+  }
+  return result
+}
+
+function cleanupUnusedBase64() {
+  const tokensInUse = new Set(markdown.value.match(/IMG_\d+_[a-z0-9]{6}/g) ?? [])
+  let removed = false
+  for (const token of base64Store.keys()) {
+    if (!tokensInUse.has(token)) {
+      base64Store.delete(token)
+      removed = true
+    }
+  }
+  if (removed) saveBase64Store()
+}
 
 const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
 const { mode: darkMode, isDark, setMode: setDarkMode } = useDarkMode()
@@ -75,9 +135,76 @@ const SAVE_TIME_KEY = 'wechat-md-editor-save-time'
 
 const saved = localStorage.getItem(STORAGE_KEY)
 const markdown = ref(saved !== null ? saved : DEMO_CONTENT)
+const resolvedMarkdown = computed(() => resolveBase64(markdown.value))
 const previewRef = ref()
 const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
+
+// ── 插入图片 ──
+const imageInputRef = ref<HTMLInputElement>()
+// ── Toast ──
+const toastVisible = ref(false)
+const toastMessage = ref('')
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(msg: string) {
+  toastMessage.value = msg
+  toastVisible.value = true
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toastVisible.value = false
+  }, 1500)
+}
+
+function handleInsertImage() {
+  imageInputRef.value?.click()
+}
+
+function onImageSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  // 限制最多 10 张图片
+  const currentCount = (markdown.value.match(/IMG_\d+_[a-z0-9]{6}/g) ?? []).length
+  if (currentCount >= 10) {
+    showToast('最多插入 10 张图片')
+    input.value = ''
+    return
+  }
+
+  // 验证文件类型
+  if (!file.type.startsWith('image/')) {
+    showToast('请选择图片文件')
+    input.value = ''
+    return
+  }
+
+  // 验证文件大小（500KB）
+  if (file.size > 500 * 1024) {
+    showToast('图片不能超过 500KB')
+    input.value = ''
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    const dataUrl = reader.result as string
+    const compacted = compactBase64(dataUrl)
+    editorRef.value?.insertAtCursor(
+      `<img src="${compacted}" width="100%" height="auto" radius="8px" object-fit="cover" />`,
+    )
+    // 异步清理不再被引用的旧图片数据
+    const cleanup = window.requestIdleCallback || ((fn) => setTimeout(fn, 200))
+    cleanup(() => cleanupUnusedBase64())
+    input.value = ''
+  }
+  reader.onerror = () => {
+    showToast('图片读取失败')
+    input.value = ''
+  }
+  reader.readAsDataURL(file)
+}
 
 // ── 标签解析表单 ──
 interface TagInfo {
@@ -106,9 +233,7 @@ function onTagDialogUpdate(attrs: Record<string, string>) {
     .map(([k, v]) => `${k}="${v}"`)
     .join(' ')
   const attrsStr = attrParts ? ` ${attrParts}` : ''
-  const newTag = prev.selfClose
-    ? `<${prev.tagName}${attrsStr} />`
-    : `<${prev.tagName}${attrsStr}>`
+  const newTag = prev.selfClose ? `<${prev.tagName}${attrsStr} />` : `<${prev.tagName}${attrsStr}>`
   editorRef.value?.replaceRange(prev.from, prev.to, newTag)
 }
 
@@ -130,6 +255,7 @@ function onInput(value: string) {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
     localStorage.setItem(STORAGE_KEY, value)
+    saveBase64Store()
     const now = new Date()
     const timeStr =
       now.getFullYear() +
@@ -149,6 +275,8 @@ function onInput(value: string) {
 }
 
 function loadDemo() {
+  base64Store.clear()
+  localStorage.removeItem(IMG_STORE_KEY)
   markdown.value = DEMO_CONTENT
   localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
   const now = new Date()
@@ -500,18 +628,21 @@ onBeforeUnmount(() => {
         <div
           class="panel-header hidden md:flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
         >
-          <span class="flex items-center gap-1.5">
-            <svg
-              class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-              viewBox="0 0 24 24"
-            >
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            Markdown 编辑
+          <span class="flex items-center gap-2">
+            <span class="flex items-center gap-1.5">
+              <svg
+                class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+                viewBox="0 0 24 24"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Markdown 编辑
+            </span>
+            <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
           </span>
           <span class="flex items-center gap-2">
-            <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
+            <button class="insert-image-btn" @click="handleInsertImage">插入图片</button>
             <button
               v-if="tagInfo && !showTagDialog && !isMobile"
               class="tag-parse-btn"
@@ -522,11 +653,28 @@ onBeforeUnmount(() => {
           </span>
         </div>
         <div class="flex flex-1 overflow-hidden">
-          <Editor ref="editorRef" class="flex-1" :model-value="markdown" @update:model-value="onInput" @scroll="onEditorScrollAll" @tag-selected="onTagSelected" />
+          <Editor
+            ref="editorRef"
+            class="flex-1"
+            :model-value="markdown"
+            @update:model-value="onInput"
+            @scroll="onEditorScrollAll"
+            @tag-selected="onTagSelected"
+          />
+          <input
+            ref="imageInputRef"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="onImageSelected"
+          />
           <TagPropsForm
             :visible="showTagDialog && !isMobile"
             :tag-info="tagInfo"
-            @close="showTagDialog = false; tagInfo = null"
+            @close="
+              showTagDialog = false
+              tagInfo = null
+            "
             @update="onTagDialogUpdate"
           />
         </div>
@@ -561,16 +709,17 @@ onBeforeUnmount(() => {
             >实时渲染 · 可直接复制到公众号</span
           >
         </div>
-        <Preview ref="previewRef" :markdown="markdown" :colors="colors" />
+        <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" />
       </div>
     </div>
 
     <XhsExporter
       :visible="xhsVisible"
-      :markdown="markdown"
+      :markdown="resolvedMarkdown"
       :colors="colors"
       @close="xhsVisible = false"
     />
+    <Toast :visible="toastVisible" :message="toastMessage" />
   </div>
 </template>
 
@@ -644,15 +793,16 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
-/* 标签解析按钮 */
+/* 标签解析按钮 - 样式与插入图片按钮统一 */
 .tag-parse-btn {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   padding: 0 10px;
-  border: 1px solid var(--accent, #6c5ce7);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
-  background: var(--accent-light, rgba(108, 92, 231, 0.1));
-  color: var(--accent, #6c5ce7);
+  background: transparent;
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
@@ -661,8 +811,32 @@ onBeforeUnmount(() => {
 }
 
 .tag-parse-btn:hover {
-  background: var(--accent, #6c5ce7);
-  color: #fff;
+  border-color: var(--accent, #6c5ce7);
+  color: var(--accent, #6c5ce7);
+  background: var(--accent-light, rgba(108, 92, 231, 0.08));
+}
+
+/* 插入图片按钮 */
+.insert-image-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.insert-image-btn:hover {
+  border-color: var(--accent, #6c5ce7);
+  color: var(--accent, #6c5ce7);
+  background: var(--accent-light, rgba(108, 92, 231, 0.08));
 }
 
 /* 暗色模式 - 按钮文字颜色（通过 CSS 变量处理，见 :style 绑定） */

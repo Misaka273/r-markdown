@@ -19,9 +19,28 @@ export const Engage_DA01 = {
   name: '底部引导卡片',
   tag: 'engage',
   attrs: [
-    { key: 'type', label: '样式类型', required: false, default: 'DA01', options: ['DA01', 'DA02'] },
-    { key: 'title', label: '标题文字', required: false, default: '' },
-    { key: 'label', label: '底部小字', required: false, default: 'THANKS FOR READING' },
+    {
+      key: 'type',
+      label: '样式类型',
+      required: false,
+      default: 'DA01',
+      options: ['DA01', 'DA02'],
+      description: '样式类型，DA01 为点赞转发样式，DA02 为其他样式',
+    },
+    {
+      key: 'title',
+      label: '标题文字',
+      required: false,
+      default: '',
+      description: '主标题文字，号召读者互动',
+    },
+    {
+      key: 'label',
+      label: '底部小字',
+      required: false,
+      default: 'THANKS FOR READING',
+      description: '底部小字，如 THANKS FOR READING',
+    },
   ],
   example: `<engage title="如果这份文档对你有帮助，欢迎点赞、转发、推荐！" label="THANKS FOR READING"></engage>`,
 

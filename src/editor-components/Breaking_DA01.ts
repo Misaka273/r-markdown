@@ -22,12 +22,42 @@ export const Breaking_DA01 = {
   name: '突发卡片',
   tag: 'breaking',
   attrs: [
-    { key: 'badge', label: '标签', required: false, default: '' },
-    { key: 'title', label: '标题', required: false, default: '' },
-    { key: 'subtitle', label: '副标题', required: false, default: '' },
-    { key: 'chips', label: '关键词（|分隔）', required: false, default: '' },
-    { key: 'color', label: '自定义颜色', required: false, default: '' },
-    { key: 'top', label: '去除上边距', required: false, default: '' },
+    {
+      key: 'badge',
+      label: '标签',
+      required: false,
+      default: '',
+      description: '顶部标签文字，如 BREAKING / NEW',
+    },
+    { key: 'title', label: '标题', required: false, default: '', description: '主标题文字' },
+    {
+      key: 'subtitle',
+      label: '副标题',
+      required: false,
+      default: '',
+      description: '副标题或补充说明',
+    },
+    {
+      key: 'chips',
+      label: '关键词（|分隔）',
+      required: false,
+      default: '',
+      description: '关键词列表，用 | 分隔，每个关键词渲染为彩色标签',
+    },
+    {
+      key: 'color',
+      label: '自定义颜色',
+      required: false,
+      default: '',
+      description: '自定义颜色，填入 CSS 颜色值覆盖默认主题色，使用颜色单词或十六进制颜色值',
+    },
+    {
+      key: 'top',
+      label: '去除上边距',
+      required: false,
+      default: '',
+      description: '设置为任意值可去除组件顶部的默认外边距',
+    },
   ],
   example: `<breaking badge="NEW" title="功能全集文档上线" subtitle="支持一键复制，即装即用" chips="高效|美观">
 这个组件适合用于文章开头，展示最重要的核心结论或更新摘要。

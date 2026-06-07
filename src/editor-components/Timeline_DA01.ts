@@ -55,7 +55,15 @@ export const Timeline_DA01 = {
   id: 'Timeline_DA01',
   name: '时间线',
   tag: 'timeline',
-  attrs: [{ key: 'color', label: '自定义颜色', required: false, default: '' }],
+  attrs: [
+    {
+      key: 'color',
+      label: '自定义颜色',
+      required: false,
+      default: '',
+      description: '自定义颜色，填入 CSS 颜色值覆盖默认主题色，使用颜色单词或十六进制颜色值',
+    },
+  ],
   example: `<timeline>
 - 2024年01月 | 项目启动 | 完成团队组建和需求分析 | ![新版](https://picsum.photos/400/120?random=1)[100% 120px]
 - 2024年06月 | 一期上线 | 核心功能发布，用户突破1万

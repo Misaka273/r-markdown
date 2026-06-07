@@ -74,6 +74,7 @@ import { Engage_DA01 } from '@/editor-components/Engage_DA01'
 import { Engage_DA02 } from '@/editor-components/Engage_DA02'
 import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
 import { Slider_DA01 } from '@/editor-components/Slider_DA01'
+import { Img_DA01 } from '@/editor-components/Img_DA01'
 
 export function parseMarkdown(md: string, t: ThemeColors): string {
   // 收集脚注：[text](url "desc") 带引号标题的链接 → 脚注
@@ -247,7 +248,10 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
         // 前窥后续是否存在 </cta> 关闭标签，有则走标签形式，否则按行内处理
         let hasClosingCta = false
         for (let peek = i + 1; peek < lines.length && peek <= i + 3; peek++) {
-          if (/^<\/cta>/.test(lines[peek])) { hasClosingCta = true; break }
+          if (/^<\/cta>/.test(lines[peek])) {
+            hasClosingCta = true
+            break
+          }
         }
         if (hasClosingCta) {
           const r = parseCtaTag(lines, i, t)
@@ -575,6 +579,14 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       } else {
         html += `<img src="${esc(src)}" alt="${esc(alt)}" style="max-width:100%;border-radius:6px;margin:12px 0px;display:block">`
       }
+      i++
+      continue
+    }
+
+    // <img>
+    if (/^<img\s/.test(line.trim())) {
+      const attrs = parseAttrs(line)
+      html += Img_DA01.render(attrs, '', t)
       i++
       continue
     }

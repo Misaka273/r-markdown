@@ -47,6 +47,7 @@ const componentCategoryMap: Record<string, string> = {
   CTA_DA01: 'interactive',
   Engage_DA01: 'interactive',
   Engage_DA02: 'interactive',
+  Img_DA01: 'image',
 }
 
 const filteredComponents = computed(() => {

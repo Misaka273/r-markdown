@@ -15,6 +15,12 @@ export function inlineFormat(text: string, t: ThemeColors): string {
     (_m, p1: string) =>
       `<sup style="color:${t.accent};font-weight:600;cursor:pointer">[${parseInt(p1) + 1}]</sup>`,
   )
+  // `行内代码` — 最先处理，转义内部 HTML 防止标签被浏览器渲染
+  text = text.replace(
+    /`([^`]+)`/g,
+    (_m, p1: string) =>
+      `<code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">${esc(p1)}</code>`,
+  )
   // ==渐变背景==
   text = text.replace(
     /==([^=]+)==/g,
@@ -56,12 +62,6 @@ export function inlineFormat(text: string, t: ThemeColors): string {
   text = text.replace(/\*\*([^*]+)\*\*/g, (_m, p1: string) => `<strong>${leaf(p1)}</strong>`)
   // *斜体*
   text = text.replace(/\*([^*]+)\*/g, (_m, p1: string) => `<em>${leaf(p1)}</em>`)
-  // `行内代码`
-  text = text.replace(
-    /`([^`]+)`/g,
-    (_m, p1: string) =>
-      `<code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">${leaf(p1)}</code>`,
-  )
   // 图片 ![alt](src)[size]
   text = text.replace(
     /!\[([^\]]*)\]\(([^)]+)\)(?:\[([^\]]+)\])?/g,

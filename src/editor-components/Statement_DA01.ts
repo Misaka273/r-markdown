@@ -17,7 +17,15 @@ export const Statement_DA01 = {
   id: 'Statement_DA01',
   name: '居中强调语',
   tag: 'statement',
-  attrs: [{ key: 'color', label: '文字颜色', required: false, default: '' }],
+  attrs: [
+    {
+      key: 'color',
+      label: '文字颜色',
+      required: false,
+      default: '',
+      description: '文字颜色，填入 CSS 颜色值，使用颜色单词或十六进制颜色值',
+    },
+  ],
   example: `<statement>这是一段居中的强调文字，适合用来突出核心观点或结论。</statement>`,
 
   render(attrs: Record<string, string>, body: string, _t: ThemeColors): string {
