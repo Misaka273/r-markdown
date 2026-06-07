@@ -672,7 +672,7 @@ onBeforeUnmount(() => {
             :visible="showTagDialog && !isMobile"
             :tag-info="tagInfo"
             @close="
-              showTagDialog = false
+              showTagDialog = false;
               tagInfo = null
             "
             @update="onTagDialogUpdate"
