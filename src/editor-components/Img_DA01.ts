@@ -5,7 +5,7 @@ import type { ThemeColors } from '@/composables/useTheme'
  * Img_DA01 - 图片组件（默认A型01号样式）
  *
  * 编辑器语法：
- *   <img src="data:image/png;base64,..." alt="替代文本" width="100%" height="auto" radius="8px" fit="cover" position="center" align="left" />
+ *   <img src="data:image/png;base64,..." alt="替代文本" width="100%" height="auto" radius="8px" fit="cover" align="left" left="0" top="0" />
  *
  * 属性：
  *   src      - 图片地址（支持 base64 / 网络 URL / 本地路径）
@@ -14,8 +14,9 @@ import type { ThemeColors } from '@/composables/useTheme'
  *   height   - 高度，默认 auto
  *   radius   - 圆角，默认 8px
  *   fit      - 裁切方式，默认 cover
- *   position - 图片在容器内的对齐位置，默认 center
  *   align    - 容器水平对齐方式：left / center / right，默认 left
+ *   left     - 图片 x 轴偏移（margin-left），正值向右、负值向左，如 10px / -20px
+ *   top      - 图片 y 轴偏移（margin-top），正值向下、负值向上，如 10px / -20px
  */
 
 export const Img_DA01 = {
@@ -28,7 +29,7 @@ export const Img_DA01 = {
       label: '图片地址',
       required: true,
       default: '',
-      description: '图片地址，支持 http(s) URL、本地路径或 base64 数据',
+      description: '图片地址，支持 http(s) URL、base64 数据',
     },
     {
       key: 'alt',
@@ -68,24 +69,6 @@ export const Img_DA01 = {
         'CSS object-fit 裁切方式：fill 拉伸 / contain 完整显示 / cover 裁剪 / none 原始尺寸 / scale-down 缩小',
     },
     {
-      key: 'position',
-      label: '对齐位置',
-      required: false,
-      default: 'center',
-      options: [
-        'center',
-        'top',
-        'bottom',
-        'left',
-        'right',
-        'top left',
-        'top right',
-        'bottom left',
-        'bottom right',
-      ],
-      description: 'CSS object-position 对齐位置，控制图片在容器内的偏移，使用预设的值或者自定义x轴和y轴的偏移，例如：10px 20px',
-    },
-    {
       key: 'align',
       label: '容器对齐',
       required: false,
@@ -93,8 +76,22 @@ export const Img_DA01 = {
       options: ['left', 'center', 'right'],
       description: '图片容器水平对齐方式（固定宽度时生效）：left 居左 / center 居中 / right 居右',
     },
+    {
+      key: 'left',
+      label: 'X轴偏移',
+      required: false,
+      default: '',
+      description: '图片 x 轴偏移效果，如 10px / -20px / 50%',
+    },
+    {
+      key: 'top',
+      label: 'Y轴偏移',
+      required: false,
+      default: '',
+      description: '图片 y 轴偏移效果，如 10px / -20px / 50%',
+    },
   ],
-  example: `<img src="https://robocopmao.github.io/r-markdown/banner4.webp" alt="示例图片" width="100%" height="auto" radius="8px" fit="cover" position="center" />`,
+  example: `<img src="https://robocopmao.github.io/r-markdown/banner4.webp" alt="示例图片" width="100%" height="auto" radius="8px" fit="cover" align="left" />`,
 
   render(attrs: Record<string, string>, _body: string, _t: ThemeColors): string {
     const src = attrs.src || ''
@@ -110,8 +107,20 @@ export const Img_DA01 = {
       right: '24px 0px 24px auto',
     }
     const margin = marginMap[align] || marginMap.left
-    const pos = attrs['position'] || 'center'
+    const imgLeft = attrs['left'] || ''
+    const imgTop = attrs['top'] || ''
 
-    return `<section style="margin:${margin};width:${width};height:${height};overflow:hidden;border-radius:${radius}"><img src="${src}" alt="${alt}" style="width:100%;height:100%;object-fit:${fit};object-position:${pos};display:block" /></section>`
+    const imgStyle = [
+      'width:100%',
+      // 'height:100%',
+      `object-fit:${fit}`,
+      'display:block',
+      imgLeft ? `margin-left:${imgLeft}` : '',
+      imgTop ? `margin-top:${imgTop}` : '',
+    ]
+      .filter(Boolean)
+      .join(';')
+
+    return `<section style="margin:${margin};width:${width};height:${height};overflow:hidden;border-radius:${radius}"><img src="${src}" alt="${alt}" style="${imgStyle}" /></section>`
   },
 }
