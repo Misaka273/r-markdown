@@ -219,7 +219,7 @@ export const PTitle = {
         return `
 <section style="margin:28px 0px 16px;overflow:hidden">
     <section style="float:left;white-space:nowrap;font-size:20px;font-weight:900;color:${numColor};line-height:1.45"><span leaf="">${num}</span></section>
-    <section style="margin-left:32px;font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></section>
+    <section style="margin-left:28px;font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></section>
 </section>`
       }
       return `
@@ -234,7 +234,7 @@ export const PTitle = {
       return `
 <section style="margin:24px 0px 12px;overflow:hidden">
     <section style="float:left;white-space:nowrap;font-size:16px;font-weight:900;color:${numColor};line-height:1.5"><span leaf="">${num}</span></section>
-    <section style="margin-left:32px;font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></section>
+    <section style="margin-left:24px;font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></section>
 </section>`
     }
     return `
