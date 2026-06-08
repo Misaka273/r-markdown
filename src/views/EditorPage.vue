@@ -440,18 +440,9 @@ onBeforeUnmount(() => {
           class="flex items-center text-sm font-semibold tracking-tight no-underline"
           style="color: var(--text-primary)"
         >
-          <svg viewBox="0 0 24 24" width="22" height="22" class="shrink-0 mr-1.5">
-            <rect width="24" height="24" rx="5" :fill="accent" />
-            <text
-              x="2.5"
-              y="17.5"
-              font-family="Arial, sans-serif"
-              font-size="12"
-              font-weight="bold"
-              fill="white"
-            >
-              RM
-            </text>
+          <svg class="shrink-0 mr-1.5" viewBox="0 0 24 24" width="26" height="26">
+            <rect width="24" height="24" rx="6" :fill="accent" />
+            <text x="3.5" y="16" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">RM</text>
           </svg>
           <span class="hidden sm:inline">R-Markdown 编辑器</span>
           <span class="sm:hidden">R-Markdown</span>
