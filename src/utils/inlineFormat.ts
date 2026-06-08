@@ -31,7 +31,7 @@ export function inlineFormat(text: string, t: ThemeColors): string {
   text = text.replace(
     /!!([^!]+)!!/g,
     (_m, p1: string) =>
-      `<span style="display:inline-block;padding:0 5px;border-radius:20px;font-size:14px;font-weight:600;background:${t.light};color:${t.accent};border:1px solid ${t.border}">${leaf(p1)}</span>`,
+      `<span style="background:linear-gradient(90deg,color-mix(in srgb,${t.accent} 70%,#000 30%) 0%,${t.accent} 100%);padding:0px 6px;border-radius:4px;font-weight:700;color:#fff">${leaf(p1)}</span>`,
   )
   // ^^加重强调^^
   text = text.replace(
