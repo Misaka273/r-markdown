@@ -155,7 +155,7 @@ export const PTitle = {
         subtitleMarginLeft = '40px'
         subtitleFontSize = '10px'
         chapterFontSize = '9px'
-        outerMargin = '36px 0px 20px'
+        outerMargin = '32px 0px 20px'
       } else {
         numFontSize = '60px'
         titleFontSize = '30px'
@@ -164,7 +164,7 @@ export const PTitle = {
         subtitleMarginLeft = '50px'
         subtitleFontSize = '11px'
         chapterFontSize = '10px'
-        outerMargin = '48px 0px 30px'
+        outerMargin = '36px 0px 24px'
       }
 
       const numBlock =
@@ -201,13 +201,13 @@ export const PTitle = {
       const titleText = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
       if (hasNum) {
         return `
-<section style="margin:36px 0px 20px;overflow:hidden">
+<section style="margin:32px 0px 20px;overflow:hidden">
     <section style="float:left;white-space:nowrap;font-size:24px;font-weight:900;color:${numColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${num}</span></section>
     <section style="margin-left:32px;font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></section>
 </section>`
       }
       return `
-<section style="margin:36px 0px 20px">
+<section style="margin:32px 0px 20px">
   <section style="font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></section>
 </section>`
     }
