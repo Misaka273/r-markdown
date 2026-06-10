@@ -46,7 +46,7 @@ const props = defineProps<{
   colors: ThemeColors
 }>()
 
-defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; toast: [msg: string] }>()
 
 interface Card {
   id: string
@@ -336,6 +336,7 @@ async function downloadOne(idx: number) {
   busy.value = true
   try {
     triggerDownload(await cardDataUrl(idx), fileName(idx))
+    emit('toast', '已保存')
   } catch (e) {
     status.value = '导出失败：' + errText(e)
   } finally {
