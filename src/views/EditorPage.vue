@@ -679,6 +679,7 @@ onBeforeUnmount(() => {
       :markdown="resolvedMarkdown"
       :colors="colors"
       @close="xhsVisible = false"
+      @toast="showToast"
     />
     <Toast :visible="toastVisible" :message="toastMessage" />
   </div>
