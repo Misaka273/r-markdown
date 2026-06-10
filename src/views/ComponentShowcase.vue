@@ -328,10 +328,13 @@ function onCardLeave(e: MouseEvent) {
 /* ── 聚光灯卡片 ── */
 .spotlight-card {
   break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  /* Safari 多列布局中 backdrop-filter/gradient 元素会触发列分裂，
+     display:inline-block + width:100% 强制将卡片作为不可分割的原子块 */
+  display: inline-block;
+  width: 100%;
   margin-bottom: 1.5rem;
   position: relative;
-  display: flex;
-  flex-direction: column;
   border-radius: 1rem;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
@@ -366,6 +369,10 @@ function onCardLeave(e: MouseEvent) {
   position: relative;
   z-index: 1;
   overflow: hidden;
+  /* Safari CSS columns 会破坏 linear-gradient 背景渲染，
+     translateZ(0) 强制 GPU 合成层隔离来自列布局的 paint 干扰 */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 /* 说明层 */
@@ -532,5 +539,7 @@ function onCardLeave(e: MouseEvent) {
 
 .preview-content :deep(section) {
   transition: opacity 0.15s ease;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 </style>
