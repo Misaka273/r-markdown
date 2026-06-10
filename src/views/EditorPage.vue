@@ -285,7 +285,7 @@ const svgXhs = '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8
 const exampleItems = [
   { label: '加载示例', svgInner: svgDoc, action: 'load' },
   { label: '下载示例', svgInner: svgDownload, action: 'download' },
-  { label: 'AI排版示例', svgInner: svgSparkle, href: 'https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4' },
+  { label: 'AI排版示例', svgInner: svgSparkle, action: 'aiDemo' },
 ]
 
 const exportItems = [
@@ -297,9 +297,22 @@ function onDropdownSelect(groupId: string, action: string) {
   if (groupId === 'example') {
     if (action === 'download') downloadDemo()
     else if (action === 'load') loadDemo()
+    else if (action === 'aiDemo') openAiDemo()
   } else if (groupId === 'export') {
     if (action === 'saveImage') handleSaveImage()
     else if (action === 'xhs') xhsVisible.value = true
+  }
+}
+
+// ── 外链：Tauri 中用系统浏览器打开，Web 中用 window.open ──
+const AI_DEMO_URL = 'https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4'
+
+async function openAiDemo() {
+  try {
+    const { open } = await import('@tauri-apps/plugin-shell')
+    await open(AI_DEMO_URL)
+  } catch {
+    window.open(AI_DEMO_URL, '_blank', 'noopener,noreferrer')
   }
 }
 
@@ -679,6 +692,7 @@ onBeforeUnmount(() => {
       :markdown="resolvedMarkdown"
       :colors="colors"
       @close="xhsVisible = false"
+      @toast="showToast"
     />
     <Toast :visible="toastVisible" :message="toastMessage" />
   </div>
