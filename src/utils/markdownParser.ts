@@ -84,10 +84,14 @@ export function collectFormulas(md: string): Array<{ formula: string; display: b
   const seen = new Set<string>()
   const result: Array<{ formula: string; display: boolean }> = []
 
+  // 屏蔽代码块和行内代码中的 $ / $$，避免被误判为公式分隔符
+  // 行内代码 `` `...` `` → 替换为等长占位符，保持后续正则的 exec 位置索引语义一致
+  const masked = md.replace(/`[^`]+`/g, (code) => '`' + '\u200B'.repeat(code.length - 2) + '`')
+
   // 行内公式 $...$
   const inlineRe = /(?<!\$)(?<!\d)\$(?!\d)([^\$]+?)\$(?!\$|[\w])/g
   let m: RegExpExecArray | null
-  while ((m = inlineRe.exec(md)) !== null) {
+  while ((m = inlineRe.exec(masked)) !== null) {
     const f = m[1].trim()
     const key = `i:${f}`
     if (!seen.has(key)) {
@@ -98,7 +102,7 @@ export function collectFormulas(md: string): Array<{ formula: string; display: b
 
   // 块级公式 $$...$$ （单行和多行）
   const blockRe = /\$\$([\s\S]+?)\$\$/g
-  while ((m = blockRe.exec(md)) !== null) {
+  while ((m = blockRe.exec(masked)) !== null) {
     // 跳过空行 $$ $$ 前面的 $$
     if (m[0] === '$$') continue
     const f = m[1].trim()
