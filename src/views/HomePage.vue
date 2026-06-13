@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { parseMarkdown } from '@/utils/markdownParser'
+import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
@@ -98,9 +98,9 @@ function typeNextChar() {
   }
 }
 
-function updatePreview() {
+async function updatePreview() {
   if (previewRef.value) {
-    previewRef.value.innerHTML = parseMarkdown(typedMd.value, demoColors.value)
+    previewRef.value.innerHTML = await parseMarkdownAsync(typedMd.value, demoColors.value)
   }
 }
 

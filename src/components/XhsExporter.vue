@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { toPng } from 'html-to-image'
-import { parseMarkdown } from '@/utils/markdownParser'
+import { parseMarkdownAsync } from '@/utils/markdownParser'
 import type { ThemeColors } from '@/composables/useTheme'
 import {
   extractXhs,
@@ -278,7 +278,7 @@ async function generate() {
       kind: 'html',
       html: buildCover(meta, aspect.value, props.colors),
     }
-    const contentHtml = parseMarkdown(contentMd, props.colors)
+    const contentHtml = await parseMarkdownAsync(contentMd, props.colors)
     const slices = contentHtml.trim()
       ? await renderSlices(contentHtml, meta.brand, props.colors)
       : []
@@ -336,7 +336,7 @@ async function downloadOne(idx: number) {
   busy.value = true
   try {
     triggerDownload(await cardDataUrl(idx), fileName(idx))
-    emit('toast', '已保存')
+    emit('toast', '✅ 已保存')
   } catch (e) {
     status.value = '导出失败：' + errText(e)
   } finally {

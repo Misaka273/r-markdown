@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { parseMarkdown } from '@/utils/markdownParser'
+import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
@@ -86,29 +86,36 @@ const componentExamples = ref<
   }>
 >([])
 
-onMounted(() => {
+onMounted(async () => {
   requestAnimationFrame(() => {
     visible.value = true
   })
-  componentExamples.value = components
-    .filter((comp) => comp.id !== 'ReadingPath_DA01')
-    .map((comp) => ({
-      id: comp.id,
-      name: comp.name,
-      description: comp.description || '',
-      example: comp.example || '',
-      rendered: comp.example ? parseMarkdown(comp.example, colors.value) : '',
-      idSuffix: comp.id.split('_').slice(1).join('_'),
-      attrs: (comp as any).attrs || [],
-    }))
+  const colorsVal = colors.value
+  const examples = await Promise.all(
+    components
+      .filter((comp) => comp.id !== 'ReadingPath_DA01')
+      .map(async (comp) => ({
+        id: comp.id,
+        name: comp.name,
+        description: comp.description || '',
+        example: comp.example || '',
+        rendered: comp.example ? await parseMarkdownAsync(comp.example, colorsVal) : '',
+        idSuffix: comp.id.split('_').slice(1).join('_'),
+        attrs: (comp as any).attrs || [],
+      })),
+  )
+  componentExamples.value = examples
 })
 
 // 主题色变化时重新渲染预览
-watch(colors, (c) => {
-  componentExamples.value = componentExamples.value.map((comp) => ({
-    ...comp,
-    rendered: comp.example ? parseMarkdown(comp.example, c) : comp.rendered,
-  }))
+watch(colors, async (c) => {
+  const newExamples = await Promise.all(
+    componentExamples.value.map(async (comp) => ({
+      ...comp,
+      rendered: comp.example ? await parseMarkdownAsync(comp.example, c) : comp.rendered,
+    })),
+  )
+  componentExamples.value = newExamples
 })
 
 const showToast = ref(false)

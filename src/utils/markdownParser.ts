@@ -52,6 +52,7 @@ function highlightLine(rest: string, lang: string): string {
 }
 
 import { inlineFormat } from './inlineFormat'
+import { renderMath, preloadMathJax } from './mathRenderer'
 import {
   renderFrontMatter,
   parseCtaInline,
@@ -76,7 +77,73 @@ import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
 import { Slider_DA01 } from '@/editor-components/Slider_DA01'
 import { Img_DA01 } from '@/editor-components/Img_DA01'
 
-export function parseMarkdown(md: string, t: ThemeColors): string {
+/**
+ * 收集 md 中所有公式（去重），按 inline/block 分类返回，用于预渲染。
+ */
+export function collectFormulas(md: string): Array<{ formula: string; display: boolean }> {
+  const seen = new Set<string>()
+  const result: Array<{ formula: string; display: boolean }> = []
+
+  // 行内公式 $...$
+  const inlineRe = /(?<!\$)(?<!\d)\$(?!\d)([^\$]+?)\$(?!\$|[\w])/g
+  let m: RegExpExecArray | null
+  while ((m = inlineRe.exec(md)) !== null) {
+    const f = m[1].trim()
+    const key = `i:${f}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.push({ formula: f, display: false })
+    }
+  }
+
+  // 块级公式 $$...$$ （单行和多行）
+  const blockRe = /\$\$([\s\S]+?)\$\$/g
+  while ((m = blockRe.exec(md)) !== null) {
+    // 跳过空行 $$ $$ 前面的 $$
+    if (m[0] === '$$') continue
+    const f = m[1].trim()
+    if (!f) continue
+    const key = `b:${f}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.push({ formula: f, display: true })
+    }
+  }
+
+  return result
+}
+
+/**
+ * 批量预渲染公式为 SVG。
+ */
+export async function preRenderFormulas(
+  formulas: Array<{ formula: string; display: boolean }>,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  const results = await Promise.all(
+    formulas.map(async (f) => {
+      const prefix = f.display ? 'b' : 'i'
+      const svg = await renderMath(f.formula, f.display)
+      return { key: `${prefix}:${f.formula}`, svg }
+    }),
+  )
+  for (const { key, svg } of results) {
+    map.set(key, svg)
+  }
+  return map
+}
+
+/**
+ * 一步完成：收集公式 → 预渲染 → 解析。
+ * 推荐所有 caller 使用这个入口。
+ */
+export async function parseMarkdownAsync(md: string, t: ThemeColors): Promise<string> {
+  const formulas = collectFormulas(md)
+  const formulaMap = formulas.length > 0 ? await preRenderFormulas(formulas) : undefined
+  return parseMarkdown(md, t, formulaMap)
+}
+
+export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<string, string>): string {
   // 收集脚注：[text](url "desc") 带引号标题的链接 → 脚注
   const footnotes: { label: string; url: string; desc: string }[] = []
   const footnoteRegex = /\[([^\]]+)\]\(([^)\s]+)\s+"([^"]+)"\)/g
@@ -365,7 +432,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       }
       html += `<section style="margin:14px 0px;padding:12px 16px;background:rgb(247,248,252);border-left:3px solid ${t.accent};border-radius:0px 6px 6px 0px;color:rgb(85,85,85);font-size:14px">`
       ql.forEach((l) => {
-        html += `<section><p style="margin:4px 0px">${inlineFormat(l, t)}</p></section>`
+        html += `<section><p style="margin:4px 0px">${inlineFormat(l, t, formulaMap)}</p></section>`
       })
       html += `</section>`
       continue
@@ -446,29 +513,54 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     // 标题 — Markdown 原生语法，不走 PTitle
     const h1m = line.match(/^#\s+(.+)/)
     if (h1m) {
-      html += `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h1m[1], t)}</h1>`
+      html += `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h1m[1], t, formulaMap)}</h1>`
       i++
       continue
     }
 
     const h2m = line.match(/^##\s+(.+)/)
     if (h2m) {
-      html += `<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h2m[1], t)}</h2>`
+      html += `<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h2m[1], t, formulaMap)}</h2>`
       i++
       continue
     }
 
     const h3m = line.match(/^###\s+(.+)/)
     if (h3m) {
-      html += `<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">${inlineFormat(h3m[1], t)}</h3>`
+      html += `<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">${inlineFormat(h3m[1], t, formulaMap)}</h3>`
       i++
       continue
     }
 
     const h4m = line.match(/^####\s+(.+)/)
     if (h4m) {
-      html += `<h4 style="margin:20px 0px 8px;font-size:15px;font-weight:700;color:rgb(55,65,81);line-height:1.4">${inlineFormat(h4m[1], t)}</h4>`
+      html += `<h4 style="margin:20px 0px 8px;font-size:15px;font-weight:700;color:rgb(55,65,81);line-height:1.4">${inlineFormat(h4m[1], t, formulaMap)}</h4>`
       i++
+      continue
+    }
+
+    // 块级公式 $$...$$ — 优先取 formulaMap 中的预渲染 SVG
+    if (/^\$\$/.test(line)) {
+      // 单行模式：$$formula$$
+      const singleMatch = line.match(/^\$\$(.+?)\$\$/)
+      if (singleMatch) {
+        const formula = singleMatch[1].trim()
+        const svg = formulaMap?.get(`b:${formula}`) || ''
+        html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${svg}</section>`
+        i++
+        continue
+      }
+      // 多行模式：$$ 独占一行开头 → 收集行直到闭合 $$
+      i++
+      const formulaLines: string[] = []
+      while (i < lines.length && !/^\$\$/.test(lines[i])) {
+        formulaLines.push(lines[i])
+        i++
+      }
+      if (i < lines.length) i++ // 跳过闭合的 $$
+      const formula = formulaLines.join('\n').trim()
+      const svg = formulaMap?.get(`b:${formula}`) || ''
+      html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${svg}</section>`
       continue
     }
 
@@ -516,13 +608,13 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       }
       html += `<section style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:28px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
       headers.forEach((h) => {
-        html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">${inlineFormat(h, t)}</td>`
+        html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">${inlineFormat(h, t, formulaMap)}</td>`
       })
       html += `</tr></thead><tbody>`
       rows.forEach((r) => {
         html += `<tr>`
         r.forEach((c) => {
-          html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">${inlineFormat(c, t)}</td>`
+          html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">${inlineFormat(c, t, formulaMap)}</td>`
         })
         html += `</tr>`
       })
@@ -545,9 +637,9 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
           const checkSvg = isChecked
             ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
             : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="${uncheckedBorder}" stroke-width="1.5" fill="none"/></svg>`
-          html += `<section style="margin:5px 0px"><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;${isChecked ? `background:${t.accent};border-radius:4px` : ''}">${checkSvg}</span><span>${inlineFormat(cb[2], t)}</span></span></section>`
+          html += `<section style="margin:5px 0px"><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;${isChecked ? `background:${t.accent};border-radius:4px` : ''}">${checkSvg}</span><span>${inlineFormat(cb[2], t, formulaMap)}</span></span></section>`
         } else {
-          html += `<section style="margin:5px 0px">${inlineFormat(li, t)}</section>`
+          html += `<section style="margin:5px 0px">${inlineFormat(li, t, formulaMap)}</section>`
         }
         i++
       }
@@ -561,7 +653,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
       html += `<section style="margin:10px 0px;padding-left:24px">`
       while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
         const content = lines[i].replace(/^\d+\.\s/, '')
-        html += `<section style="margin:5px 0px"><span style="color:rgb(148,163,184);font-weight:700;margin-right:6px">${idx}.</span>${inlineFormat(content, t)}</section>`
+        html += `<section style="margin:5px 0px"><span style="color:rgb(148,163,184);font-weight:700;margin-right:6px">${idx}.</span>${inlineFormat(content, t, formulaMap)}</section>`
         idx++
         i++
       }
@@ -592,7 +684,7 @@ export function parseMarkdown(md: string, t: ThemeColors): string {
     }
 
     // 普通段落
-    html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">${inlineFormat(line, t)}</p></section>`
+    html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">${inlineFormat(line, t, formulaMap)}</p></section>`
     i++
   }
 
