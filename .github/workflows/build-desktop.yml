@@ -1,0 +1,130 @@
+name: Build Desktop App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            ext: dmg
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: msi
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Build Tauri
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: pnpm tauri build --target ${{ matrix.target }}
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p release
+          B="src-tauri/target/${{ matrix.target }}/release/bundle"
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            cp "$B/dmg/"*.dmg release/ 2>/dev/null || true
+            cp "$B/macos/"*.tar.gz release/ 2>/dev/null || true
+            cp "$B/dmg/"*.dmg.sig release/ 2>/dev/null || true
+            cp "$B/macos/"*.tar.gz.sig release/ 2>/dev/null || true
+          else
+            cp "$B/msi/"*.msi release/ 2>/dev/null || true
+            cp "$B/nsis/"*.exe release/ 2>/dev/null || true
+            cp "$B/msi/"*.msi.sig release/ 2>/dev/null || true
+            cp "$B/nsis/"*.exe.sig release/ 2>/dev/null || true
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: R-Markdown-${{ matrix.os }}
+          path: release/
+
+  collect:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: |
+          mkdir -p release
+          cp -r R-Markdown-*/* release/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: R-Markdown-All
+          path: release/
+
+  release:
+    needs: collect
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: R-Markdown-All
+          path: release
+
+      - name: Generate latest.json
+        run: |
+          V="${GITHUB_REF#refs/tags/v}"
+          echo -n "{\"version\":\"$V\",\"pub_date\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"platforms\":{" > release/latest.json
+          first=true
+          for f in release/*; do
+            name=$(basename "$f")
+            [[ "$name" == *.sig ]] && continue
+            sig=""
+            [ -f "$f.sig" ] && sig=$(cat "$f.sig")
+            url="https://github.com/${{ github.repository }}/releases/latest/download/$name"
+            [ "$first" = true ] || echo -n "," >> release/latest.json
+            first=false
+            echo -n "\"$name\":{\"url\":\"$url\",\"signature\":\"$sig\"}" >> release/latest.json
+          done
+          echo "}}" >> release/latest.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          name: R-Markdown ${{ github.ref_name }}
+          body: |
+            ## 变更
+
+            （请在此填写本次发布的变更说明）
+
+            ## 下载
+
+            | 平台 | 文件 |
+            |------|------|
+            | macOS | `.dmg` |
+            | Windows | `.msi` |
+
+            安装后应用会自动检测更新。
+          draft: true
