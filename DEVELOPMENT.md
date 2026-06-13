@@ -16,8 +16,9 @@
 | 样式   | Tailwind CSS 4          | 4.2.x |
 | 编辑器 | CodeMirror 6            | 6.x   |
 | 路由   | Vue Router              | 4.6.x |
+| 桌面   | Tauri 2                 | 2.x   |
 | 包管理 | pnpm                    | -     |
-| Node   | >= 20.0.0               | -     |
+| Node   | >= 24.0.0               | -     |
 
 ## 目录结构
 
@@ -50,6 +51,7 @@ src/
 │   ├── Title_DA01.ts        # 标题 v1
 │   └── Title_DA02.ts        # 标题 v2
 ├── composables/         # Vue 组合式函数
+│   ├── useAutoUpdater.ts    # Tauri 自动更新检查
 │   ├── useDarkMode.ts       # 深色模式逻辑
 │   └── useTheme.ts          # 主题管理
 ├── router/              # 路由配置
@@ -59,12 +61,22 @@ src/
 ├── utils/               # 工具函数
 │   ├── components.ts        # 组件解析器（callout/timeline 等）
 │   ├── helpers.ts           # 通用工具（esc/leaf/lightenHex 等）
-│   └── inlineFormat.ts      # 行内格式化（==渐变::柔光!!胶囊^^上标等）
+│   ├── inlineFormat.ts      # 行内格式化（==渐变::柔光!!胶囊^^上标等）
+│   └── mathRenderer.ts      # MathJax 公式渲染
 ├── views/               # 页面级组件
 │   ├── EditorPage.vue       # 编辑器页面
 │   └── LandingPage.vue      # 首页
 ├── App.vue              # 根组件
 └── main.ts              # 入口文件
+
+src-tauri/               # Tauri 桌面客户端（Rust）
+├── src/
+│   ├── main.rs              # Rust 程序入口
+│   └── lib.rs               # Tauri 插件注册与配置
+├── icons/                   # 应用图标（ico/icns/png）
+├── capabilities/            # 权限声明（shell/updater 等）
+├── Cargo.toml               # Rust 依赖与包配置
+└── tauri.conf.json          # Tauri 构建与打包配置
 ```
 
 ## 开发环境搭建
@@ -73,11 +85,17 @@ src/
 # 安装依赖
 pnpm install
 
-# 启动开发服务器
+# 启动 Web 开发服务器
 pnpm dev
 
-# 构建生产版本
+# 启动 Tauri 桌面客户端开发模式（热更新）
+pnpm tauri:dev
+
+# 构建 Web 生产版本
 pnpm build
+
+# 构建桌面客户端
+pnpm tauri:build
 
 # 代码检查
 pnpm check        # ESLint + Prettier 检查
@@ -323,7 +341,7 @@ git push origin develop
 
 ## 构建与部署
 
-### 本地构建
+### Web 版
 
 ```bash
 pnpm build
@@ -331,12 +349,32 @@ pnpm build
 
 构建产物在 `dist/` 目录。
 
-### GitHub Pages 部署
+### 桌面客户端
 
-项目配置了 GitHub Actions 自动部署，推送 `main` 分支后自动构建并发布到 GitHub Pages。
+```bash
+pnpm tauri:build
+```
 
-- 基础路径：`/r-markdown/`（GitHub Actions 环境下自动设置）
-- 本地开发：`/`
+构建产物：
+- macOS: `src-tauri/target/release/bundle/dmg/R-Markdown_*.dmg`
+- Windows: `src-tauri/target/release/bundle/msi/R-Markdown_*.msi`
+
+### CI/CD
+
+项目配置了两条 GitHub Actions 工作流，均在 `.github/workflows/` 下：
+
+| 文件 | 触发条件 | 用途 |
+|------|----------|------|
+| `deploy.yml` | 推送 `main` 分支 | 构建 Web 版并部署到 GitHub Pages |
+| `build-desktop.yml` | 推送 `v*` 标签或手动触发 | 构建 macOS (aarch64) + Windows (x64) 桌面客户端并发布 Release |
+
+**重要配置说明**：
+
+- `vite.config.ts` 中 `base` 路径区分 Web 部署（`/r-markdown/`）和桌面构建（`/`），通过 `VITE_TAURI` 和 `GITHUB_ACTIONS` 两个环境变量联合判断
+- 桌面构建使用 `cross-env` 确保跨平台环境变量兼容
+- 发布时 `Cargo.toml` 中 `[lib] name` 必须为 snake_case（`r_markdown_lib`）
+- 桌面客户端无代码签名，macOS 安装后需执行 `sudo xattr -rd com.apple.quarantine /Applications/R-Markdown.app` 放行
+- 每次发布桌面客户端需同步更新 `tauri.conf.json` 的 `version` 字段与 git tag 一致
 
 ### 预览构建产物
 
@@ -347,7 +385,16 @@ pnpm preview
 ## 注意事项
 
 1. **不要手动编辑 `.vue.js` 文件**：这些是 Vue 编译器生成的临时文件，已在 `.gitignore` 中排除
-2. **不要提交 `src/**/\*.js`文件**：TypeScript 源码编译产物，已在`.gitignore` 中排除
+2. **不要提交 `src/**/*.js` 文件**：TypeScript 源码编译产物，已在 `.gitignore` 中排除
 3. **修改行内格式化语法后**：同步更新本文档的语法对照表
 4. **新增组件后**：同步更新本文档的目录结构和组件解析语法表
 5. **构建前确认**：确保 `pnpm check` 通过，无 ESLint/Prettier 错误
+6. **Tauri 开发**：
+   - 前端代码中的 Tauri API 调用须通过 `import.meta.env.VITE_TAURI === 'true'` 守卫，确保 Web 版不受影响
+   - 修改 `Cargo.toml` 中 `[lib] name` 后须同步修改 `src-tauri/src/main.rs` 中的 crate 引用
+   - 首次构建桌面端需安装 Rust 工具链（[rustup.rs](https://rustup.rs)）
+7. **Node 版本**：项目要求 Node.js >= 24，使用 nvm 管理版本：
+   ```bash
+   nvm install 24
+   nvm use 24
+   ```
