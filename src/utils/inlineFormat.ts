@@ -1,7 +1,7 @@
 import type { ThemeColors } from '../composables/useTheme'
 import { esc, leaf, lightenHex } from './helpers'
 
-export function inlineFormat(text: string, t: ThemeColors): string {
+export function inlineFormat(text: string, t: ThemeColors, formulaMap?: Map<string, string>): string {
   // 脚注占位符 __FN_N__（渲染为带下划线的文字 + 上标数字）
   // 格式：__FN_N__|显示文字，其中显示文字由 markdownParser 传入
   text = text.replace(
@@ -20,6 +20,18 @@ export function inlineFormat(text: string, t: ThemeColors): string {
     /`([^`]+)`/g,
     (_m, p1: string) =>
       `<code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">${esc(p1)}</code>`,
+  )
+  // $行内公式$ — 优先取 formulaMap 中的预渲染 SVG；无可用时显示公式原文
+  text = text.replace(
+    /(?<!\$)(?<!\d)\$(?!\d)([^\$]+?)\$(?!\$|[\w])/g,
+    (_m, formula: string) => {
+      if (formulaMap) {
+        const svg = formulaMap.get(`i:${formula}`)
+        if (svg) return svg
+      }
+      // 降级：显示公式原文
+      return `<code style="font-style:italic;background:#f3f4f6;padding:1px 4px;border-radius:3px">${esc(formula)}</code>`
+    },
   )
   // ==渐变背景==
   text = text.replace(
