@@ -84,14 +84,15 @@ export function collectFormulas(md: string): Array<{ formula: string; display: b
   const seen = new Set<string>()
   const result: Array<{ formula: string; display: boolean }> = []
 
-  // 屏蔽代码块和行内代码中的 $ / $$，避免被误判为公式分隔符
-  // 行内代码 `` `...` `` → 替换为等长占位符，保持后续正则的 exec 位置索引语义一致
-  const masked = md.replace(/`[^`]+`/g, (code) => '`' + '\u200B'.repeat(code.length - 2) + '`')
+  // 删除代码块（围栏 + 行内），避免其中的 $ / $$ 被误判为公式分隔符
+  const cleaned = md
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
 
   // 行内公式 $...$
   const inlineRe = /(?<!\$)(?<!\d)\$(?!\d)([^\$]+?)\$(?!\$|[\w])/g
   let m: RegExpExecArray | null
-  while ((m = inlineRe.exec(masked)) !== null) {
+  while ((m = inlineRe.exec(cleaned)) !== null) {
     const f = m[1].trim()
     const key = `i:${f}`
     if (!seen.has(key)) {
@@ -102,7 +103,7 @@ export function collectFormulas(md: string): Array<{ formula: string; display: b
 
   // 块级公式 $$...$$ （单行和多行）
   const blockRe = /\$\$([\s\S]+?)\$\$/g
-  while ((m = blockRe.exec(masked)) !== null) {
+  while ((m = blockRe.exec(cleaned)) !== null) {
     // 跳过空行 $$ $$ 前面的 $$
     if (m[0] === '$$') continue
     const f = m[1].trim()
@@ -545,12 +546,18 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // 块级公式 $$...$$ — 优先取 formulaMap 中的预渲染 SVG
     if (/^\$\$/.test(line)) {
+      // 辅助函数：获取 SVG 或降级为公式原文
+      const resolveSvg = (f: string) => {
+        const svg = formulaMap?.get(`b:${f}`)
+        if (svg) return svg
+        // 降级：显示公式原文，方便排查 formulaMap 缺失的情况
+        return `<code style="display:inline-block;background:#f3f4f6;padding:6px 12px;border-radius:6px;font-size:14px;font-family:SF Mono,Consolas,monospace;color:#e83e8c;max-width:100%;overflow-x:auto;white-space:nowrap">$${esc(f)}$$</code>`
+      }
       // 单行模式：$$formula$$
       const singleMatch = line.match(/^\$\$(.+?)\$\$/)
       if (singleMatch) {
         const formula = singleMatch[1].trim()
-        const svg = formulaMap?.get(`b:${formula}`) || ''
-        html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${svg}</section>`
+        html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${resolveSvg(formula)}</section>`
         i++
         continue
       }
@@ -563,8 +570,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       }
       if (i < lines.length) i++ // 跳过闭合的 $$
       const formula = formulaLines.join('\n').trim()
-      const svg = formulaMap?.get(`b:${formula}`) || ''
-      html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${svg}</section>`
+      html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${resolveSvg(formula)}</section>`
       continue
     }
 
