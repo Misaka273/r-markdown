@@ -8,7 +8,7 @@ const isTauri = process.env.VITE_TAURI === 'true'
 const isWebDeploy = process.env.GITHUB_ACTIONS && !isTauri
 
 export default defineConfig({
-  base: isWebDeploy ? '/r-markdown/' : '/',
+  base: isWebDeploy ? '/r-markdown/' : isTauri ? './' : '/',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
