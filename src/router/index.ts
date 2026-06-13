@@ -19,6 +19,9 @@ const router = createRouter({
       component: () => import('../views/ComponentShowcase.vue'),
     },
   ],
+  scrollBehavior() {
+    return { top: 0 }
+  },
 })
 
 export default router

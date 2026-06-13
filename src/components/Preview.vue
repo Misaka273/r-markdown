@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import { toPng } from 'html-to-image'
 import type { ThemeColors } from '@/composables/useTheme'
-import { parseMarkdown } from '@/utils/markdownParser'
+import { parseMarkdownAsync } from '@/utils/markdownParser'
 import Toast from './Toast.vue'
 
 const props = defineProps<{
@@ -25,10 +25,10 @@ function showToast(msg: string) {
   }, 1500)
 }
 
-function updateContent() {
+async function updateContent() {
   const el = previewRef.value
   if (!el) return
-  el.innerHTML = parseMarkdown(props.markdown, props.colors)
+  el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors)
 }
 
 watch(
