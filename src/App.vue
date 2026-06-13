@@ -1,4 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useAutoUpdater } from './composables/useAutoUpdater'
+useAutoUpdater()
+</script>
 
 <template>
   <router-view />
