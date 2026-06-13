@@ -4,8 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 declare const process: { env: Record<string, string | undefined> }
 
+const isTauri = process.env.VITE_TAURI === 'true'
+const isWebDeploy = process.env.GITHUB_ACTIONS && !isTauri
+
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? '/r-markdown/' : '/',
+  base: isWebDeploy ? '/r-markdown/' : '/',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
