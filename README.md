@@ -1,6 +1,7 @@
 # R-Markdown 编辑器
 
 > 专为微信公众号打造的 Markdown 排版工具，所见即所得，一键复制到公众号后台。
+> 同时提供 macOS / Windows 桌面客户端，本地离线使用。
 
 ## ✨ 功能特性
 
@@ -13,6 +14,8 @@
 - **可调面板** — 拖拽调整编辑器与预览区宽度
 - **组件展示** — 内置排版组件库，可视化浏览所有可用组件及效果
 - **图片轮播** — SVG 动画实现的图片幻灯片，支持 4 种轮播模式
+- **桌面客户端** — 基于 Tauri 2 的 macOS（Apple Silicon）和 Windows（x64）原生应用
+- **自动更新** — 桌面客户端启动时自动检查新版本，一键下载安装
 
 ## 🎨 排版能力
 
@@ -54,8 +57,9 @@
 
 ### 环境要求
 
-- Node.js >= 20
+- Node.js >= 24
 - pnpm
+- Rust（仅桌面客户端开发需要）
 
 ### 安装与运行
 
@@ -95,6 +99,30 @@ pnpm lint     # ESLint 自动修复
 pnpm format   # Prettier 格式化
 ```
 
+### 桌面客户端开发
+
+```bash
+# 启动 Tauri 开发模式（热更新）
+pnpm tauri:dev
+
+# 构建桌面客户端
+pnpm tauri:build
+```
+
+构建产物：
+- macOS: `src-tauri/target/release/bundle/dmg/R-Markdown_*.dmg`
+- Windows: `src-tauri/target/release/bundle/msi/R-Markdown_*.msi`
+
+### 桌面客户端安装
+
+从 [GitHub Releases](https://github.com/robocopmao/r-markdown/releases) 下载最新版本。
+
+macOS 首次打开时若提示"已损坏"，执行以下命令放行：
+
+```bash
+sudo xattr -rd com.apple.quarantine /Applications/R-Markdown.app
+```
+
 ## 📦 技术栈
 
 - **Vue 3** (Composition API + `<script setup>`)
@@ -105,6 +133,7 @@ pnpm format   # Prettier 格式化
 - **Tailwind CSS 4** — 样式系统
 - **html-to-image** — 图片导出
 - **awesome-design-md** — 公众号排版引擎
+- **Tauri 2** — 桌面客户端框架（macOS + Windows）
 
 ## 📁 项目结构
 
@@ -146,6 +175,7 @@ r-markdown/
 │   ├── composables/           # 组合式函数
 │   │   ├── useTheme.ts        # 主题管理
 │   │   ├── useDarkMode.ts     # 暗色模式
+│   │   ├── useAutoUpdater.ts  # Tauri 自动更新
 │   │   └── useDropdownGroup.ts # 下拉菜单组
 │   ├── views/                 # 页面视图
 │   │   ├── HomePage.vue       # 首页
@@ -156,7 +186,8 @@ r-markdown/
 │   │   ├── colorUtils.ts      # 颜色处理
 │   │   ├── components.ts      # 组件工具
 │   │   ├── helpers.ts         # 通用辅助函数
-│   │   └── inlineFormat.ts    # 内联格式化
+│   │   ├── inlineFormat.ts    # 内联格式化
+│   │   └── mathRenderer.ts    # MathJax 公式渲染
 │   ├── data/
 │   │   └── demoContent.ts     # 示例内容
 │   ├── router/
@@ -164,8 +195,17 @@ r-markdown/
 │   ├── styles/                # 全局样式
 │   ├── App.vue                # 根组件
 │   └── main.ts                # 入口
+├── src-tauri/                 # Tauri 桌面客户端
+│   ├── src/
+│   │   ├── main.rs            # Rust 入口
+│   │   └── lib.rs             # Tauri 插件注册
+│   ├── icons/                 # 应用图标
+│   ├── capabilities/          # 权限配置
+│   ├── Cargo.toml             # Rust 依赖
+│   └── tauri.conf.json        # Tauri 配置
 ├── .github/workflows/
-│   └── deploy.yml             # GitHub Actions 自动部署
+│   ├── deploy.yml             # 网页版自动部署
+│   └── build-desktop.yml      # 桌面端 CI/CD 构建
 ├── package.json
 ├── vite.config.ts
 └── tsconfig.json
