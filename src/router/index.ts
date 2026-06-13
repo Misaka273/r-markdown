@@ -1,12 +1,17 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
+const isTauriClient = import.meta.env.VITE_TAURI === 'true'
+
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
       name: 'home',
-      component: () => import('../views/HomePage.vue'),
+      // Tauri 客户端默认打开编辑器，Web 版显示首页
+      component: isTauriClient
+        ? () => import('../views/EditorPage.vue')
+        : () => import('../views/HomePage.vue'),
     },
     {
       path: '/editor',
