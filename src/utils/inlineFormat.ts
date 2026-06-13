@@ -15,11 +15,15 @@ export function inlineFormat(text: string, t: ThemeColors, formulaMap?: Map<stri
     (_m, p1: string) =>
       `<sup style="color:${t.accent};font-weight:600;cursor:pointer">[${parseInt(p1) + 1}]</sup>`,
   )
-  // `行内代码` — 最先处理，转义内部 HTML 防止标签被浏览器渲染
+  // `行内代码` — 先用占位符隔离，避免内部 $...$ / ** 等被后续正则误匹配
+  const codeStore: string[] = []
   text = text.replace(
     /`([^`]+)`/g,
-    (_m, p1: string) =>
-      `<code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">${esc(p1)}</code>`,
+    (_m, p1: string) => {
+      const idx = codeStore.length
+      codeStore.push(`<code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">${esc(p1)}</code>`)
+      return `\x00CODE_${idx}\x00`
+    },
   )
   // $行内公式$ — 优先取 formulaMap 中的预渲染 SVG；无可用时显示公式原文
   text = text.replace(
@@ -88,5 +92,7 @@ export function inlineFormat(text: string, t: ThemeColors, formulaMap?: Map<stri
     /\[([^\]]+)\]\(([^)\s]+)\)/g,
     (_m, p1: string, p2: string) => `<a href="${p2}" style="color:${t.accent}">${leaf(p1)}</a>`,
   )
+  // 还原行内代码占位符
+  text = text.replace(/\x00CODE_(\d+)\x00/g, (_m, p1: string) => codeStore[parseInt(p1)] || _m)
   return text
 }
