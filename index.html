@@ -26,6 +26,13 @@
     />
   </head>
   <body>
+    <div id="app-loading" style="display:none" data-loading>
+      <div style="text-align:center">
+        <div style="width:28px;height:28px;border:2.5px solid #e5e7eb;border-top-color:#6366f1;border-radius:50%;animation:app-spin 0.7s linear infinite;margin:0 auto 12px"></div>
+        加载中...
+      </div>
+      <style>@keyframes app-spin{to{transform:rotate(360deg)}}[data-theme="dark"] #app-loading{background:#111114;color:#6b7280}[data-theme="dark"] #app-loading div div{border-color:#374151;border-top-color:#818cf8}</style>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
