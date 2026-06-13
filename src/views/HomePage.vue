@@ -344,6 +344,14 @@ const homeNavItems: NavItem[] = [
     to: '/components',
   },
   {
+    key: 'download',
+    label: '客户端下载',
+    iconPath: 'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z',
+    iconViewBox: '0 0 24 24',
+    external: true,
+    to: 'https://github.com/RobocopMao/r-markdown/releases/latest',
+  },
+  {
     key: 'github',
     label: 'GitHub',
     iconPath:
