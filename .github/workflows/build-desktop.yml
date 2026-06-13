@@ -73,6 +73,8 @@ jobs:
   collect:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/download-artifact@v4
       - run: |
