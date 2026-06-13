@@ -12,6 +12,7 @@ import MobileActionsMenu from '../components/MobileActionsMenu.vue'
 import XhsExporter from '../components/XhsExporter.vue'
 import TagPropsForm from '../components/TagPropsForm.vue'
 import Toast from '../components/Toast.vue'
+import pkg from '../../package.json'
 
 // base64 图片数据存储，避免长字符串撑大编辑器
 const IMG_STORE_KEY = 'wechat-md-editor-imgs'
@@ -457,11 +458,17 @@ onBeforeUnmount(() => {
             <rect width="24" height="24" rx="6" :fill="accent" />
             <text x="3.5" y="16" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">RM</text>
           </svg>
-          <span class="hidden sm:inline">R-Markdown 编辑器</span>
-          <span class="sm:hidden">R-Markdown</span>
-          <span class="text-[0.55em] opacity-60 align-super ml-0.5 hidden sm:inline"
-            >for 公众号</span
+          <span class="hidden sm:inline"
+            >R-Markdown 编辑器</span
           >
+          <span
+            class="hidden sm:inline-flex flex-col ml-0.5"
+            style="font-size: 0.55em; vertical-align: super; line-height: 1.1"
+          >
+            <span class="opacity-60">for 公众号</span>
+            <span class="opacity-50">v{{ pkg.version }}</span>
+          </span>
+          <span class="sm:hidden">R-Markdown</span>
         </router-link>
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
       </div>
