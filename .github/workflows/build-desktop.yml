@@ -108,12 +108,34 @@ jobs:
           for f in release/*; do
             name=$(basename "$f")
             [[ "$name" == *.sig ]] && continue
+
+            # Map filename to Tauri platform key; only include updater bundles
+            platform=""
+            if [[ "$name" == *.tar.gz ]]; then
+              # macOS updater bundle
+              if [[ "$name" == *aarch64* ]]; then
+                platform="darwin-aarch64"
+              elif [[ "$name" == *x64* ]] || [[ "$name" == *x86_64* ]]; then
+                platform="darwin-x86_64"
+              fi
+            elif [[ "$name" == *setup.exe ]] || [[ "$name" == *.exe ]] && [[ "$name" != *.dmg* ]]; then
+              # Windows NSIS updater bundle (exclude dmg which might have .exe elsewhere)
+              if [[ "$name" == *x64* ]]; then
+                platform="windows-x86_64"
+              else
+                platform="windows-x86"
+              fi
+            else
+              continue
+            fi
+            [[ -z "$platform" ]] && continue
+
             sig=""
             [ -f "$f.sig" ] && sig=$(cat "$f.sig")
             url="https://github.com/${{ github.repository }}/releases/latest/download/$name"
             [ "$first" = true ] || echo -n "," >> release/latest.json
             first=false
-            echo -n "\"$name\":{\"url\":\"$url\",\"signature\":\"$sig\"}" >> release/latest.json
+            echo -n "\"$platform\":{\"url\":\"$url\",\"signature\":\"$sig\"}" >> release/latest.json
           done
           echo "}}" >> release/latest.json
 
