@@ -52,6 +52,108 @@ let view: EditorView | null = null
 // ── 光标位置状态 ──
 const isAtLineStart = ref(false)
 
+// ── 行内样式选中检测 ──
+const hasInlineSelection = ref(false)
+
+function checkInlineSelection(state: EditorState) {
+  const sel = state.selection.main
+  if (sel.empty) {
+    hasInlineSelection.value = false
+    return
+  }
+  const doc = state.doc.toString()
+  // 如果已经是组件标签选中，不触发行内样式
+  const selectedText = doc.slice(sel.from, sel.to)
+  // 多行选中不触发
+  if (selectedText.includes('\n')) {
+    hasInlineSelection.value = false
+    return
+  }
+  // 选区在未闭合的标签内部不触发（如属性值内）
+  const line = state.doc.lineAt(sel.from)
+  const posInLine = sel.from - line.from
+  const before = line.text.slice(0, posInLine)
+  const lastLt = before.lastIndexOf('<')
+  if (lastLt !== -1 && !before.slice(lastLt + 1).includes('>')) {
+    hasInlineSelection.value = false
+    return
+  }
+  const tagMatch = selectedText.match(tagRegex)
+  if (tagMatch && tagMatch[1] in tagMap) {
+    hasInlineSelection.value = false
+    return
+  }
+  // 检查是否已被行内修饰语法包裹
+  const twoCharDelims = ['==', '::', '!!', '^^', '__', '~~', '**']
+  for (const delim of twoCharDelims) {
+    if (
+      sel.from >= delim.length &&
+      sel.to + delim.length <= doc.length &&
+      doc.slice(sel.from - delim.length, sel.from) === delim &&
+      doc.slice(sel.to, sel.to + delim.length) === delim
+    ) {
+      hasInlineSelection.value = false
+      return
+    }
+  }
+  // 斜体 *（排除粗体 **）
+  if (
+    sel.from >= 1 &&
+    sel.to + 1 <= doc.length &&
+    doc[sel.from - 1] === '*' &&
+    doc[sel.to] === '*' &&
+    !(sel.from >= 2 && doc[sel.from - 2] === '*') &&
+    !(sel.to + 2 <= doc.length && doc[sel.to + 1] === '*')
+  ) {
+    hasInlineSelection.value = false
+    return
+  }
+  // 行内代码
+  if (
+    sel.from >= 1 &&
+    sel.to + 1 <= doc.length &&
+    doc[sel.from - 1] === '`' &&
+    doc[sel.to] === '`'
+  ) {
+    hasInlineSelection.value = false
+    return
+  }
+  // HTML 标签包裹：<tag>...</tag>
+  const tagWrappers = ['u', 'sub', 'sup']
+  for (const tag of tagWrappers) {
+    const openTag = `<${tag}>`
+    const closeTag = `</${tag}>`
+    if (
+      sel.from >= openTag.length &&
+      sel.to + closeTag.length <= doc.length &&
+      doc.slice(sel.from - openTag.length, sel.from) === openTag &&
+      doc.slice(sel.to, sel.to + closeTag.length) === closeTag
+    ) {
+      hasInlineSelection.value = false
+      return
+    }
+  }
+  hasInlineSelection.value = true
+}
+
+function applyInlineFormat(syntax: string, wrapType: 'delim' | 'tag' = 'delim') {
+  if (!view) return
+  const sel = view.state.selection.main
+  if (sel.empty) return
+  const selectedText = view.state.sliceDoc(sel.from, sel.to)
+  const wrapped = wrapType === 'tag'
+    ? `<${syntax}>${selectedText}</${syntax}>`
+    : syntax + selectedText + syntax
+  const anchorShift = wrapType === 'tag' ? syntax.length + 2 : syntax.length
+  view.dispatch({
+    changes: { from: sel.from, to: sel.to, insert: wrapped },
+    selection: {
+      anchor: sel.from + anchorShift,
+      head: sel.from + anchorShift + selectedText.length,
+    },
+  })
+}
+
 // ── 标签选中检测 ──
 const tagRegex = /^<(\w[\w-]*)((?:\s+[^>]*?)?)(\/?)>/s
 let lastTagSelection: {
@@ -296,6 +398,7 @@ onMounted(async () => {
       const line = update.state.doc.lineAt(sel.from)
       isAtLineStart.value = sel.from === line.from
       checkTagSelection(update.state)
+      checkInlineSelection(update.state)
     }
   })
 
@@ -385,7 +488,7 @@ function insertAtCursor(text: string) {
   })
 }
 
-defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart })
+defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineSelection, applyInlineFormat })
 </script>
 
 <template>
