@@ -677,23 +677,23 @@ onBeforeUnmount(() => {
               <button
                 class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
               >行内样式</button>
-              <span class="absolute top-full right-0 mt-1.5 w-44 rounded-lg bg-[#1a1a1a] text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg pointer-events-auto">
+              <span class="absolute top-full right-0 mt-1.5 w-44 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-auto">
                 <button
                   v-for="opt in inlineFormatOptions"
                   :key="opt.syntax"
-                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0"
+                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors border-b border-[#e5e5e5] dark:border-white/5 last:border-b-0"
                   @click="editorRef?.applyInlineFormat(opt.syntax, opt.wrapType ?? 'delim')"
                 >
                   <span>{{ opt.label }}</span>
-                  <span class="text-white/40 ml-2">{{ opt.hint }}</span>
+                  <span class="text-[#999] dark:text-white/40 ml-2">{{ opt.hint }}</span>
                 </button>
               </span>
             </span>
             <!-- 帮助提示 -->
             <span class="relative ml-1 inline-flex items-center group">
               <svg class="w-3.5 h-3.5 text-[#aaa] cursor-help hover:text-[var(--accent)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span class="absolute top-full right-0 mt-1.5 w-56 px-3 py-2 rounded-lg bg-[#1a1a1a] text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg pointer-events-none">
-                1、光标停在空行时出现「插入图片」和「插入组件」按钮<br>2、全选组件标签出现「解析标签」按钮，进行属性可视化编辑<br>3、选中非组件标签的普通文字时出现「行内样式」按钮，鼠标移入可选择行内修饰语法。
+              <span class="absolute top-full right-0 mt-1.5 w-56 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
+                1、选中非扩展组件标签的普通文字时出现「行内样式」按钮，鼠标移入可选择行内修饰语法。<br>2、光标停在空行时出现「插入图片」和「插入组件」按钮。<br>3、全选扩展组件标签出现「解析标签」按钮，进行属性可视化编辑。
               </span>
             </span>
           </span>
