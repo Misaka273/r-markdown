@@ -56,6 +56,8 @@ jobs:
           B="src-tauri/target/${{ matrix.target }}/release/bundle"
           echo "=== Bundle directory listing ==="
           find "$B" -type f 2>/dev/null || echo "(no files found)"
+          echo "=== All .tar.gz under target ==="
+          find src-tauri/target -name "*.tar.gz" 2>/dev/null || echo "(none found)"
           if [[ "${{ matrix.os }}" == macos-* ]]; then
             cp "$B/dmg/"*.dmg release/ 2>/dev/null || true
             cp "$B/macos/"*.tar.gz release/ 2>/dev/null || true
