@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import BaseDialog from '@/components/BaseDialog.vue'
+import { checkForUpdates } from '@/composables/useAutoUpdater'
 
 defineProps<{
   visible: boolean
@@ -13,8 +14,13 @@ const emit = defineEmits<{
 
 const ZOOM_PRESETS = [50, 75, 80, 90, 100, 110, 125, 150, 175, 200]
 const STORE_KEY = 'editor-page-zoom'
+const isTauri = import.meta.env.VITE_TAURI === 'true'
 
 const currentZoom = ref(loadZoom())
+
+const updateChecking = ref(false)
+const updateMessage = ref('')
+const updateError = ref(false)
 
 function loadZoom(): number {
   try {
@@ -35,6 +41,34 @@ async function applyZoom(scale: number) {
   } catch {
     // 非 Tauri 环境忽略
   }
+}
+
+async function manualCheckUpdate() {
+  updateChecking.value = true
+  updateMessage.value = ''
+  updateError.value = false
+
+  const result = await checkForUpdates()
+
+  if (result.error) {
+    updateMessage.value = result.error
+    updateError.value = true
+  } else if (result.update) {
+    const yes = confirm(`发现新版本 ${result.update.version}，是否立即安装？`)
+    if (yes) {
+      try {
+        await result.update.downloadAndInstall()
+      } catch {
+        updateMessage.value = '安装失败，请稍后重试'
+        updateError.value = true
+      }
+    }
+  } else {
+    updateMessage.value = '已是最新版本'
+    updateError.value = false
+  }
+
+  updateChecking.value = false
 }
 
 </script>
@@ -68,6 +102,29 @@ async function applyZoom(scale: number) {
       <p class="text-[11px] text-[#999] dark:text-[#666] mt-2.5">
         当前缩放：{{ currentZoom }}%（设置会自动保存）
       </p>
+    </section>
+
+    <!-- 检查更新（仅桌面端） -->
+    <section v-if="isTauri" class="mt-6 pt-6 border-t border-[#f0f0f0] dark:border-[#333]">
+      <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+        版本更新
+      </h3>
+      <div class="flex items-center gap-3">
+        <button
+          class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+          :disabled="updateChecking"
+          @click="manualCheckUpdate"
+        >
+          {{ updateChecking ? '检查中…' : '检查更新' }}
+        </button>
+        <span
+          v-if="updateMessage"
+          class="text-[12px]"
+          :class="updateError ? 'text-[#e74c3c]' : 'text-[var(--accent-green)]'"
+        >
+          {{ updateMessage }}
+        </span>
+      </div>
     </section>
   </BaseDialog>
 </template>
