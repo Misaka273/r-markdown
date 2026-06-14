@@ -11,6 +11,7 @@ import Dropdown from '../components/Dropdown.vue'
 import MobileActionsMenu from '../components/MobileActionsMenu.vue'
 import XhsExporter from '../components/XhsExporter.vue'
 import TagPropsForm from '../components/TagPropsForm.vue'
+import ComponentPickerDialog from '../components/ComponentPickerDialog.vue'
 import Toast from '../components/Toast.vue'
 import pkg from '../../package.json'
 
@@ -141,6 +142,9 @@ const resolvedMarkdown = computed(() => resolveBase64(markdown.value))
 const previewRef = ref()
 const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
+
+// ── 插入扩展组件 ──
+const componentDialogVisible = ref(false)
 
 // ── 插入图片 ──
 const imageInputRef = ref<HTMLInputElement>()
@@ -623,7 +627,12 @@ onBeforeUnmount(() => {
             <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
           </span>
           <span class="flex items-center gap-2">
-            <button class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn" @click="handleInsertImage">插入图片</button>
+            <button v-if="editorRef?.isAtLineStart" class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn" @click="handleInsertImage">插入图片</button>
+            <button
+              v-if="editorRef?.isAtLineStart"
+              class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
+              @click="componentDialogVisible = true"
+            >插入组件</button>
             <button
               v-if="tagInfo && !showTagDialog && !isMobile"
               class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
@@ -631,6 +640,13 @@ onBeforeUnmount(() => {
             >
               解析 &lt;{{ tagInfo.tagName }}&gt;属性
             </button>
+            <!-- 帮助提示 -->
+            <span class="relative ml-1 inline-flex items-center group">
+              <svg class="w-3.5 h-3.5 text-[#aaa] cursor-help hover:text-[var(--accent)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span class="absolute top-full right-0 mt-1.5 w-56 px-3 py-2 rounded-lg bg-[#1a1a1a] text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg pointer-events-none">
+                1、光标停在空行时出现「插入图片」和「插入组件」按钮<br>2、全选组件标签出现「解析标签」按钮，进行属性可视化编辑。
+              </span>
+            </span>
           </span>
         </div>
         <div class="flex flex-1 overflow-hidden">
@@ -700,6 +716,11 @@ onBeforeUnmount(() => {
       :colors="colors"
       @close="xhsVisible = false"
       @toast="showToast"
+    />
+    <ComponentPickerDialog
+      :visible="componentDialogVisible"
+      @close="componentDialogVisible = false"
+      @insert="(code: string) => editorRef?.insertAtCursor(code)"
     />
     <Toast :visible="toastVisible" :message="toastMessage" />
   </div>

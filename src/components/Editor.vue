@@ -48,6 +48,9 @@ const editorRef = ref<HTMLDivElement>()
 const { colors } = useTheme()
 let view: EditorView | null = null
 
+// ── 光标位置状态 ──
+const isAtLineStart = ref(false)
+
 // ── 标签选中检测 ──
 const tagRegex = /^<(\w[\w-]*)((?:\s+[^>]*?)?)(\/?)>/s
 let lastTagSelection: {
@@ -99,6 +102,7 @@ function checkTagSelection(state: EditorState) {
     lastTagSelection.to !== newTag.to
   ) {
     lastTagSelection = newTag
+    isAtLineStart.value = false
     emit('tag-selected', newTag)
   }
 }
@@ -276,6 +280,10 @@ onMounted(async () => {
       emit('update:modelValue', update.state.doc.toString())
     }
     if (update.selectionSet || update.docChanged) {
+      // 先更新行首状态，再让 checkTagSelection 覆盖（组件标签选中时置 false）
+      const sel = update.state.selection.main
+      const line = update.state.doc.lineAt(sel.from)
+      isAtLineStart.value = sel.from === line.from
       checkTagSelection(update.state)
     }
   })
@@ -366,7 +374,7 @@ function insertAtCursor(text: string) {
   })
 }
 
-defineExpose({ scrollTo, replaceRange, insertAtCursor })
+defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart })
 </script>
 
 <template>
