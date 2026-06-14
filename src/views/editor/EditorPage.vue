@@ -185,11 +185,15 @@ async function doAutoUpdateDownload() {
   autoUpdateDownloading.value = true
   autoUpdateProgress.value = 0
   try {
+    let total = 0
+    let totalSize = 0
     await autoUpdateObj.value.downloadAndInstall((event) => {
-      if (event.event === 'Progress') {
-        const { downloaded, contentLength } = event.data as { downloaded: number; contentLength: number }
-        if (contentLength > 0) {
-          autoUpdateProgress.value = Math.round((downloaded / contentLength) * 100)
+      if (event.event === 'Started') {
+        totalSize = event.data.contentLength ?? 0
+      } else if (event.event === 'Progress') {
+        total += event.data.chunkLength
+        if (totalSize > 0) {
+          autoUpdateProgress.value = Math.round((total / totalSize) * 100)
         }
       }
     })

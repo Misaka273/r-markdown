@@ -81,11 +81,15 @@ async function doDownloadUpdate() {
   downloadProgress.value = 0
 
   try {
+    let total = 0
+    let totalSize = 0
     await pendingUpdate.value.downloadAndInstall((event) => {
-      if (event.event === 'Progress') {
-        const { downloaded, contentLength } = event.data as { downloaded: number; contentLength: number }
-        if (contentLength > 0) {
-          downloadProgress.value = Math.round((downloaded / contentLength) * 100)
+      if (event.event === 'Started') {
+        totalSize = event.data.contentLength ?? 0
+      } else if (event.event === 'Progress') {
+        total += event.data.chunkLength
+        if (totalSize > 0) {
+          downloadProgress.value = Math.round((total / totalSize) * 100)
         }
       }
     })
