@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { DEMO_CONTENT } from '@/data/demoContent'
-import Editor from '../components/Editor.vue'
-import Preview from '../components/Preview.vue'
-import ThemePicker from '../components/ThemePicker.vue'
-import DarkModeToggle from '../components/DarkModeToggle.vue'
-import Dropdown from '../components/Dropdown.vue'
-import MobileActionsMenu from '../components/MobileActionsMenu.vue'
-import XhsExporter from '../components/XhsExporter.vue'
-import TagPropsForm from '../components/TagPropsForm.vue'
-import Toast from '../components/Toast.vue'
-import pkg from '../../package.json'
+import Editor from './components/Editor.vue'
+import { inlineFormatOptions } from '@/utils/inlineFormat'
+import Preview from './components/Preview.vue'
+import ThemePicker from './components/ThemePicker.vue'
+import DarkModeToggle from '@/components/DarkModeToggle.vue'
+import SettingsDialog from './components/SettingsDialog.vue'
+import Dropdown from './components/Dropdown.vue'
+import MobileActionsMenu from './components/mobile/MobileActionsMenu.vue'
+import XhsExporter from './components/XhsExporter.vue'
+import TagPropsForm from './components/TagPropsForm.vue'
+import ComponentPickerDialog from './components/ComponentPickerDialog.vue'
+import Toast from '@/components/Toast.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import pkg from '../../../package.json'
 
 // base64 图片数据存储，避免长字符串撑大编辑器
 const IMG_STORE_KEY = 'wechat-md-editor-imgs'
@@ -95,6 +100,18 @@ function onEditorScrollAll(ratio: number) {
 
 onMounted(() => {
   window.addEventListener('resize', onResize)
+  // 恢复页面缩放
+  if (import.meta.env.VITE_TAURI === 'true') {
+    try {
+      const stored = localStorage.getItem('editor-page-zoom')
+      if (stored) {
+        const val = parseFloat(stored)
+        if (val >= 50 && val <= 200 && val !== 100) {
+          invoke('set_page_zoom', { scale: val / 100 }).catch(() => {})
+        }
+      }
+    } catch { /* ignore */ }
+  }
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize)
@@ -141,6 +158,12 @@ const resolvedMarkdown = computed(() => resolveBase64(markdown.value))
 const previewRef = ref()
 const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
+const settingsVisible = ref(false)
+const isTauri = import.meta.env.VITE_TAURI === 'true'
+
+// ── 插入扩展组件 ──
+const componentDialogVisible = ref(false)
+const confirmLoadVisible = ref(false)
 
 // ── 插入图片 ──
 const imageInputRef = ref<HTMLInputElement>()
@@ -297,7 +320,7 @@ const exportItems = [
 function onDropdownSelect(groupId: string, action: string) {
   if (groupId === 'example') {
     if (action === 'download') downloadDemo()
-    else if (action === 'load') loadDemo()
+    else if (action === 'load') confirmLoadVisible.value = true
     else if (action === 'aiDemo') openAiDemo()
   } else if (groupId === 'export') {
     if (action === 'saveImage') handleSaveImage()
@@ -532,7 +555,7 @@ onBeforeUnmount(() => {
         <!-- 移动端：下拉菜单 -->
         <MobileActionsMenu
           :mode="mobileTab"
-          @load-demo="loadDemo"
+          @load-demo="confirmLoadVisible = true"
           @download-demo="downloadDemo"
           @copy-html="handleCopyHTML"
           @save-image="handleSaveImage"
@@ -548,6 +571,19 @@ onBeforeUnmount(() => {
           @custom-select="setCustomTheme"
         />
         <DarkModeToggle :mode="darkMode" @select="setDarkMode" />
+        <template v-if="isTauri">
+        <button
+          class="w-7 h-7 rounded-full border-2 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110 border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]"
+          title="编辑器设置"
+          @click="settingsVisible = true"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+        <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
+        </template>
       </div>
     </div>
 
@@ -623,7 +659,12 @@ onBeforeUnmount(() => {
             <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
           </span>
           <span class="flex items-center gap-2">
-            <button class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn" @click="handleInsertImage">插入图片</button>
+            <button v-if="editorRef?.isAtLineStart" class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn" @click="handleInsertImage">插入图片</button>
+            <button
+              v-if="editorRef?.isAtLineStart"
+              class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
+              @click="componentDialogVisible = true"
+            >插入组件</button>
             <button
               v-if="tagInfo && !showTagDialog && !isMobile"
               class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
@@ -631,6 +672,30 @@ onBeforeUnmount(() => {
             >
               解析 &lt;{{ tagInfo.tagName }}&gt;属性
             </button>
+            <!-- 行内样式按钮 -->
+            <span v-if="editorRef?.hasInlineSelection" class="relative inline-flex items-center group">
+              <button
+                class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
+              >行内样式</button>
+              <span class="absolute top-full right-0 mt-1.5 w-44 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-auto">
+                <button
+                  v-for="opt in inlineFormatOptions"
+                  :key="opt.syntax"
+                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors border-b border-[#e5e5e5] dark:border-white/5 last:border-b-0"
+                  @click="editorRef?.applyInlineFormat(opt.syntax, opt.wrapType ?? 'delim')"
+                >
+                  <span>{{ opt.label }}</span>
+                  <span class="text-[#999] dark:text-white/40 ml-2">{{ opt.hint }}</span>
+                </button>
+              </span>
+            </span>
+            <!-- 帮助提示 -->
+            <span class="relative ml-1 inline-flex items-center group">
+              <svg class="w-3.5 h-3.5 text-[#aaa] cursor-help hover:text-[var(--accent)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span class="absolute top-full right-0 mt-1.5 w-56 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
+                1、选中非扩展组件标签的普通文字时出现「行内样式」按钮，鼠标移入可选择行内修饰语法。<br>2、光标停在空行时出现「插入图片」和「插入组件」按钮。<br>3、全选扩展组件标签出现「解析标签」按钮，进行属性可视化编辑。
+              </span>
+            </span>
           </span>
         </div>
         <div class="flex flex-1 overflow-hidden">
@@ -701,7 +766,20 @@ onBeforeUnmount(() => {
       @close="xhsVisible = false"
       @toast="showToast"
     />
+    <ComponentPickerDialog
+      :visible="componentDialogVisible"
+      @close="componentDialogVisible = false"
+      @insert="(code: string) => editorRef?.insertAtCursor(code)"
+    />
     <Toast :visible="toastVisible" :message="toastMessage" />
+    <ConfirmDialog
+      :visible="confirmLoadVisible"
+      title="加载示例"
+      message="加载示例将覆盖当前编辑内容，确定继续吗？"
+      confirm-text="加载"
+      @confirm="loadDemo"
+      @update:visible="confirmLoadVisible = $event"
+    />
   </div>
 </template>
 

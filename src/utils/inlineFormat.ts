@@ -1,6 +1,29 @@
 import type { ThemeColors } from '../composables/useTheme'
 import { esc, leaf, lightenHex } from './helpers'
 
+type InlineOption = {
+  label: string
+  syntax: string
+  hint: string
+  wrapType?: 'delim' | 'tag'
+}
+
+export const inlineFormatOptions: InlineOption[] = [
+  { label: '渐变背景', syntax: '==', hint: '==文字==' },
+  { label: '柔光重点', syntax: '::', hint: '::文字::' },
+  { label: '胶囊文字', syntax: '!!', hint: '!!文字!!' },
+  { label: '加重强调', syntax: '^^', hint: '^^文字^^' },
+  { label: '下划线', syntax: '__', hint: '__文字__' },
+  { label: '删除线', syntax: '~~', hint: '~~文字~~' },
+  { label: '加粗', syntax: '**', hint: '**文字**' },
+  { label: '斜体', syntax: '*', hint: '*文字*' },
+  { label: '加粗+斜体', syntax: '***', hint: '***文字***' },
+  { label: '行内代码', syntax: '`', hint: '`文字`' },
+  { label: '上标', syntax: 'sup', hint: '<sup>文字</sup>', wrapType: 'tag' },
+  { label: '下标', syntax: 'sub', hint: '<sub>文字</sub>', wrapType: 'tag' },
+  { label: 'HTML下划线', syntax: 'u', hint: '<u>文字</u>', wrapType: 'tag' },
+]
+
 export function inlineFormat(text: string, t: ThemeColors, formulaMap?: Map<string, string>): string {
   // 脚注占位符 __FN_N__（渲染为带下划线的文字 + 上标数字）
   // 格式：__FN_N__|显示文字，其中显示文字由 markdownParser 传入

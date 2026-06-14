@@ -26,6 +26,7 @@ const isDark = computed(() => {
 
 function applyTheme(dark: boolean) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+  document.documentElement.classList.toggle('dark', dark)
 }
 
 export function useDarkMode() {
