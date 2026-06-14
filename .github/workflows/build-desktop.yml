@@ -47,7 +47,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           RUSTFLAGS: ${{ startsWith(matrix.os, 'macos') && '-A unexpected_cfgs' || '' }}
-        run: pnpm tauri build --target ${{ matrix.target }}
+        run: |
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            brew install create-dmg 2>/dev/null || true
+          fi
+          pnpm tauri build --target ${{ matrix.target }}
 
       - name: Collect artifacts
         shell: bash
