@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "R-Markdown",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "identifier": "com.robocopmao.r-markdown",
   "build": {
     "frontendDist": "../dist",
@@ -28,7 +28,8 @@
     "updater": {
       "endpoints": [
         "https://github.com/robocopmao/r-markdown/releases/latest/download/latest.json"
-      ]
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIxQzlGQjI0ODQwRkRDNjQKUldSazNBK0VKUHZKSWZ1YXdaRE83MTN2UkVKMmE2NlgzcjY2MVZrVWVzc0lSMVVmRzd1RnZqR0sK"
     }
   },
   "bundle": {

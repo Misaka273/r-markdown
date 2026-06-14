@@ -56,6 +56,9 @@ jobs:
 
       - name: Collect artifacts
         shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           mkdir -p release
           B="src-tauri/target/${{ matrix.target }}/release/bundle"
@@ -72,15 +75,23 @@ jobs:
               tar -czf "../$TAR_NAME" "$(basename "$APP_DIR")"
               cd -
               cp "$B/$TAR_NAME" release/
-              if [ -f "$B/dmg/"*.dmg.sig ]; then
-                cp "$B/dmg/"*.dmg.sig "release/${TAR_NAME}.sig" 2>/dev/null || true
-              fi
+              # 签名 .app.tar.gz
+              printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/tauri-key
+              pnpm tauri signer sign --private-key-path /tmp/tauri-key --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "release/$TAR_NAME" 2>/dev/null || true
+              rm -f /tmp/tauri-key
             fi
           else
             cp "$B/msi/"*.msi release/ 2>/dev/null || true
             cp "$B/nsis/"*.exe release/ 2>/dev/null || true
             cp "$B/msi/"*.msi.sig release/ 2>/dev/null || true
             cp "$B/nsis/"*.exe.sig release/ 2>/dev/null || true
+            # 签名 .exe（如果没有自动生成 .sig）
+            for exe in release/*.exe; do
+              [ -f "$exe.sig" ] && continue
+              printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/tauri-key
+              pnpm tauri signer sign --private-key-path /tmp/tauri-key --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "$exe" 2>/dev/null || true
+              rm -f /tmp/tauri-key
+            done
           fi
 
       - uses: actions/upload-artifact@v4
