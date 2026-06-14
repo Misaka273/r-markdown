@@ -13,6 +13,7 @@ import XhsExporter from './components/XhsExporter.vue'
 import TagPropsForm from './components/TagPropsForm.vue'
 import ComponentPickerDialog from './components/ComponentPickerDialog.vue'
 import Toast from '@/components/Toast.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import pkg from '../../../package.json'
 
 // base64 图片数据存储，避免长字符串撑大编辑器
@@ -145,6 +146,7 @@ const xhsVisible = ref(false)
 
 // ── 插入扩展组件 ──
 const componentDialogVisible = ref(false)
+const confirmLoadVisible = ref(false)
 
 // ── 插入图片 ──
 const imageInputRef = ref<HTMLInputElement>()
@@ -301,7 +303,7 @@ const exportItems = [
 function onDropdownSelect(groupId: string, action: string) {
   if (groupId === 'example') {
     if (action === 'download') downloadDemo()
-    else if (action === 'load') loadDemo()
+    else if (action === 'load') confirmLoadVisible.value = true
     else if (action === 'aiDemo') openAiDemo()
   } else if (groupId === 'export') {
     if (action === 'saveImage') handleSaveImage()
@@ -536,7 +538,7 @@ onBeforeUnmount(() => {
         <!-- 移动端：下拉菜单 -->
         <MobileActionsMenu
           :mode="mobileTab"
-          @load-demo="loadDemo"
+          @load-demo="confirmLoadVisible = true"
           @download-demo="downloadDemo"
           @copy-html="handleCopyHTML"
           @save-image="handleSaveImage"
@@ -723,6 +725,14 @@ onBeforeUnmount(() => {
       @insert="(code: string) => editorRef?.insertAtCursor(code)"
     />
     <Toast :visible="toastVisible" :message="toastMessage" />
+    <ConfirmDialog
+      :visible="confirmLoadVisible"
+      title="加载示例"
+      message="加载示例将覆盖当前编辑内容，确定继续吗？"
+      confirm-text="加载"
+      @confirm="loadDemo"
+      @update:visible="confirmLoadVisible = $event"
+    />
   </div>
 </template>
 
