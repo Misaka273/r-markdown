@@ -1,0 +1,88 @@
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+
+const props = withDefaults(
+  defineProps<{
+    visible: boolean
+    title?: string
+    message?: string
+    cancelText?: string
+    confirmText?: string
+    /** 确认按钮主题：'accent' | 'danger' */
+    confirmType?: 'accent' | 'danger'
+  }>(),
+  {
+    title: '确认操作',
+    message: '',
+    cancelText: '取消',
+    confirmText: '确认',
+    confirmType: 'accent',
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:visible', v: boolean): void
+  (e: 'confirm'): void
+  (e: 'cancel'): void
+}>()
+
+function onConfirm() {
+  emit('confirm')
+  emit('update:visible', false)
+}
+
+function onCancel() {
+  emit('cancel')
+  emit('update:visible', false)
+}
+</script>
+
+<template>
+  <div
+    v-if="visible"
+    class="fixed inset-0 z-[300] flex items-center justify-center bg-black/60"
+    @click.self="onCancel"
+  >
+    <div class="confirm-dialog bg-white rounded-xl p-6 w-80 shadow-[0_16px_48px_rgba(0,0,0,0.2)]">
+      <h3 class="confirm-dialog-title m-0 mb-2 text-base text-[#1f1a17]">{{ title }}</h3>
+      <p v-if="message" class="confirm-dialog-message m-0 mb-4 text-[13px] text-[#8a8175]">
+        {{ message }}
+      </p>
+      <slot />
+      <div class="flex gap-2 mt-4 justify-end">
+        <button
+          class="confirm-dialog-cancel-btn px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none bg-[#f3f0ea] text-[#8a8175] transition-colors hover:bg-[#e8e3da]"
+          @click="onCancel"
+        >
+          {{ cancelText }}
+        </button>
+        <button
+          class="px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none text-white transition-colors"
+          :class="confirmType === 'danger' ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : 'bg-[var(--accent)] hover:bg-[var(--accent-dark)]'"
+          @click="onConfirm"
+        >
+          {{ confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+[data-theme='dark'] .confirm-dialog {
+  background: #2a2a2a;
+}
+[data-theme='dark'] .confirm-dialog-title {
+  color: #f0f0f0;
+}
+[data-theme='dark'] .confirm-dialog-message {
+  color: #999;
+}
+[data-theme='dark'] .confirm-dialog-cancel-btn {
+  background: #444;
+  color: #ccc;
+}
+[data-theme='dark'] .confirm-dialog-cancel-btn:hover {
+  background: #555;
+}
+</style>

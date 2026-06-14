@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ── Theme CSS Variables ── */
 :root {
   --accent: #6c5ce7;
