@@ -54,15 +54,23 @@ jobs:
         run: |
           mkdir -p release
           B="src-tauri/target/${{ matrix.target }}/release/bundle"
-          echo "=== Bundle directory listing ==="
-          find "$B" -type f 2>/dev/null || echo "(no files found)"
-          echo "=== All .tar.gz under target ==="
-          find src-tauri/target -name "*.tar.gz" 2>/dev/null || echo "(none found)"
           if [[ "${{ matrix.os }}" == macos-* ]]; then
             cp "$B/dmg/"*.dmg release/ 2>/dev/null || true
-            cp "$B/macos/"*.tar.gz release/ 2>/dev/null || true
             cp "$B/dmg/"*.dmg.sig release/ 2>/dev/null || true
-            cp "$B/macos/"*.tar.gz.sig release/ 2>/dev/null || true
+            # 手动打包 .app 为 updater 所需的 .app.tar.gz
+            APP_DIR=$(ls -d "$B/macos/"*.app 2>/dev/null | head -1)
+            if [ -n "$APP_DIR" ]; then
+              APP_NAME=$(basename "$APP_DIR" .app)
+              VERSION=$(grep '"version"' package.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+              TAR_NAME="${APP_NAME}_${VERSION}_aarch64.app.tar.gz"
+              cd "$B/macos"
+              tar -czf "../$TAR_NAME" "$(basename "$APP_DIR")"
+              cd -
+              cp "$B/$TAR_NAME" release/
+              if [ -f "$B/dmg/"*.dmg.sig ]; then
+                cp "$B/dmg/"*.dmg.sig "release/${TAR_NAME}.sig" 2>/dev/null || true
+              fi
+            fi
           else
             cp "$B/msi/"*.msi release/ 2>/dev/null || true
             cp "$B/nsis/"*.exe release/ 2>/dev/null || true
