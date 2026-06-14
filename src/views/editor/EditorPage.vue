@@ -3,6 +3,8 @@ import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { useAutoUpdater, autoUpdatePending } from '@/composables/useAutoUpdater'
+import type { Update } from '@tauri-apps/plugin-updater'
 import { DEMO_CONTENT } from '@/data/demoContent'
 import Editor from './components/Editor.vue'
 import { inlineFormatOptions } from '@/utils/inlineFormat'
@@ -80,6 +82,7 @@ function cleanupUnusedBase64() {
 
 const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
 const { mode: darkMode, isDark, setMode: setDarkMode } = useDarkMode()
+useAutoUpdater()
 
 // ── 移动端 Tab 切换 ──
 const mobileTab = ref<'editor' | 'preview'>('editor')
@@ -160,6 +163,41 @@ const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
 const settingsVisible = ref(false)
 const isTauri = import.meta.env.VITE_TAURI === 'true'
+
+// ── 自动更新 ──
+const autoUpdateDialogVisible = ref(false)
+const autoUpdateVersion = ref('')
+const autoUpdateObj = ref<Update | null>(null)
+const autoUpdateDownloading = ref(false)
+const autoUpdateProgress = ref(0)
+
+watch(autoUpdatePending, (u) => {
+  if (u) {
+    autoUpdateObj.value = u
+    autoUpdateVersion.value = u.version
+    autoUpdateDialogVisible.value = true
+  }
+})
+
+async function doAutoUpdateDownload() {
+  autoUpdateDialogVisible.value = false
+  if (!autoUpdateObj.value) return
+  autoUpdateDownloading.value = true
+  autoUpdateProgress.value = 0
+  try {
+    await autoUpdateObj.value.downloadAndInstall((event) => {
+      if (event.event === 'Progress') {
+        const { downloaded, contentLength } = event.data as { downloaded: number; contentLength: number }
+        if (contentLength > 0) {
+          autoUpdateProgress.value = Math.round((downloaded / contentLength) * 100)
+        }
+      }
+    })
+  } catch {
+    showToast('更新下载失败，请稍后重试')
+    autoUpdateDownloading.value = false
+  }
+}
 
 // ── 插入扩展组件 ──
 const componentDialogVisible = ref(false)
@@ -780,6 +818,31 @@ onBeforeUnmount(() => {
       @confirm="loadDemo"
       @update:visible="confirmLoadVisible = $event"
     />
+    <!-- 自动更新确认弹窗 -->
+    <ConfirmDialog
+      :visible="autoUpdateDialogVisible"
+      title="发现新版本"
+      :message="`版本 ${autoUpdateVersion} 可用，是否立即下载安装？`"
+      confirm-text="立即更新"
+      @confirm="doAutoUpdateDownload"
+      @update:visible="autoUpdateDialogVisible = $event"
+    />
+    <!-- 自动更新下载进度 -->
+    <div
+      v-if="autoUpdateDownloading"
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-xl bg-[#111] text-white text-sm shadow-lg"
+    >
+      <div class="flex items-center gap-2 mb-1.5">
+        <span>正在下载更新...</span>
+        <span class="font-medium text-[var(--accent)]">{{ autoUpdateProgress }}%</span>
+      </div>
+      <div class="h-1 w-48 rounded-full bg-[#444] overflow-hidden">
+        <div
+          class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+          :style="{ width: autoUpdateProgress + '%' }"
+        />
+      </div>
+    </div>
   </div>
 </template>
 

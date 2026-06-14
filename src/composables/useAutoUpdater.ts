@@ -1,4 +1,4 @@
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { Update } from '@tauri-apps/plugin-updater'
 
 const isTauri = import.meta.env.VITE_TAURI === 'true'
@@ -7,6 +7,9 @@ export interface CheckResult {
   update: Update | null
   error: string | null
 }
+
+/** 启动自动检查时发现的新版本，组件可 watch 此 ref 弹窗 */
+export const autoUpdatePending = ref<Update | null>(null)
 
 /**
  * 手动检查更新。返回 `update === null` 表示无更新。
@@ -32,23 +35,14 @@ export async function checkForUpdates(): Promise<CheckResult> {
 
 function autoCheck() {
   setTimeout(async () => {
-    try {
-      const { update } = await checkForUpdates()
-      if (!update) return
-
-      const yes = confirm(`发现新版本 ${update.version}，是否立即安装？`)
-      if (!yes) return
-
-      await update.downloadAndInstall()
-    } catch {
-      // 静默失败，不影响正常使用
-    }
+    const { update } = await checkForUpdates()
+    if (update) autoUpdatePending.value = update
   }, 3000)
 }
 
 /**
  * Tauri 自动更新检查（仅在桌面客户端环境下生效，不影响网页版）
- * 启动后延迟 3 秒静默检查，有更新时弹窗询问用户是否安装。
+ * 启动后延迟 3 秒静默检查，有更新时通过 autoUpdatePending ref 通知 UI 弹窗。
  */
 export function useAutoUpdater() {
   onMounted(() => {

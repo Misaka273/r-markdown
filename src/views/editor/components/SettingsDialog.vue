@@ -2,7 +2,9 @@
 import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import BaseDialog from '@/components/BaseDialog.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { checkForUpdates } from '@/composables/useAutoUpdater'
+import type { Update } from '@tauri-apps/plugin-updater'
 
 defineProps<{
   visible: boolean
@@ -21,6 +23,12 @@ const currentZoom = ref(loadZoom())
 const updateChecking = ref(false)
 const updateMessage = ref('')
 const updateError = ref(false)
+
+const updateDialogVisible = ref(false)
+const updateDialogVersion = ref('')
+const pendingUpdate = ref<Update | null>(null)
+const downloading = ref(false)
+const downloadProgress = ref(0)
 
 function loadZoom(): number {
   try {
@@ -54,21 +62,39 @@ async function manualCheckUpdate() {
     updateMessage.value = result.error
     updateError.value = true
   } else if (result.update) {
-    const yes = confirm(`发现新版本 ${result.update.version}，是否立即安装？`)
-    if (yes) {
-      try {
-        await result.update.downloadAndInstall()
-      } catch {
-        updateMessage.value = '安装失败，请稍后重试'
-        updateError.value = true
-      }
-    }
+    pendingUpdate.value = result.update
+    updateDialogVersion.value = result.update.version
+    updateDialogVisible.value = true
   } else {
     updateMessage.value = '已是最新版本'
     updateError.value = false
   }
 
   updateChecking.value = false
+}
+
+async function doDownloadUpdate() {
+  updateDialogVisible.value = false
+  if (!pendingUpdate.value) return
+
+  downloading.value = true
+  downloadProgress.value = 0
+
+  try {
+    await pendingUpdate.value.downloadAndInstall((event) => {
+      if (event.event === 'Progress') {
+        const { downloaded, contentLength } = event.data as { downloaded: number; contentLength: number }
+        if (contentLength > 0) {
+          downloadProgress.value = Math.round((downloaded / contentLength) * 100)
+        }
+      }
+    })
+    // downloadAndInstall 成功后会自动重启安装，不会执行到这里
+  } catch {
+    updateMessage.value = '安装失败，请稍后重试'
+    updateError.value = true
+    downloading.value = false
+  }
 }
 
 </script>
@@ -109,13 +135,13 @@ async function manualCheckUpdate() {
       <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
         版本更新
       </h3>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
         <button
           class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
-          :disabled="updateChecking"
+          :disabled="updateChecking || downloading"
           @click="manualCheckUpdate"
         >
-          {{ updateChecking ? '检查中…' : '检查更新' }}
+          {{ updateChecking ? '检查中…' : downloading ? '下载中…' : '检查更新' }}
         </button>
         <span
           v-if="updateMessage"
@@ -125,6 +151,29 @@ async function manualCheckUpdate() {
           {{ updateMessage }}
         </span>
       </div>
+      <!-- 下载进度 -->
+      <div v-if="downloading" class="mt-3">
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="text-[12px] text-[#666] dark:text-[#999]">正在下载更新...</span>
+          <span class="text-[12px] font-medium text-[var(--accent)]">{{ downloadProgress }}%</span>
+        </div>
+        <div class="h-1.5 w-full rounded-full bg-[#eee] dark:bg-[#444] overflow-hidden">
+          <div
+            class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+            :style="{ width: downloadProgress + '%' }"
+          />
+        </div>
+      </div>
     </section>
+
+    <!-- 更新确认弹窗 -->
+    <ConfirmDialog
+      v-model:visible="updateDialogVisible"
+      title="发现新版本"
+      :message="`版本 ${updateDialogVersion} 可用，是否立即下载安装？`"
+      confirm-text="立即更新"
+      @confirm="doDownloadUpdate"
+      @cancel="updateDialogVisible = false"
+    />
   </BaseDialog>
 </template>
