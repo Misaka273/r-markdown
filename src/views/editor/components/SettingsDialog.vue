@@ -38,7 +38,11 @@ async function applyZoom(scale: number) {
 }
 
 onMounted(() => {
-  currentZoom.value = loadZoom()
+  const saved = loadZoom()
+  currentZoom.value = saved
+  if (saved !== 100) {
+    invoke('set_page_zoom', { scale: saved / 100 }).catch(() => {})
+  }
 })
 </script>
 
