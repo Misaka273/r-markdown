@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 #[tauri::command]
 fn set_page_zoom(webview_window: tauri::WebviewWindow, scale: f64) -> Result<f64, String> {
   #[cfg(target_os = "macos")]
