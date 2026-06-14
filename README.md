@@ -140,17 +140,15 @@ sudo xattr -rd com.apple.quarantine /Applications/R-Markdown.app
 ```
 r-markdown/
 ├── src/
-│   ├── components/            # UI 组件
-│   │   ├── Editor.vue         # CodeMirror 编辑器
-│   │   ├── Preview.vue        # 公众号预览面板
-│   │   ├── ThemePicker.vue    # 主题色选择器
+│   ├── components/            # 公用 UI 组件
+│   │   ├── BaseDialog.vue     # 通用弹窗
 │   │   ├── DarkModeToggle.vue # 暗色模式切换
 │   │   ├── NavCapsule.vue     # 顶部导航胶囊
-│   │   ├── SiteLogo.vue       # 站点 Logo
 │   │   ├── SiteFooter.vue     # 页脚
+│   │   ├── SiteLogo.vue       # 站点 Logo
 │   │   ├── Toast.vue          # 轻提示
-│   │   ├── MobileActionsMenu.vue  # 移动端操作菜单
-│   │   └── MobileNavMenu.vue  # 移动端导航菜单
+│   │   └── mobile/            # 移动端专用组件
+│   │       └── MobileNavMenu.vue  # 移动端导航菜单
 │   ├── editor-components/     # 排版组件库
 │   │   ├── index.ts           # 组件注册与导出
 │   │   ├── Badges_DA01.ts     # 标签徽章
@@ -178,9 +176,23 @@ r-markdown/
 │   │   ├── useAutoUpdater.ts  # Tauri 自动更新
 │   │   └── useDropdownGroup.ts # 下拉菜单组
 │   ├── views/                 # 页面视图
-│   │   ├── HomePage.vue       # 首页
-│   │   ├── EditorPage.vue     # 编辑器页
-│   │   └── ComponentShowcase.vue # 组件展示页
+│   │   ├── home/
+│   │   │   └── HomePage.vue       # 首页
+│   │   ├── editor/
+│   │   │   ├── EditorPage.vue     # 编辑器页
+│   │   │   └── components/        # 编辑器专用组件
+│   │   │       ├── ComponentPickerDialog.vue # 组件选择弹窗
+│   │   │       ├── Dropdown.vue       # 下拉菜单
+│   │   │       ├── Editor.vue         # CodeMirror 编辑器
+│   │   │       ├── Preview.vue        # 公众号预览面板
+│   │   │       ├── PromptDialog.vue   # AI 提示词弹窗
+│   │   │       ├── TagPropsForm.vue   # 组件属性表单
+│   │   │       ├── ThemePicker.vue    # 主题色选择器
+│   │   │       ├── XhsExporter.vue    # 图片导出
+│   │   │       └── mobile/
+│   │   │           └── MobileActionsMenu.vue  # 移动端操作菜单
+│   │   └── component-showcase/
+│   │       └── ComponentShowcase.vue # 组件展示页
 │   ├── utils/                 # 工具函数
 │   │   ├── markdownParser.ts  # Markdown → HTML 解析
 │   │   ├── colorUtils.ts      # 颜色处理

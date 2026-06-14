@@ -24,11 +24,15 @@
 
 ```
 src/
-├── components/          # 可复用组件
+├── components/          # 公用组件
+│   ├── BaseDialog.vue       # 通用弹窗
 │   ├── DarkModeToggle.vue   # 深色模式切换
-│   ├── Editor.vue           # CodeMirror 编辑器
-│   ├── Preview.vue          # Markdown 预览
-│   └── ThemePicker.vue      # 主题选择器
+│   ├── NavCapsule.vue       # 顶部导航胶囊
+│   ├── SiteFooter.vue       # 页脚
+│   ├── SiteLogo.vue         # 站点 Logo
+│   ├── Toast.vue            # 轻提示
+│   └── mobile/              # 移动端专用
+│       └── MobileNavMenu.vue    # 移动端导航菜单
 ├── editor-components/   # 排版组件库
 │   ├── index.ts             # 组件注册与导出
 │   ├── Badges_DA01.ts       # 标签徽章
@@ -63,11 +67,16 @@ src/
 │   ├── helpers.ts           # 通用工具（esc/leaf/lightenHex 等）
 │   ├── inlineFormat.ts      # 行内格式化（==渐变::柔光!!胶囊^^上标等）
 │   └── mathRenderer.ts      # MathJax 公式渲染
-├── views/               # 页面级组件
-│   ├── EditorPage.vue       # 编辑器页面
-│   └── LandingPage.vue      # 首页
 ├── App.vue              # 根组件
-└── main.ts              # 入口文件
+├── main.ts              # 入口文件
+├── views/               # 页面视图
+│   ├── home/
+│   │   └── HomePage.vue     # 首页
+│   ├── editor/
+│   │   ├── EditorPage.vue   # 编辑器页
+│   │   └── components/      # 编辑器专用组件（Editor/Preview/ThemePicker 等，mobile/ 下为移动端操作菜单）
+│   └── component-showcase/
+│       └── ComponentShowcase.vue # 组件展示页
 
 src-tauri/               # Tauri 桌面客户端（Rust）
 ├── src/
