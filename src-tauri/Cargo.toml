@@ -29,3 +29,6 @@ wry = "0.55"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc = "0.2"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(cargo_clippy)'] }
