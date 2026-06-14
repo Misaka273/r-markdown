@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import BaseDialog from '@/components/BaseDialog.vue'
 
@@ -14,7 +14,7 @@ const emit = defineEmits<{
 const ZOOM_PRESETS = [50, 75, 80, 90, 100, 110, 125, 150, 175, 200]
 const STORE_KEY = 'editor-page-zoom'
 
-const currentZoom = ref(100)
+const currentZoom = ref(loadZoom())
 
 function loadZoom(): number {
   try {
@@ -37,13 +37,6 @@ async function applyZoom(scale: number) {
   }
 }
 
-onMounted(() => {
-  const saved = loadZoom()
-  currentZoom.value = saved
-  if (saved !== 100) {
-    invoke('set_page_zoom', { scale: saved / 100 }).catch(() => {})
-  }
-})
 </script>
 
 <template>
