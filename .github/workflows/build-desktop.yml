@@ -76,7 +76,7 @@ jobs:
               cd -
               cp "$B/$TAR_NAME" release/
               # 签名 .app.tar.gz
-              npx tauri signer sign -k "$TAURI_SIGNING_PRIVATE_KEY" -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "release/$TAR_NAME" > "release/${TAR_NAME}.sig"
+              npx tauri signer sign -k "$TAURI_SIGNING_PRIVATE_KEY" -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "release/$TAR_NAME" | grep '^dW50' > "release/${TAR_NAME}.sig"
             fi
           else
             cp "$B/msi/"*.msi release/ 2>/dev/null || true
@@ -86,7 +86,7 @@ jobs:
             # 签名 .exe（如果没有自动生成 .sig）
             for exe in release/*.exe; do
               [ -f "$exe.sig" ] && continue
-              npx tauri signer sign -k "$TAURI_SIGNING_PRIVATE_KEY" -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "$exe" > "${exe}.sig"
+              npx tauri signer sign -k "$TAURI_SIGNING_PRIVATE_KEY" -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "$exe" | grep '^dW50' > "${exe}.sig"
             done
           fi
 
