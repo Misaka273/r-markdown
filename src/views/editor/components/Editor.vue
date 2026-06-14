@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useTheme } from '@/composables/useTheme'
+import { tagMap } from '@/editor-components'
 import {
   EditorView,
   keymap,
@@ -73,6 +74,7 @@ function checkTagSelection(state: EditorState) {
   const text = state.sliceDoc(sel.from, sel.to)
   const match = text.match(tagRegex)
   if (!match) {
+    isAtLineStart.value = false
     if (lastTagSelection) {
       lastTagSelection = null
       emit('tag-selected', null)
@@ -80,6 +82,15 @@ function checkTagSelection(state: EditorState) {
     return
   }
   const [, tagName, attrStr, selfClose] = match
+  // 仅当标签是已知扩展组件时才触发选中逻辑
+  if (!(tagName in tagMap)) {
+    isAtLineStart.value = false
+    if (lastTagSelection) {
+      lastTagSelection = null
+      emit('tag-selected', null)
+    }
+    return
+  }
   const attrs: Record<string, string> = {}
   if (attrStr) {
     const attrRegex = /(\w[\w-]*)="([^"]*)"/g
