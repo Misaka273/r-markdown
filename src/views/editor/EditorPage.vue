@@ -8,6 +8,7 @@ import { inlineFormatOptions } from '@/utils/inlineFormat'
 import Preview from './components/Preview.vue'
 import ThemePicker from './components/ThemePicker.vue'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
+import SettingsDialog from './components/SettingsDialog.vue'
 import Dropdown from './components/Dropdown.vue'
 import MobileActionsMenu from './components/mobile/MobileActionsMenu.vue'
 import XhsExporter from './components/XhsExporter.vue'
@@ -144,6 +145,8 @@ const resolvedMarkdown = computed(() => resolveBase64(markdown.value))
 const previewRef = ref()
 const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
+const settingsVisible = ref(false)
+const isTauri = import.meta.env.VITE_TAURI === 'true'
 
 // ── 插入扩展组件 ──
 const componentDialogVisible = ref(false)
@@ -555,6 +558,19 @@ onBeforeUnmount(() => {
           @custom-select="setCustomTheme"
         />
         <DarkModeToggle :mode="darkMode" @select="setDarkMode" />
+        <template v-if="isTauri">
+        <button
+          class="w-7 h-7 rounded-full border-2 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110 border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]"
+          title="编辑器设置"
+          @click="settingsVisible = true"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+        <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
+        </template>
       </div>
     </div>
 
