@@ -144,6 +144,7 @@ r-markdown/
 │   │   ├── BaseDialog.vue     # 通用弹窗
 │   │   ├── DarkModeToggle.vue # 暗色模式切换
 │   │   ├── NavCapsule.vue     # 顶部导航胶囊
+│   │   │── PromptDialog.vue   # 提示词弹窗
 │   │   ├── SiteFooter.vue     # 页脚
 │   │   ├── SiteLogo.vue       # 站点 Logo
 │   │   ├── Toast.vue          # 轻提示
@@ -185,7 +186,6 @@ r-markdown/
 │   │   │       ├── Dropdown.vue       # 下拉菜单
 │   │   │       ├── Editor.vue         # CodeMirror 编辑器
 │   │   │       ├── Preview.vue        # 公众号预览面板
-│   │   │       ├── PromptDialog.vue   # AI 提示词弹窗
 │   │   │       ├── TagPropsForm.vue   # 组件属性表单
 │   │   │       ├── ThemePicker.vue    # 主题色选择器
 │   │   │       ├── XhsExporter.vue    # 图片导出
