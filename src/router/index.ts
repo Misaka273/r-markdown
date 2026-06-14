@@ -10,18 +10,18 @@ const router = createRouter({
       name: 'home',
       // Tauri 客户端默认打开编辑器，Web 版显示首页
       component: isTauriClient
-        ? () => import('../views/EditorPage.vue')
-        : () => import('../views/HomePage.vue'),
+        ? () => import('../views/editor/EditorPage.vue')
+        : () => import('../views/home/HomePage.vue'),
     },
     {
       path: '/editor',
       name: 'editor',
-      component: () => import('../views/EditorPage.vue'),
+      component: () => import('../views/editor/EditorPage.vue'),
     },
     {
       path: '/components',
       name: 'components',
-      component: () => import('../views/ComponentShowcase.vue'),
+      component: () => import('../views/component-showcase/ComponentShowcase.vue'),
     },
   ],
   scrollBehavior() {

@@ -15,7 +15,7 @@ import {
   type XhsAspect,
 } from '@/utils/xhsCards'
 import PromptDialog from './PromptDialog.vue'
-import BaseDialog from './BaseDialog.vue'
+import BaseDialog from '@/components/BaseDialog.vue'
 
 // 图片加载失败时的占位（透明 1px），避免一张坏图把整次渲染拖崩
 const TRANSPARENT_PX =

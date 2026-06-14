@@ -6,7 +6,7 @@ import { useDarkMode } from '@/composables/useDarkMode'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import SiteLogo from '@/components/SiteLogo.vue'
 import NavCapsule from '@/components/NavCapsule.vue'
-import MobileNavMenu from '@/components/MobileNavMenu.vue'
+import MobileNavMenu from '@/components/mobile/MobileNavMenu.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import type { NavItem } from '@/components/NavCapsule.vue'
 import type { ThemeColors } from '@/composables/useTheme'
@@ -189,7 +189,7 @@ let editorPreloaded = false
 function preloadEditor() {
   if (editorPreloaded) return
   editorPreloaded = true
-  import('../views/EditorPage.vue')
+  import('../editor/EditorPage.vue')
 }
 
 const scrollToFeatures = () => {

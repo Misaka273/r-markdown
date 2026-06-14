@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { toPng } from 'html-to-image'
 import type { ThemeColors } from '@/composables/useTheme'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
-import Toast from './Toast.vue'
+import Toast from '@/components/Toast.vue'
 
 const props = defineProps<{
   markdown: string
