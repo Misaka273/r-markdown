@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { DEMO_CONTENT } from '@/data/demoContent'
@@ -99,6 +100,18 @@ function onEditorScrollAll(ratio: number) {
 
 onMounted(() => {
   window.addEventListener('resize', onResize)
+  // 恢复页面缩放
+  if (import.meta.env.VITE_TAURI === 'true') {
+    try {
+      const stored = localStorage.getItem('editor-page-zoom')
+      if (stored) {
+        const val = parseFloat(stored)
+        if (val >= 50 && val <= 200 && val !== 100) {
+          invoke('set_page_zoom', { scale: val / 100 }).catch(() => {})
+        }
+      }
+    } catch { /* ignore */ }
+  }
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize)

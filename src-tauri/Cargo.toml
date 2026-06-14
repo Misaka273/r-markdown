@@ -31,4 +31,4 @@ wry = "0.55"
 objc = "0.2"
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(cargo_clippy)'] }
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(cargo_clippy)'] }
