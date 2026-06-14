@@ -1,7 +1,14 @@
 import type { ThemeColors } from '../composables/useTheme'
 import { esc, leaf, lightenHex } from './helpers'
 
-export const inlineFormatOptions = [
+type InlineOption = {
+  label: string
+  syntax: string
+  hint: string
+  wrapType?: 'delim' | 'tag'
+}
+
+export const inlineFormatOptions: InlineOption[] = [
   { label: '渐变背景', syntax: '==', hint: '==文字==' },
   { label: '柔光重点', syntax: '::', hint: '::文字::' },
   { label: '胶囊文字', syntax: '!!', hint: '!!文字!!' },
