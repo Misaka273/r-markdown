@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { components } from '@/editor-components'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
-import BaseDialog from './BaseDialog.vue'
+import BaseDialog from '@/components/BaseDialog.vue'
 
 const props = defineProps<{
   visible: boolean
