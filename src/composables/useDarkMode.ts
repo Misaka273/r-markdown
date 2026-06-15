@@ -2,7 +2,7 @@ import { ref, computed, watch } from 'vue'
 
 export type DarkMode = 'light' | 'dark' | 'system'
 
-const STORAGE_KEY = 'wechat-md-dark-mode'
+const STORAGE_KEY = 'r-markdown-darkMode'
 
 const mode = ref<DarkMode>((localStorage.getItem(STORAGE_KEY) as DarkMode) || 'system')
 const systemDark = ref(false)

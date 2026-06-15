@@ -3,7 +3,9 @@ import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import BaseDialog from '@/components/BaseDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { getSetting, setSetting } from '@/config/settings'
 import { autoUpdateEnabled, autoUpdatePending, autoUpdateRid, checkForUpdates, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
+import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 
 defineProps<{
   visible: boolean
@@ -14,10 +16,10 @@ const emit = defineEmits<{
 }>()
 
 const ZOOM_PRESETS = [50, 75, 80, 90, 100, 110, 125, 150, 175, 200]
-const STORE_KEY = 'editor-page-zoom'
+const SAVE_INTERVAL_PRESETS = [0.5, 1, 2, 3, 5, 8, 10]
 const isTauri = import.meta.env.VITE_TAURI === 'true'
 
-const currentZoom = ref(loadZoom())
+const currentZoom = ref(getSetting<number>('pageZoom'))
 
 const updateChecking = ref(false)
 const updateMessage = ref('')
@@ -30,20 +32,9 @@ const pendingRid = ref<number | null>(null)
 const downloading = ref(false)
 const downloadProgress = ref(0)
 
-function loadZoom(): number {
-  try {
-    const stored = localStorage.getItem(STORE_KEY)
-    if (stored) {
-      const val = parseFloat(stored)
-      if (val >= 50 && val <= 200) return val
-    }
-  } catch { /* ignore */ }
-  return 100
-}
-
 async function applyZoom(scale: number) {
   currentZoom.value = scale
-  localStorage.setItem(STORE_KEY, String(scale))
+  setSetting('pageZoom', scale)
   try {
     await invoke('set_page_zoom', { scale: scale / 100 })
   } catch {
@@ -147,6 +138,56 @@ async function doDownloadUpdate() {
       <p class="text-[11px] text-[#999] dark:text-[#666] mt-2.5">
         当前缩放：{{ currentZoom }}%（设置会自动保存）
       </p>
+    </section>
+
+    <!-- 自动保存（仅桌面端） -->
+    <section v-if="isTauri" class="mt-6 pt-6 border-t border-[#f0f0f0] dark:border-[#333]">
+      <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+        自动保存
+      </h3>
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[12px] text-[#666] dark:text-[#999]">启用自动保存</span>
+        <button
+          class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors"
+          :class="autoSaveEnabled ? 'bg-[var(--accent)]' : 'bg-[#ccc] dark:bg-[#555]'"
+          @click="autoSaveEnabled = !autoSaveEnabled"
+          role="switch"
+          :aria-checked="autoSaveEnabled"
+        >
+          <span
+            class="inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
+            :class="autoSaveEnabled ? 'translate-x-[18px]' : 'translate-x-[2px]'"
+          />
+        </button>
+      </div>
+      <p
+        v-if="!autoSaveEnabled"
+        class="text-[12px] text-[var(--accent)] bg-[var(--accent-light)] rounded-lg px-3 py-2 mb-3"
+      >
+        自动保存已关闭，请及时手动保存（工具栏「暂存」按钮）
+      </p>
+      <div>
+        <span class="text-[12px] text-[#666] dark:text-[#999] mb-2 block"
+          :class="{ 'opacity-40': !autoSaveEnabled }"
+        >保存间隔</span>
+        <div class="flex flex-nowrap gap-2">
+          <button
+            v-for="s in SAVE_INTERVAL_PRESETS"
+            :key="s"
+            :disabled="!autoSaveEnabled"
+            class="cursor-pointer rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-all duration-150 shrink-0 disabled:cursor-not-allowed disabled:opacity-30"
+            :class="autoSaveInterval === s
+              ? 'border-[var(--accent)] bg-[var(--accent-light)] text-[var(--accent)]'
+              : 'border-[#e5e5e5] bg-white text-[#666] hover:border-[#ccc] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666]'"
+            @click="autoSaveInterval = s"
+          >
+            {{ s }}s
+          </button>
+        </div>
+        <p class="text-[11px] text-[#999] dark:text-[#666] mt-2.5">
+          当前间隔：{{ autoSaveInterval }}s（停止输入后触发保存）
+        </p>
+      </div>
     </section>
 
     <!-- 检查更新（仅桌面端） -->

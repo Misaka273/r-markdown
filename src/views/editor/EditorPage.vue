@@ -3,7 +3,9 @@ import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { getSetting } from '@/config/settings'
 import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
+import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { DEMO_CONTENT } from '@/data/demoContent'
 import Editor from './components/Editor.vue'
 import { inlineFormatOptions } from '@/utils/inlineFormat'
@@ -21,7 +23,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import pkg from '../../../package.json'
 
 // base64 图片数据存储，避免长字符串撑大编辑器
-const IMG_STORE_KEY = 'wechat-md-editor-imgs'
+const IMG_STORE_KEY = 'r-markdown-editorImgs'
 const base64Store = new Map<string, string>()
 
 // 初始化时从 localStorage 恢复图片数据
@@ -104,15 +106,10 @@ onMounted(() => {
   window.addEventListener('resize', onResize)
   // 恢复页面缩放
   if (import.meta.env.VITE_TAURI === 'true') {
-    try {
-      const stored = localStorage.getItem('editor-page-zoom')
-      if (stored) {
-        const val = parseFloat(stored)
-        if (val >= 50 && val <= 200 && val !== 100) {
-          invoke('set_page_zoom', { scale: val / 100 }).catch(() => {})
-        }
-      }
-    } catch { /* ignore */ }
+    const val = getSetting<number>('pageZoom')
+    if (val >= 50 && val <= 200 && val !== 100) {
+      invoke('set_page_zoom', { scale: val / 100 }).catch(() => {})
+    }
   }
 })
 onBeforeUnmount(() => {
@@ -151,8 +148,8 @@ function onDragEnd() {
   document.body.style.userSelect = ''
 }
 
-const STORAGE_KEY = 'wechat-md-editor-content'
-const SAVE_TIME_KEY = 'wechat-md-editor-save-time'
+const STORAGE_KEY = 'r-markdown-editorContent'
+const SAVE_TIME_KEY = 'r-markdown-editorSaveTime'
 
 const saved = localStorage.getItem(STORAGE_KEY)
 const markdown = ref(saved !== null ? saved : DEMO_CONTENT)
@@ -326,29 +323,38 @@ function formatTime(full: string) {
 const saveHint = ref(savedTime ? '已保存 ' + formatTime(savedTime) : '')
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+function saveContent(value: string) {
+  localStorage.setItem(STORAGE_KEY, value)
+  saveBase64Store()
+  const now = new Date()
+  const timeStr =
+    now.getFullYear() +
+    '-' +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(now.getDate()).padStart(2, '0') +
+    ' ' +
+    String(now.getHours()).padStart(2, '0') +
+    ':' +
+    String(now.getMinutes()).padStart(2, '0') +
+    ':' +
+    String(now.getSeconds()).padStart(2, '0')
+  localStorage.setItem(SAVE_TIME_KEY, timeStr)
+  saveHint.value = '已保存 ' + formatTime(timeStr)
+}
+
 function onInput(value: string) {
   markdown.value = value
+  if (!autoSaveEnabled.value) {
+    saveHint.value = '未保存'
+    return
+  }
   saveHint.value = '输入中…'
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    localStorage.setItem(STORAGE_KEY, value)
-    saveBase64Store()
-    const now = new Date()
-    const timeStr =
-      now.getFullYear() +
-      '-' +
-      String(now.getMonth() + 1).padStart(2, '0') +
-      '-' +
-      String(now.getDate()).padStart(2, '0') +
-      ' ' +
-      String(now.getHours()).padStart(2, '0') +
-      ':' +
-      String(now.getMinutes()).padStart(2, '0') +
-      ':' +
-      String(now.getSeconds()).padStart(2, '0')
-    localStorage.setItem(SAVE_TIME_KEY, timeStr)
-    saveHint.value = '已保存 ' + formatTime(timeStr)
-  }, 500)
+    saveContent(value)
+  }, autoSaveInterval.value * 1000)
 }
 
 // ── 通用下拉菜单数据 ──
@@ -549,6 +555,21 @@ onBeforeUnmount(() => {
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
+        <button
+          v-if="isTauri && !autoSaveEnabled"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="saveContent(markdown)"
+        >
+          <svg
+            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+            viewBox="0 0 24 24"
+          >
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          暂存
+        </button>
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="$router.push('/components')"
