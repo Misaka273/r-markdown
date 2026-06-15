@@ -2,7 +2,11 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { preloadMathJax } from './utils/mathRenderer'
+import { initSettings } from './config/settings'
 import './styles/style.css'
+
+// 初始化默认配置（仅首次写入缺失的默认值，已有值跳过）
+initSettings()
 
 // 预加载 MathJax CDN，减少首次渲染公式的等待
 preloadMathJax()

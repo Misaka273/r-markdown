@@ -1,5 +1,6 @@
 import { onMounted, ref, watch } from 'vue'
 import { invoke, Channel } from '@tauri-apps/api/core'
+import { getSetting, setSetting } from '@/config/settings'
 
 const isTauri = import.meta.env.VITE_TAURI === 'true'
 
@@ -31,14 +32,12 @@ export interface CheckResult {
 export const autoUpdatePending = ref<UpdateInfo | null>(null)
 /** 与 autoUpdatePending 对应的 raw rid */
 export const autoUpdateRid = ref<number | null>(null)
-/** 自动检查更新开关，存入 localStorage，默认开启 */
-export const autoUpdateEnabled = ref<boolean>(
-  localStorage.getItem('r-markdown-auto-update') !== 'false'
-)
+/** 自动检查更新开关，通过统一的 settings 层读写 */
+export const autoUpdateEnabled = ref<boolean>(getSetting<boolean>('autoUpdate'))
 
 // 持久化开关状态
 watch(autoUpdateEnabled, (val) => {
-  localStorage.setItem('r-markdown-auto-update', String(val))
+  setSetting('autoUpdate', val)
 })
 
 /**
