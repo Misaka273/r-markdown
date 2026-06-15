@@ -26,7 +26,7 @@ const THEMES = [
   { accent: '#556B2F', dark: '#3d4f1f' },
 ]
 
-const STORAGE_KEY = 'wechat-md-theme'
+const STORAGE_KEY = 'r-markdown-theme'
 
 function hexToRgb(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16)
