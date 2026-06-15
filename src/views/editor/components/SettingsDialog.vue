@@ -3,8 +3,7 @@ import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import BaseDialog from '@/components/BaseDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { checkForUpdates } from '@/composables/useAutoUpdater'
-import type { Update } from '@tauri-apps/plugin-updater'
+import { autoUpdateEnabled, autoUpdatePending, autoUpdateRid, checkForUpdates, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 
 defineProps<{
   visible: boolean
@@ -26,7 +25,8 @@ const updateError = ref(false)
 
 const updateDialogVisible = ref(false)
 const updateDialogVersion = ref('')
-const pendingUpdate = ref<Update | null>(null)
+const pendingUpdate = ref<UpdateInfo | null>(null)
+const pendingRid = ref<number | null>(null)
 const downloading = ref(false)
 const downloadProgress = ref(0)
 
@@ -56,6 +56,16 @@ async function manualCheckUpdate() {
   updateMessage.value = ''
   updateError.value = false
 
+  // 复用 EditorPage 自动检查的结果（同一个 rid），避免创建重复 Update 资源
+  if (autoUpdatePending.value && autoUpdateRid.value != null) {
+    pendingUpdate.value = autoUpdatePending.value
+    pendingRid.value = autoUpdateRid.value
+    updateDialogVersion.value = autoUpdatePending.value.version
+    updateDialogVisible.value = true
+    updateChecking.value = false
+    return
+  }
+
   const result = await checkForUpdates()
 
   if (result.error) {
@@ -63,6 +73,7 @@ async function manualCheckUpdate() {
     updateError.value = true
   } else if (result.update) {
     pendingUpdate.value = result.update
+    pendingRid.value = result.rid
     updateDialogVersion.value = result.update.version
     updateDialogVisible.value = true
   } else {
@@ -75,7 +86,7 @@ async function manualCheckUpdate() {
 
 async function doDownloadUpdate() {
   updateDialogVisible.value = false
-  if (!pendingUpdate.value) return
+  if (!pendingUpdate.value || pendingRid.value == null) return
 
   downloading.value = true
   downloadProgress.value = 0
@@ -83,19 +94,23 @@ async function doDownloadUpdate() {
   try {
     let total = 0
     let totalSize = 0
-    await pendingUpdate.value.downloadAndInstall((event) => {
+    await downloadUpdateWithRid(pendingRid.value, (event) => {
       if (event.event === 'Started') {
-        totalSize = event.data.contentLength ?? 0
+        totalSize = event.data?.contentLength ?? 0
       } else if (event.event === 'Progress') {
-        total += event.data.chunkLength
+        total += event.data?.chunkLength ?? 0
         if (totalSize > 0) {
           downloadProgress.value = Math.round((total / totalSize) * 100)
         }
       }
     })
-    // downloadAndInstall 成功后会自动重启安装，不会执行到这里
-  } catch {
-    updateMessage.value = '安装失败，请稍后重试'
+    // downloadAndInstall 成功后自动重启；dev 模式下重启不生效，提示手动重启
+    updateMessage.value = '更新已下载，请重启应用以完成安装'
+    updateError.value = false
+    downloading.value = false
+  } catch (e) {
+    console.error('[updater] download error:', e, typeof e, JSON.stringify(e))
+    updateMessage.value = `安装失败: ${e}`
     updateError.value = true
     downloading.value = false
   }
@@ -139,6 +154,21 @@ async function doDownloadUpdate() {
       <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
         版本更新
       </h3>
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[12px] text-[#666] dark:text-[#999]">启动时自动检查更新</span>
+        <button
+          class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors"
+          :class="autoUpdateEnabled ? 'bg-[var(--accent)]' : 'bg-[#ccc] dark:bg-[#555]'"
+          @click="autoUpdateEnabled = !autoUpdateEnabled"
+          role="switch"
+          :aria-checked="autoUpdateEnabled"
+        >
+          <span
+            class="inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
+            :class="autoUpdateEnabled ? 'translate-x-[18px]' : 'translate-x-[2px]'"
+          />
+        </button>
+      </div>
       <div class="flex items-center gap-3 flex-wrap">
         <button
           class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
