@@ -16,5 +16,7 @@ export default defineConfig({
     },
     // .ts 优先于 .js，避免旧的 .js 残留文件被优先加载
     extensions: ['.ts', '.mts', '.js', '.mjs', '.jsx', '.tsx', '.json'],
+    // 强制 @tauri-apps/api 只加载一份，防止 HMR 产生双实例
+    dedupe: ['@tauri-apps/api'],
   },
 })

@@ -3,8 +3,7 @@ import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
-import { useAutoUpdater, autoUpdatePending } from '@/composables/useAutoUpdater'
-import type { Update } from '@tauri-apps/plugin-updater'
+import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { DEMO_CONTENT } from '@/data/demoContent'
 import Editor from './components/Editor.vue'
 import { inlineFormatOptions } from '@/utils/inlineFormat'
@@ -167,7 +166,8 @@ const isTauri = import.meta.env.VITE_TAURI === 'true'
 // ── 自动更新 ──
 const autoUpdateDialogVisible = ref(false)
 const autoUpdateVersion = ref('')
-const autoUpdateObj = ref<Update | null>(null)
+const autoUpdateObj = ref<UpdateInfo | null>(null)
+const autoUpdateRidVal = ref<number | null>(null)
 const autoUpdateDownloading = ref(false)
 const autoUpdateProgress = ref(0)
 
@@ -179,26 +179,36 @@ watch(autoUpdatePending, (u) => {
   }
 })
 
+watch(autoUpdateRid, (r) => {
+  if (r != null) {
+    autoUpdateRidVal.value = r
+  }
+})
+
 async function doAutoUpdateDownload() {
   autoUpdateDialogVisible.value = false
-  if (!autoUpdateObj.value) return
+  if (!autoUpdateObj.value || autoUpdateRidVal.value == null) return
   autoUpdateDownloading.value = true
   autoUpdateProgress.value = 0
   try {
     let total = 0
     let totalSize = 0
-    await autoUpdateObj.value.downloadAndInstall((event) => {
+    await downloadUpdateWithRid(autoUpdateRidVal.value, (event) => {
       if (event.event === 'Started') {
-        totalSize = event.data.contentLength ?? 0
+        totalSize = event.data?.contentLength ?? 0
       } else if (event.event === 'Progress') {
-        total += event.data.chunkLength
+        total += event.data?.chunkLength ?? 0
         if (totalSize > 0) {
           autoUpdateProgress.value = Math.round((total / totalSize) * 100)
         }
       }
     })
-  } catch {
-    showToast('更新下载失败，请稍后重试')
+    // dev 模式下 restart 不生效，提示手动重启
+    showToast('更新已下载，请重启应用以完成安装')
+    autoUpdateDownloading.value = false
+  } catch (e) {
+    console.error('[updater] auto download error:', e, typeof e, JSON.stringify(e))
+    showToast(`更新下载失败: ${e}`)
     autoUpdateDownloading.value = false
   }
 }
