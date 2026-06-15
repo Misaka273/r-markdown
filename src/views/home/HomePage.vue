@@ -196,6 +196,10 @@ const scrollToFeatures = () => {
   document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
 }
 
+const scrollToDownload = () => {
+  document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' })
+}
+
 // ── Canvas 云朵光晕 ──
 const cloudCanvasRef = ref<HTMLCanvasElement | null>(null)
 let cloudRaf = 0
@@ -348,8 +352,6 @@ const homeNavItems: NavItem[] = [
     label: '客户端下载',
     iconPath: 'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z',
     iconViewBox: '0 0 24 24',
-    external: true,
-    to: 'https://github.com/RobocopMao/r-markdown/releases/latest',
   },
   {
     key: 'github',
@@ -481,6 +483,7 @@ const features = [
             (key: string) => {
               if (key === 'features') scrollToFeatures()
               else if (key === 'components') $router.push('/components')
+              else if (key === 'download') scrollToDownload()
             }
           "
         />
@@ -490,6 +493,7 @@ const features = [
             (key: string) => {
               if (key === 'features') scrollToFeatures()
               else if (key === 'components') $router.push('/components')
+              else if (key === 'download') scrollToDownload()
             }
           "
           class="ml-auto sm:ml-0"
@@ -641,13 +645,14 @@ const features = [
       </div>
     </section>
 
-    <!-- CTA -->
-    <section class="cta-section px-4 sm:px-8 pt-12 sm:pt-20 pb-16 sm:pb-[100px] text-center">
-      <div class="mx-auto max-w-[600px]">
+    <!-- CTA + 下载 横向排列 -->
+    <div class="cta-section flex flex-col md:flex-row items-center justify-center gap-10 sm:gap-12 px-4 sm:px-8 pt-12 sm:pt-20 pb-16 sm:pb-[100px]">
+      <!-- CTA -->
+      <div class="text-center md:flex-1 max-w-[400px]">
         <h2 class="text-[26px] sm:text-[36px] font-extrabold tracking-tight text-[#111] m-0 mb-2">
           开始写作
         </h2>
-        <p class="text-base sm:text-[17px] text-[#888] m-0 mb-6 sm:mb-8">无需注册，打开即用</p>
+        <p class="text-[12px] text-[#aaa] dark:text-[#666] mb-4">无需注册，打开即用</p>
         <router-link
           to="/editor"
           class="cta-btn inline-flex items-center gap-2 bg-[var(--accent)] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[var(--accent-dark)] hover:-translate-y-px"
@@ -668,7 +673,35 @@ const features = [
           </svg>
         </router-link>
       </div>
-    </section>
+
+      <!-- 客户端下载 -->
+      <div id="download" class="text-center md:flex-1 max-w-[400px]">
+        <h2 class="text-[26px] sm:text-[36px] font-extrabold tracking-tight text-[#111] m-0 mb-2">
+          桌面客户端下载
+        </h2>
+        <p class="text-[12px] text-[#aaa] dark:text-[#666] mb-4">支持 macOS（M芯片） / Windows 64位</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a
+            href="https://github.com/RobocopMao/r-markdown/releases/latest"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-white w-44 px-0 py-3.5 text-base font-semibold text-[var(--accent)] no-underline transition-all hover:bg-white hover:-translate-y-px justify-center"
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            GitHub 下载
+          </a>
+          <a
+            href="https://pan.baidu.com/s/5XsUYe0ktlPMaNtqcfGunWg"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-white w-44 px-0 py-3.5 text-base font-semibold text-[var(--accent)] no-underline transition-all hover:bg-white hover:-translate-y-px justify-center"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            百度网盘下载
+          </a>
+        </div>
+      </div>
+    </div>
 
     <!-- 公众号反馈 -->
     <section class="px-4 sm:px-8 pb-12 sm:pb-20">
