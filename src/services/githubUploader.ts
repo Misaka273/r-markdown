@@ -44,15 +44,16 @@ function getExtension(filename: string): string {
 }
 
 /**
- * 生成上传路径：r-markdown/YYYY/MM/时间戳.后缀
+ * 生成上传路径：r-markdown/YYYY/MM/DD/时间戳.后缀
  */
 function generatePath(filename: string): string {
   const now = new Date()
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
   const ts = Date.now()
   const ext = getExtension(filename)
-  return `r-markdown/${year}/${month}/${ts}${ext}`
+  return `r-markdown/${year}/${month}/${day}/${ts}${ext}`
 }
 
 /**
