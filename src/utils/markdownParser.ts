@@ -601,19 +601,21 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // 表格
     if (line.indexOf('|') >= 0 && i + 1 < lines.length && /\|[\s-:]+\|/.test(lines[i + 1])) {
-      const headers = line
+      let headers = line
         .split('|')
         .map((s) => s.trim())
-        .filter(Boolean)
+      // 去掉首尾的装饰性空管道
+      while (headers.length > 1 && headers[0] === '') headers.shift()
+      while (headers.length > 1 && headers[headers.length - 1] === '') headers.pop()
       i += 2
       const rows: string[][] = []
       while (i < lines.length && lines[i].indexOf('|') >= 0 && lines[i].trim() !== '') {
-        rows.push(
-          lines[i]
-            .split('|')
-            .map((s) => s.trim())
-            .filter(Boolean),
-        )
+        const cells = lines[i]
+          .split('|')
+          .map((s) => s.trim())
+        if (cells.length > 1 && cells[0] === '') cells.shift()
+        if (cells.length > 1 && cells[cells.length - 1] === '') cells.pop()
+        rows.push(cells)
         i++
       }
       html += `<section style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:28px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
