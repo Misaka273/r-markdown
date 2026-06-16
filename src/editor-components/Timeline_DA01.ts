@@ -165,9 +165,9 @@ export const Timeline_DA01 = {
         <section style="margin-bottom:${isLast ? '0' : '32px'};overflow:hidden;">
           ${dotHtml}
           <section style="margin-left:9px;${borderStyle}padding-left:18px;">
-            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:${hex};letter-spacing:0.5px;">${leaf(item.date)}</p>
-            <p style="margin:0 0 6px;font-size:17px;font-weight:800;color:rgb(17,24,39);line-height:1.4;">${leaf(item.title)}</p>
-            <p style="margin:0;font-size:14px;color:rgb(100,116,139);line-height:1.6;">${leaf(item.desc)}</p>
+            <section style="margin:0 0 6px;font-size:13px;font-weight:700;color:${hex};letter-spacing:0.5px;">${leaf(item.date)}</section>
+            <section style="margin:0 0 6px;font-size:17px;font-weight:800;color:rgb(17,24,39);line-height:1.4;">${leaf(item.title)}</section>
+            <section style="margin:0;font-size:14px;color:rgb(100,116,139);line-height:1.6;">${leaf(item.desc)}</section>
             ${imageHtml}
           </section>
         </section>`
