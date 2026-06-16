@@ -48,11 +48,13 @@ onBeforeUnmount(() => {
     <div
       v-if="visible"
       class="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-base-dialog-fade-in"
-      @click.self="emit('close')"
+      @mousedown.self="emit('close')"
     >
       <div
         class="flex flex-col overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:bg-[#1a1a1a] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] animate-base-dialog-slide-up"
         :style="{ width: width || 'min(90vw, 720px)', maxHeight: maxHeight || '85vh' }"
+        @mousedown.stop
+        @click.stop
       >
         <!-- Header -->
         <div class="flex shrink-0 items-center gap-3 border-b border-[#f0f0f0] px-5 py-3.5 dark:border-[#333]">
