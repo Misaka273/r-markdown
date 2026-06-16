@@ -1,6 +1,6 @@
 [package]
 name = "R-Markdown"
-version = "0.1.29"
+version = "0.1.30"
 description = "R-Markdown Editor"
 authors = ["you"]
 license = ""
