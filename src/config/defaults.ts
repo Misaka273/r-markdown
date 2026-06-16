@@ -19,4 +19,10 @@ export const DEFAULT_SETTINGS: Record<string, SettingDef> = {
   autoSave: { default: true, platforms: ['desktop'] },
   /** 自动保存间隔（秒，仅桌面端） */
   autoSaveInterval: { default: 0.5, platforms: ['desktop'] },
+  /** GitHub 图床仓库，格式 用户名/仓库名 */
+  githubRepo: { default: '' },
+  /** GitHub Personal Access Token */
+  githubToken: { default: '' },
+  /** GitHub 仓库分支 */
+  githubBranch: { default: 'main' },
 }
