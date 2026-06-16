@@ -6,6 +6,7 @@ import { useDarkMode } from '@/composables/useDarkMode'
 import { getSetting } from '@/config/settings'
 import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
+import { uploadToGitHub } from '@/services/githubUploader'
 import { DEMO_CONTENT } from '@/data/demoContent'
 import Editor from './components/Editor.vue'
 import { inlineFormatOptions } from '@/utils/inlineFormat'
@@ -216,6 +217,7 @@ const confirmLoadVisible = ref(false)
 
 // ── 插入图片 ──
 const imageInputRef = ref<HTMLInputElement>()
+const githubImageInputRef = ref<HTMLInputElement>()
 // ── Toast ──
 const toastVisible = ref(false)
 const toastMessage = ref('')
@@ -278,6 +280,63 @@ function onImageSelected(e: Event) {
     input.value = ''
   }
   reader.readAsDataURL(file)
+}
+
+// ── 图床上传 ──
+const githubUploading = ref(false)
+const githubUploadProgress = ref(0)
+
+function handleUploadToGitHub() {
+  githubImageInputRef.value?.click()
+}
+
+async function onGithubImageSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    showToast('请选择图片文件')
+    input.value = ''
+    return
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('图片不能超过 5MB')
+    input.value = ''
+    return
+  }
+
+  const repo = getSetting<string>('githubRepo')
+  const token = getSetting<string>('githubToken')
+  const branch = getSetting<string>('githubBranch') || 'main'
+
+  if (!repo || !token) {
+    showToast('请先在设置中配置 GitHub 图床')
+    input.value = ''
+    return
+  }
+
+  githubUploading.value = true
+  githubUploadProgress.value = 0
+  try {
+    const result = await uploadToGitHub(
+      file,
+      { repo, token, branch },
+      (percent) => {
+        githubUploadProgress.value = percent
+      },
+    )
+    editorRef.value?.insertAtCursor(
+      `<img src="${result.url}" width="100%" height="auto" radius="8px" fit="cover" />`,
+    )
+    showToast('上传成功')
+  } catch (e: any) {
+    showToast(e.message || '上传失败')
+  }
+  githubUploading.value = false
+  githubUploadProgress.value = 0
+  input.value = ''
 }
 
 // ── 标签解析表单 ──
@@ -644,7 +703,6 @@ onBeforeUnmount(() => {
           @custom-select="setCustomTheme"
         />
         <DarkModeToggle :mode="darkMode" @select="setDarkMode" />
-        <template v-if="isTauri">
         <button
           class="w-7 h-7 rounded-full border-2 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110 border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]"
           title="编辑器设置"
@@ -656,7 +714,6 @@ onBeforeUnmount(() => {
           </svg>
         </button>
         <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
-        </template>
       </div>
     </div>
 
@@ -709,7 +766,7 @@ onBeforeUnmount(() => {
     <div class="flex flex-1 overflow-hidden">
       <!-- Editor Panel -->
       <div
-        class="flex flex-col overflow-hidden flex-1 min-w-0"
+        class="flex flex-col overflow-hidden flex-1 min-w-0 relative"
         :class="{
           'hidden md:flex': mobileTab !== 'editor',
           'mobile-near-bottom': nearBottom && isMobile,
@@ -732,7 +789,25 @@ onBeforeUnmount(() => {
             <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
           </span>
           <span class="flex items-center gap-2">
-            <button v-if="editorRef?.isAtLineStart" class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn" @click="handleInsertImage">插入图片</button>
+            <!-- 插入图片下拉 -->
+            <span v-if="editorRef?.isAtLineStart" class="relative inline-flex items-center group">
+              <button
+                class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
+              >插入图片</button>
+              <span class="absolute top-full right-0 mt-1.5 w-28 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-auto">
+                <button
+                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors border-b border-[#e5e5e5] dark:border-white/5"
+                  @click="handleInsertImage"
+                >本地插入</button>
+                <button
+                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  :disabled="githubUploading"
+                  @click="handleUploadToGitHub"
+                >
+                  <span>上传图床</span>
+                </button>
+              </span>
+            </span>
             <button
               v-if="editorRef?.isAtLineStart"
               class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
@@ -771,6 +846,22 @@ onBeforeUnmount(() => {
             </span>
           </span>
         </div>
+        <!-- 图床上传进度 -->
+        <div
+          v-if="githubUploading"
+          class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-xl bg-[#111] text-white text-sm shadow-lg"
+        >
+          <div class="flex items-center gap-2 mb-1.5">
+            <span>正在上传到 GitHub...</span>
+            <span class="font-medium text-[var(--accent)]">{{ githubUploadProgress }}%</span>
+          </div>
+          <div class="h-1 w-48 rounded-full bg-[#444] overflow-hidden">
+            <div
+              class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+              :style="{ width: githubUploadProgress + '%' }"
+            />
+          </div>
+        </div>
         <div class="flex flex-1 overflow-hidden">
           <Editor
             ref="editorRef"
@@ -786,6 +877,13 @@ onBeforeUnmount(() => {
             accept="image/*"
             class="hidden"
             @change="onImageSelected"
+          />
+          <input
+            ref="githubImageInputRef"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="onGithubImageSelected"
           />
           <TagPropsForm
             :visible="showTagDialog && !isMobile"
