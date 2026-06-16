@@ -61,6 +61,7 @@ function generatePath(filename: string): string {
 export async function uploadToGitHub(
   file: File,
   config: GitHubUploadConfig,
+  onProgress?: (percent: number) => void,
 ): Promise<UploadResult> {
   const [owner, repo] = config.repo.split('/')
   if (!owner || !repo) {
@@ -78,29 +79,41 @@ export async function uploadToGitHub(
     branch: config.branch,
   })
 
-  const response = await fetch(apiUrl, {
-    method: 'PUT',
-    headers: {
-      Authorization: `token ${config.token}`,
-      'Content-Type': 'application/json',
-    },
-    body,
-  })
+  const result = await new Promise<XMLHttpRequest>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', apiUrl)
 
-  if (!response.ok) {
-    const errBody = await response.json().catch(() => ({}))
-    const message = (errBody as any).message || `HTTP ${response.status}`
-    if (response.status === 401) {
-      throw new Error('Token 无效或无权限')
+    xhr.setRequestHeader('Authorization', `token ${config.token}`)
+    xhr.setRequestHeader('Content-Type', 'application/json')
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress?.(Math.round((e.loaded / e.total) * 100))
+      }
     }
-    if (response.status === 404) {
-      throw new Error('仓库不存在，请检查 用户名/仓库名')
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr)
+      } else {
+        let message = `HTTP ${xhr.status}`
+        try {
+          const errBody = JSON.parse(xhr.responseText)
+          message = (errBody as any).message || message
+        } catch {}
+        if (xhr.status === 401) reject(new Error('Token 无效或无权限'))
+        else if (xhr.status === 404) reject(new Error('仓库不存在，请检查 用户名/仓库名'))
+        else if (xhr.status === 422) reject(new Error(`上传失败: ${message}`))
+        else reject(new Error(`上传失败 (${xhr.status}): ${message}`))
+      }
     }
-    if (response.status === 422) {
-      throw new Error(`上传失败: ${message}`)
-    }
-    throw new Error(`上传失败 (${response.status}): ${message}`)
-  }
+
+    xhr.onerror = () => reject(new Error('网络请求失败'))
+    xhr.ontimeout = () => reject(new Error('上传超时'))
+    xhr.timeout = 60000
+
+    xhr.send(body)
+  })
 
   const jsdelivrUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${config.branch}/${path}`
 

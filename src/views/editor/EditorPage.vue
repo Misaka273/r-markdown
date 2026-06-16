@@ -284,6 +284,7 @@ function onImageSelected(e: Event) {
 
 // ── 图床上传 ──
 const githubUploading = ref(false)
+const githubUploadProgress = ref(0)
 
 function handleUploadToGitHub() {
   githubImageInputRef.value?.click()
@@ -317,8 +318,15 @@ async function onGithubImageSelected(e: Event) {
   }
 
   githubUploading.value = true
+  githubUploadProgress.value = 0
   try {
-    const result = await uploadToGitHub(file, { repo, token, branch })
+    const result = await uploadToGitHub(
+      file,
+      { repo, token, branch },
+      (percent) => {
+        githubUploadProgress.value = percent
+      },
+    )
     editorRef.value?.insertAtCursor(
       `<img src="${result.url}" width="100%" height="auto" radius="8px" fit="cover" />`,
     )
@@ -327,6 +335,7 @@ async function onGithubImageSelected(e: Event) {
     showToast(e.message || '上传失败')
   }
   githubUploading.value = false
+  githubUploadProgress.value = 0
   input.value = ''
 }
 
@@ -757,7 +766,7 @@ onBeforeUnmount(() => {
     <div class="flex flex-1 overflow-hidden">
       <!-- Editor Panel -->
       <div
-        class="flex flex-col overflow-hidden flex-1 min-w-0"
+        class="flex flex-col overflow-hidden flex-1 min-w-0 relative"
         :class="{
           'hidden md:flex': mobileTab !== 'editor',
           'mobile-near-bottom': nearBottom && isMobile,
@@ -796,7 +805,6 @@ onBeforeUnmount(() => {
                   @click="handleUploadToGitHub"
                 >
                   <span>上传图床</span>
-                  <span v-if="githubUploading" class="text-[10px] opacity-50 ml-1">...</span>
                 </button>
               </span>
             </span>
@@ -837,6 +845,22 @@ onBeforeUnmount(() => {
               </span>
             </span>
           </span>
+        </div>
+        <!-- 图床上传进度 -->
+        <div
+          v-if="githubUploading"
+          class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-xl bg-[#111] text-white text-sm shadow-lg"
+        >
+          <div class="flex items-center gap-2 mb-1.5">
+            <span>正在上传到 GitHub...</span>
+            <span class="font-medium text-[var(--accent)]">{{ githubUploadProgress }}%</span>
+          </div>
+          <div class="h-1 w-48 rounded-full bg-[#444] overflow-hidden">
+            <div
+              class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+              :style="{ width: githubUploadProgress + '%' }"
+            />
+          </div>
         </div>
         <div class="flex flex-1 overflow-hidden">
           <Editor
