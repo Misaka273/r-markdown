@@ -1,9 +1,21 @@
 <script setup lang="ts">
 import { useAutoUpdater } from './composables/useAutoUpdater'
+import { startupState, handleRestore } from './services/startupCheck'
+import ConfirmDialog from './components/ConfirmDialog.vue'
+
 useAutoUpdater()
 </script>
 
 <template>
+  <ConfirmDialog
+    v-model:visible="startupState.showRestorePrompt"
+    title="检测到旧配置文件"
+    message="发现在上次安装中保存的配置数据，是否恢复？"
+    cancel-text="不恢复"
+    confirm-text="恢复配置"
+    @confirm="handleRestore(true)"
+    @cancel="handleRestore(false)"
+  />
   <router-view />
 </template>
 
