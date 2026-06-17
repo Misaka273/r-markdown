@@ -10,6 +10,10 @@
     "shell:allow-open",
     "updater:default",
     "updater:allow-check",
-    "updater:allow-download-and-install"
+    "updater:allow-download-and-install",
+    "core:path:default",
+    "fs:default",
+    "fs:scope-document-recursive",
+    "fs:allow-document-write-recursive"
   ]
 }
