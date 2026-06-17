@@ -1,6 +1,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { invoke, Channel } from '@tauri-apps/api/core'
 import { getSetting, setSetting } from '@/config/settings'
+import { startupState } from '@/services/startupCheck'
 
 const isTauri = import.meta.env.VITE_TAURI === 'true'
 
@@ -93,6 +94,15 @@ export async function downloadUpdateWithRid(
 
 function autoCheck() {
   setTimeout(async () => {
+    // 等待配置恢复弹窗处理完毕，避免两弹窗重叠
+    if (!startupState.resolved) {
+      await new Promise<void>((resolve) => {
+        const stop = watch(
+          () => startupState.resolved,
+          (v) => { if (v) { stop(); resolve() } },
+        )
+      })
+    }
     if (!autoUpdateEnabled.value) return
     const { update, rid } = await checkForUpdates()
     if (update) {

@@ -1,9 +1,21 @@
 import { DEFAULT_SETTINGS, type SettingDef } from './defaults'
+import { writeDiskConfig, readDiskConfig } from '@/services/configPersistence'
 
 const PREFIX = 'r-markdown-'
 const isDesktop = import.meta.env.VITE_TAURI === 'true'
 type Platform = 'desktop' | 'web'
 const currentPlatform: Platform = isDesktop ? 'desktop' : 'web'
+
+/** 桌面端：setSetting 后异步同步到磁盘。写丢不管，下次存新值时覆盖。 */
+async function syncToDisk() {
+  if (!isDesktop) return
+  try {
+    const all = getAllSettings()
+    await writeDiskConfig(all)
+  } catch (e) {
+    console.error('[configPersistence] writeDiskConfig failed:', e)
+  }
+}
 
 /** 判断某个设置是否适用于当前平台 */
 function appliesToCurrent(def: SettingDef): boolean {
@@ -61,9 +73,35 @@ export function getSetting<T = unknown>(key: string): T {
 }
 
 /**
- * 写入一个设置项到 localStorage。
+ * 写入一个设置项到 localStorage。桌面端同时同步到磁盘 JSON。
  */
 export function setSetting(key: string, value: unknown): void {
   const storageKey = PREFIX + key
   localStorage.setItem(storageKey, JSON.stringify(value))
+  syncToDisk()
+}
+
+/** 导出当前所有设置（用于写入磁盘 JSON） */
+export function getAllSettings(): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
+  for (const key of Object.keys(DEFAULT_SETTINGS)) {
+    result[key] = getSetting(key)
+  }
+  return result
+}
+
+/**
+ * 桌面端：从磁盘配置恢复到 localStorage。
+ * 只恢复 DEFAULT_SETTINGS 中已声明的 key，忽略磁盘中的未知 key。
+ * 不适用当前平台的 key 跳过。
+ */
+export async function restoreFromDiskConfig(): Promise<void> {
+  const disk = await readDiskConfig()
+  for (const [key, def] of Object.entries(DEFAULT_SETTINGS)) {
+    if (!appliesToCurrent(def)) continue
+    if (key in disk) {
+      const storageKey = PREFIX + key
+      localStorage.setItem(storageKey, JSON.stringify(disk[key]))
+    }
+  }
 }
