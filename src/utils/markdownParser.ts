@@ -601,20 +601,18 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // 表格
     if (line.indexOf('|') >= 0 && i + 1 < lines.length && /\|[\s-:]+\|/.test(lines[i + 1])) {
-      let headers = line
-        .split('|')
-        .map((s) => s.trim())
-      // 去掉首尾的装饰性空管道
-      while (headers.length > 1 && headers[0] === '') headers.shift()
-      while (headers.length > 1 && headers[headers.length - 1] === '') headers.pop()
+      // 先掐掉首尾装饰性管道再 split，这样中间的空格会原样保留为 ''
+      let headerLine = line.trim()
+      if (headerLine.startsWith('|')) headerLine = headerLine.slice(1)
+      if (headerLine.endsWith('|')) headerLine = headerLine.slice(0, -1)
+      let headers = headerLine.split('|').map((s) => s.trim())
       i += 2
       const rows: string[][] = []
       while (i < lines.length && lines[i].indexOf('|') >= 0 && lines[i].trim() !== '') {
-        const cells = lines[i]
-          .split('|')
-          .map((s) => s.trim())
-        if (cells.length > 1 && cells[0] === '') cells.shift()
-        if (cells.length > 1 && cells[cells.length - 1] === '') cells.pop()
+        let cellLine = lines[i].trim()
+        if (cellLine.startsWith('|')) cellLine = cellLine.slice(1)
+        if (cellLine.endsWith('|')) cellLine = cellLine.slice(0, -1)
+        const cells = cellLine.split('|').map((s) => s.trim())
         rows.push(cells)
         i++
       }
