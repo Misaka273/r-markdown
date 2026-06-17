@@ -4,11 +4,11 @@
 
 /* ── Theme CSS Variables ── */
 :root {
-  --accent: #6c5ce7;
-  --accent-dark: #5a4bd1;
-  --accent-light: #6c5ce726;
-  --accent-border: #6c5ce733;
-  --accent-rgb: 108, 92, 231;
+  --accent: #27ae60;
+  --accent-dark: #1e8449;
+  --accent-light: #27ae6026;
+  --accent-border: #27ae6033;
+  --accent-rgb: 39, 174, 96;
 
   /* ── Light Mode (default) ── */
   --bg-primary: #ffffff;
