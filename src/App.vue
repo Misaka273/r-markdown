@@ -39,40 +39,72 @@ useAutoUpdater()
 
 /* ── Resize Handle ── */
 .resize-handle {
-  width: 5px;
+  width: 10px;
   background: transparent;
   cursor: col-resize;
-  transition: background 0.2s;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
-  border-left: none;
-  border-right: none;
 }
 
-.resize-handle::after {
-  content: '';
+.resize-handle-btn {
   position: absolute;
-  top: 0;
-  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 2px;
-  background: var(--text-muted);
-  border-radius: 1px;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color, #e5e5e5);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition:
     background 0.2s,
-    width 0.2s;
+    box-shadow 0.2s,
+    border-color 0.2s,
+    opacity 0.15s;
+  color: var(--text-muted, #999);
+  opacity: 0;
+  pointer-events: none;
 }
 
-.resize-handle:hover {
-  background: transparent;
+.resize-handle-btn--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.resize-handle:hover::after,
-.resize-handle:active::after {
-  background: var(--accent);
-  width: 3px;
+.resize-handle:hover .resize-handle-btn--visible {
+  background: var(--accent-light, rgba(108, 92, 231, 0.08));
+  border-color: var(--accent, #6c5ce7);
+  color: var(--accent, #6c5ce7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+}
+
+.resize-handle:active .resize-handle-btn--visible {
+  background: var(--accent, #6c5ce7);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+}
+
+/* 暗色模式 */
+html.dark .resize-handle-btn,
+[data-theme='dark'] .resize-handle-btn {
+  background: #1e1e1e;
+  border-color: var(--border-color, #3a3a3a);
+}
+
+html.dark .resize-handle:hover .resize-handle-btn--visible,
+[data-theme='dark'] .resize-handle:hover .resize-handle-btn--visible {
+  background: var(--accent-light, rgba(108, 92, 231, 0.12));
+}
+
+html.dark .resize-handle:active .resize-handle-btn--visible,
+[data-theme='dark'] .resize-handle:active .resize-handle-btn--visible {
+  background: var(--accent, #6c5ce7);
+  color: #fff;
 }
 
 /* ── Header Blur ── */

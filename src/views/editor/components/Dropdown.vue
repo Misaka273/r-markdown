@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
 <template>
   <div :class="[menuClass, 'hidden sm:inline-flex relative']">
     <button
-      class="dd-trigger inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+      class="dd-trigger inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
       @click.stop="toggle"
     >
       <svg

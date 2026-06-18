@@ -49,13 +49,10 @@ function onCustomInput(e: Event) {
   <div ref="pickerRef" class="relative">
     <button
       class="theme-btn w-7 h-7 rounded-full cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110"
-      :style="{ background: currentAccent }"
+      :style="{ background: currentAccent, color: '#fff' }"
       @click="toggle"
     >
-      <svg viewBox="0 0 24 24" width="16" height="16">
-        <circle cx="12" cy="12" r="10" fill="none" stroke="white" stroke-width="2" />
-        <circle cx="12" cy="12" r="4" fill="white" stroke="none" />
-      </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette-icon lucide-palette"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg>
     </button>
     <div
       class="theme-picker absolute top-full right-0 mt-2 p-3 rounded-xl z-10 w-50"

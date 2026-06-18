@@ -10,6 +10,7 @@ const props = defineProps<{
   confirmText?: string
   cancelText?: string
   confirmDisabled?: boolean
+  accent?: string
 }>()
 
 const emit = defineEmits<{
@@ -90,7 +91,8 @@ onBeforeUnmount(() => {
               {{ cancelText || '取消' }}
             </button>
             <button
-              class="cursor-pointer rounded-lg border-0 bg-[#07C160] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#06AD56] disabled:cursor-not-allowed disabled:opacity-40"
+              class="cursor-pointer rounded-lg border-0 px-5 py-2 text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
+              :style="accent ? { backgroundColor: accent } : { backgroundColor: '#07C160' }"
               :disabled="confirmDisabled"
               @click="emit('confirm')"
             >

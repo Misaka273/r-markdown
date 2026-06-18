@@ -1,0 +1,200 @@
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { getSetting, setSetting } from '@/config/settings'
+import {
+  LayoutGrid, FilePlus, FileText, Download, Sparkles,
+  Sun, Moon, Monitor, Settings, ChevronDown, ChevronUp
+} from 'lucide-vue-next'
+
+const props = defineProps<{
+  activeTab?: string
+  darkMode?: string
+}>()
+
+const emit = defineEmits<{
+  (e: 'select', tab: string): void
+  (e: 'toggleDarkMode'): void
+  (e: 'openSettings'): void
+  (e: 'openComponents'): void
+  (e: 'exampleAction', action: 'load' | 'download' | 'aiDemo'): void
+}>()
+
+const showExamples = ref(false)
+const examplesRef = ref<HTMLElement | null>(null)
+const exampleBtnRef = ref<HTMLElement | null>(null)
+const popoverPos = ref({ top: '0px', left: '0px' })
+
+async function toggleExamples() {
+  showExamples.value = !showExamples.value
+  if (showExamples.value && exampleBtnRef.value) {
+    await nextTick()
+    const rect = exampleBtnRef.value.getBoundingClientRect()
+    popoverPos.value = {
+      top: rect.top + 'px',
+      left: (rect.right + 4) + 'px',
+    }
+  }
+}
+
+function selectExample(action: 'load' | 'download' | 'aiDemo') {
+  showExamples.value = false
+  emit('exampleAction', action)
+}
+
+function onDocumentClick(e: MouseEvent) {
+  if (showExamples.value && examplesRef.value && !examplesRef.value.contains(e.target as Node)) {
+    showExamples.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', onDocumentClick))
+onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
+
+const collapsed = ref(getSetting<boolean>('sidebarCollapsed') ?? false)
+
+function toggleCollapse() {
+  collapsed.value = !collapsed.value
+  setSetting('sidebarCollapsed', collapsed.value)
+}
+</script>
+
+<template>
+  <div
+    class="editor-sidebar flex flex-col shrink-0 transition-all duration-300"
+    :class="collapsed ? 'fixed bottom-4 z-50 shadow-lg' : ''"
+    :style="{
+      width: collapsed ? 'auto' : '64px',
+      height: collapsed ? 'auto' : '100%',
+      marginRight: collapsed ? '0px' : '10px',
+      left: collapsed ? '10px' : undefined,
+      background: collapsed ? 'color-mix(in srgb, var(--bg-primary) 80%, transparent)' : 'var(--bg-primary)',
+      borderRadius: collapsed ? '20px' : '12px',
+      overflow: collapsed ? 'hidden' : 'visible',
+    }"
+  >
+    <!-- Top content: hidden when collapsed -->
+    <div
+      class="flex flex-col items-center gap-1 pt-2 pb-1 transition-all duration-300 overflow-hidden"
+      :style="{
+        maxHeight: collapsed ? '0px' : '200px',
+        opacity: collapsed ? 0 : 1,
+        paddingTop: collapsed ? '0px' : undefined,
+        paddingBottom: collapsed ? '0px' : undefined,
+      }"
+    >
+      <!-- 扩展组件 button -->
+      <button
+        class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
+        title="扩展组件"
+        @click="emit('openComponents')"
+      >
+        <LayoutGrid :size="20" class="w-5 h-5 shrink-0" />
+        <span class="text-[10px] leading-tight">组件</span>
+      </button>
+      <!-- 示例 button with popover -->
+      <div class="relative w-full">
+        <button
+          ref="exampleBtnRef"
+          class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
+          title="示例"
+          @click.stop="toggleExamples"
+        >
+          <FilePlus :size="20" class="w-5 h-5 shrink-0" />
+          <span class="text-[10px] leading-tight">示例</span>
+        </button>
+        <!-- Examples popover -->
+        <div
+          v-if="showExamples"
+          ref="examplesRef"
+          class="fixed rounded-lg shadow-lg border z-50 py-1 min-w-[120px]"
+          :style="{ background: 'var(--bg-primary)', borderColor: 'var(--border-color)', top: popoverPos.top, left: popoverPos.left }"
+        >
+          <button
+            class="flex items-center gap-2 w-full px-3 py-2 text-[13px] border-none cursor-pointer bg-transparent hover:bg-[var(--accent-light)] transition-colors"
+            style="color: var(--text-primary)"
+            @click="selectExample('load')"
+          >
+            <FileText :size="14" class="w-3.5 h-3.5 shrink-0" />
+            加载示例
+          </button>
+          <button
+            class="flex items-center gap-2 w-full px-3 py-2 text-[13px] border-none cursor-pointer bg-transparent hover:bg-[var(--accent-light)] transition-colors"
+            style="color: var(--text-primary)"
+            @click="selectExample('download')"
+          >
+            <Download :size="14" class="w-3.5 h-3.5 shrink-0" />
+            下载示例
+          </button>
+          <button
+            class="flex items-center gap-2 w-full px-3 py-2 text-[13px] border-none cursor-pointer bg-transparent hover:bg-[var(--accent-light)] transition-colors"
+            style="color: var(--text-primary)"
+            @click="selectExample('aiDemo')"
+          >
+            <Sparkles :size="14" class="w-3.5 h-3.5 shrink-0" />
+            AI排版示例
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom buttons: dark mode / settings / collapse — always visible -->
+    <div
+      class="flex items-center gap-1"
+      :class="collapsed ? 'flex-col px-1 py-1.5' : 'flex-col pb-2 mt-auto'"
+    >
+      <button
+        class="sidebar-bottom-btn flex items-center justify-center w-8 h-8 cursor-pointer transition-all duration-200 hover:scale-110"
+        :class="collapsed ? 'rounded-full' : 'rounded-lg'"
+        :title="darkMode === 'dark' ? '切换跟随系统' : darkMode === 'system' ? '切换浅色模式' : '切换深色模式'"
+        @click="emit('toggleDarkMode')"
+      >
+        <Sun v-if="darkMode === 'dark'" :size="16" class="w-4 h-4" />
+        <Monitor v-else-if="darkMode === 'system'" :size="16" class="w-4 h-4" />
+        <Moon v-else :size="16" class="w-4 h-4" />
+      </button>
+      <button
+        class="sidebar-bottom-btn flex items-center justify-center w-8 h-8 cursor-pointer transition-all duration-200 hover:scale-110"
+        :class="collapsed ? 'rounded-full' : 'rounded-lg'"
+        title="编辑器设置"
+        @click="emit('openSettings')"
+      >
+        <Settings :size="16" class="w-4 h-4" />
+      </button>
+
+      <!-- Collapse / Expand button -->
+      <button
+        class="flex items-center justify-center w-8 h-8 border-none cursor-pointer transition-colors duration-150"
+        :class="collapsed ? 'rounded-full' : 'rounded'"
+        :style="{ background: `color-mix(in srgb, var(--accent) 10%, transparent)`, color: 'var(--accent)' }"
+        :title="collapsed ? '展开侧栏' : '收起侧栏'"
+        @click="toggleCollapse"
+      >
+        <ChevronDown v-if="!collapsed" :size="16" class="w-4 h-4" />
+        <ChevronUp v-else :size="16" class="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.sidebar-top-btn {
+  color: var(--text-secondary);
+}
+.sidebar-top-btn:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.sidebar-bottom-btn {
+  color: var(--text-secondary);
+}
+.sidebar-bottom-btn:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.sidebar-item:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.sidebar-item.active:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+</style>

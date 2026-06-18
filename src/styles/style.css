@@ -14,6 +14,8 @@
   --bg-primary: #ffffff;
   --bg-secondary: #f6f5f4;
   --bg-editor: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-frame: #f0f0f0;
   --text-primary: rgba(0, 0, 0, 0.95);
   --text-secondary: #615d59;
   --text-muted: #a39e98;
@@ -43,6 +45,8 @@
   --bg-primary: #1a1a1a;
   --bg-secondary: #242424;
   --bg-editor: #1e1e1e;
+  --bg-sidebar: #242424;
+  --bg-frame: #0d0d0d;
   --text-primary: rgba(255, 255, 255, 0.92);
   --text-secondary: #b0aaa4;
   --text-muted: #6e6a65;
