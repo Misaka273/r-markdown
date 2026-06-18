@@ -104,6 +104,64 @@ function cleanupUnusedBase64() {
   if (removed) saveBase64Store()
 }
 
+// ── 图片压缩（Canvas） ──
+const MAX_DIMENSION = 1920
+
+async function compressImage(file: File, maxSizeKB: number, maxQuality: number): Promise<File> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new window.Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('图片加载失败'))
+    }
+    img.src = url
+  })
+
+  const canvas = document.createElement('canvas')
+  let { width, height } = img
+  if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+    const ratio = MAX_DIMENSION / Math.max(width, height)
+    width = Math.round(width * ratio)
+    height = Math.round(height * ratio)
+  }
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(img, 0, 0, width, height)
+
+  const maxBytes = maxSizeKB * 1024
+  let low = 0.1
+  let high = maxQuality
+  let best: Blob | null = null
+
+  for (let i = 0; i < 6; i++) {
+    const mid = (low + high) / 2
+    const blob = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((b) => resolve(b!), 'image/jpeg', mid)
+    })
+    if (blob.size <= maxBytes) {
+      best = blob
+      low = mid
+    } else {
+      high = mid
+    }
+  }
+
+  if (!best) {
+    best = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((b) => resolve(b!), 'image/jpeg', low)
+    })
+  }
+
+  const newName = file.name.replace(/\.[^.]+$/, '.jpg')
+  return new File([best], newName, { type: 'image/jpeg' })
+}
+
 const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
 const { mode: darkMode, isDark, setMode: setDarkMode } = useDarkMode()
 useAutoUpdater()
@@ -336,6 +394,118 @@ function onImageSelected(e: Event) {
     input.value = ''
   }
   reader.readAsDataURL(file)
+}
+
+// ── 粘贴/拖拽图片 ──
+async function processImageInsert(file: File, insertAt: number | null = null) {
+  // 检查是否在标签内部（不允许在组件标签内插入）
+  if (editorRef.value?.isInsideTag) {
+    showToast('不能在组件标签内插入图片')
+    return
+  }
+
+  // 限制最多 10 张图片
+  const currentCount = (markdown.value.match(/IMG_\d+_[a-z0-9]{6}/g) ?? []).length
+  if (currentCount >= 10) {
+    showToast('最多插入 10 张图片')
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    showToast('请选择图片文件')
+    return
+  }
+
+  const mode = getSetting<string>('pasteDropMode') || 'local'
+
+  if (mode === 'github') {
+    const repo = getSetting<string>('githubRepo')
+    const token = getSetting<string>('githubToken')
+    if (!repo || !token) {
+      showToast('请先在设置中配置 GitHub 图床')
+      return
+    }
+    let uploadFile = file
+    const quality = (getSetting<number>('compressQuality') || 100) / 100
+    if (quality < 1.0) {
+      showToast('正在压缩图片...')
+      uploadFile = await compressImage(file, 5000, quality)
+    }
+    githubUploading.value = true
+    githubUploadProgress.value = 0
+    uploadToGitHub(
+      uploadFile,
+      { repo, token, branch: getSetting<string>('githubBranch') || 'main' },
+      (percent) => { githubUploadProgress.value = percent },
+    )
+      .then((result) => {
+        const tag = `<img src="${result.url}" width="100%" height="auto" radius="8px" fit="cover" />`
+        if (insertAt !== null) {
+          editorRef.value?.replaceRange(insertAt, insertAt, tag)
+        } else {
+          editorRef.value?.insertAtCursor(tag)
+        }
+        showToast('上传成功')
+      })
+      .catch((e: any) => {
+        showToast(e.message || '上传失败')
+      })
+      .finally(() => {
+        githubUploading.value = false
+        githubUploadProgress.value = 0
+      })
+    return
+  }
+
+  // 本地模式
+  let finalFile = file
+  const quality = (getSetting<number>('compressQuality') || 100) / 100
+  if (quality >= 1.0 && file.size > 1000 * 1024) {
+    showToast('图片超过 1MB，请开启压缩或使用图床上传')
+    return
+  }
+  if (quality < 1.0) {
+    showToast('正在压缩图片...')
+    finalFile = await compressImage(file, 1000, quality)
+  }
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    const dataUrl = reader.result as string
+    const compacted = compactBase64(dataUrl)
+    const tag = `<img src="${compacted}" width="100%" height="auto" radius="8px" fit="cover" />`
+    if (insertAt !== null) {
+      editorRef.value?.replaceRange(insertAt, insertAt, tag)
+    } else {
+      editorRef.value?.insertAtCursor(tag)
+    }
+    const cleanup = window.requestIdleCallback || ((fn: () => void) => setTimeout(fn, 200))
+    cleanup(() => cleanupUnusedBase64())
+  }
+  reader.onerror = () => {
+    showToast('图片读取失败')
+  }
+  reader.readAsDataURL(finalFile)
+}
+
+function handlePasteImage(file: File) {
+  processImageInsert(file)
+}
+
+function handlePasteMultipleImages() {
+  showToast('一次只能粘贴一张图片')
+}
+
+function handleDropImage(file: File, from: number) {
+  processImageInsert(file, from)
+}
+
+function handleDropMultipleImages() {
+  showToast('一次只能拖入一张图片')
+}
+
+function handleDropNonImage() {
+  showToast('请拖入图片文件')
 }
 
 // ── 图床上传 ──
@@ -906,6 +1076,11 @@ onBeforeUnmount(() => {
             @update:model-value="onInput"
             @scroll="onEditorScrollAll"
             @tag-selected="onTagSelected"
+            @paste-image="handlePasteImage"
+            @paste-multiple-images="handlePasteMultipleImages"
+            @drop-image="handleDropImage"
+            @drop-multiple-images="handleDropMultipleImages"
+            @drop-non-image="handleDropNonImage"
           />
           <input
             ref="imageInputRef"
