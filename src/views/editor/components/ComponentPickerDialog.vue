@@ -104,6 +104,7 @@ function handleClose() {
     confirm-text="插入"
     cancel-text="取消"
     :confirm-disabled="!selectedId"
+    :accent="colors.accent"
     width="500px"
     @close="handleClose"
     @confirm="confirmInsert"
@@ -114,7 +115,7 @@ function handleClose() {
           v-for="cat in categories"
           :key="cat.key"
           class="cursor-pointer whitespace-nowrap rounded-full border-0 bg-transparent px-3 py-[5px] text-xs text-[#999] transition-colors hover:text-[#333] dark:hover:text-[#ccc]"
-          :style="activeCategory === cat.key ? { backgroundColor: '#07C160', color: '#fff' } : {}"
+          :style="activeCategory === cat.key ? { backgroundColor: colors.accent, color: '#fff' } : {}"
           @click="activeCategory = cat.key; selectedId = null"
         >{{ cat.label }}</button>
       </div>

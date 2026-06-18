@@ -264,13 +264,13 @@ const warmTheme = EditorView.theme(
       caretColor: 'var(--accent)',
     },
     '.cm-gutters': {
-      backgroundColor: 'var(--bg-secondary)',
+      backgroundColor: 'var(--bg-editor)',
       color: 'var(--text-muted)',
       borderRight: '1px solid var(--border-color)',
       minWidth: '40px',
     },
     '.cm-activeLineGutter': {
-      backgroundColor: 'var(--bg-secondary)',
+      backgroundColor: 'var(--bg-editor)',
     },
     '.cm-activeLine': {
       backgroundColor: 'transparent',
@@ -492,7 +492,7 @@ defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineS
 </script>
 
 <template>
-  <div class="editor-wrap flex h-full overflow-hidden" style="background: var(--bg-editor)">
+  <div class="editor-wrap flex h-full overflow-hidden">
     <div ref="editorRef" class="editor-container flex-1 h-full overflow-hidden"></div>
   </div>
 </template>

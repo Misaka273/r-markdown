@@ -8,6 +8,7 @@ import Toast from '@/components/Toast.vue'
 const props = defineProps<{
   markdown: string
   colors: ThemeColors
+  isMobile: boolean
 }>()
 
 const previewRef = ref<HTMLElement>()
@@ -165,27 +166,26 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
   >
     <div
       class="phone-frame"
-      style="
-        width: 100%;
-        max-width: 700px;
-        flex-shrink: 0;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
-        overflow: hidden;
-        margin: 0 auto;
-      "
+      :style="{
+        width: '100%',
+        maxWidth: '700px',
+        flexShrink: 0,
+        background: 'transparent',
+        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
+        overflow: 'hidden',
+        margin: '0 auto',
+      }"
     >
       <div
         ref="previewRef"
         style="
-          padding: 20px 20px 20px;
+          padding: 18px;
           color: #333;
           font-size: 15px;
           line-height: 1.8;
           word-wrap: break-word;
           overflow-wrap: break-word;
-          background-color: #fff;
+          background-color: transparent;
         "
       ></div>
     </div>
@@ -194,9 +194,6 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
 </template>
 
 <style scoped>
-.preview-scroll {
-  padding: 16px;
-}
 .preview-scroll::-webkit-scrollbar {
   display: none;
 }

@@ -7,6 +7,7 @@ import { getSetting, setSetting } from '@/config/settings'
 import { autoUpdateEnabled, autoUpdatePending, autoUpdateRid, checkForUpdates, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { testConnection } from '@/services/githubUploader'
+import { useTheme } from '@/composables/useTheme'
 
 defineProps<{
   visible: boolean
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 const ZOOM_PRESETS = [50, 75, 80, 90, 100, 110, 125, 150, 175, 200]
 const SAVE_INTERVAL_PRESETS = [0.5, 1, 2, 3, 5, 8, 10]
 const isTauri = import.meta.env.VITE_TAURI === 'true'
+const { colors } = useTheme()
 
 // ── 设置 tab ──
 const settingsTab = ref(isTauri ? 'basic' : 'github')
@@ -168,6 +170,7 @@ async function doDownloadUpdate() {
     title="编辑器设置"
     width="min(90vw, 680px)"
     :show-footer="false"
+    :accent="colors.accent"
     @close="emit('close')"
   >
     <template #header>
@@ -175,14 +178,14 @@ async function doDownloadUpdate() {
         <button
           v-if="isTauri"
           class="cursor-pointer whitespace-nowrap rounded-full border-0 bg-transparent px-3 py-[5px] text-xs text-[#999] transition-colors hover:text-[#333] dark:hover:text-[#ccc]"
-          :style="settingsTab === 'basic' ? { backgroundColor: '#07C160', color: '#fff' } : {}"
+          :style="settingsTab === 'basic' ? { backgroundColor: colors.accent, color: '#fff' } : {}"
           @click="settingsTab = 'basic'"
         >
           基础设置
         </button>
         <button
           class="cursor-pointer whitespace-nowrap rounded-full border-0 bg-transparent px-3 py-[5px] text-xs text-[#999] transition-colors hover:text-[#333] dark:hover:text-[#ccc]"
-          :style="settingsTab === 'github' ? { backgroundColor: '#07C160', color: '#fff' } : {}"
+          :style="settingsTab === 'github' ? { backgroundColor: colors.accent, color: '#fff' } : {}"
           @click="settingsTab = 'github'"
         >
           图床设置
@@ -369,7 +372,8 @@ async function doDownloadUpdate() {
           </button>
           <span
             v-if="githubTestResult === 'ok'"
-            class="text-[12px] text-[#07C160]"
+            class="text-[12px]"
+            :style="{ color: colors.accent }"
           >连接成功</span>
           <span
             v-if="githubTestResult === 'fail'"
