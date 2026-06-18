@@ -55,6 +55,22 @@ function saveGitHubBranch(val: string) {
   githubTestError.value = ''
 }
 
+// ── 粘贴/拖拽上传方式 ──
+const pasteDropMode = ref(getSetting<string>('pasteDropMode'))
+
+function savePasteDropMode(val: string) {
+  pasteDropMode.value = val
+  setSetting('pasteDropMode', val)
+}
+
+// ── 压缩质量 ──
+const compressQuality = ref(getSetting<number>('compressQuality'))
+
+function saveCompressQuality(val: number) {
+  compressQuality.value = val
+  setSetting('compressQuality', val)
+}
+
 async function handleTestConnection() {
   if (!githubRepo.value || !githubToken.value) return
   githubTesting.value = true
@@ -380,6 +396,58 @@ async function doDownloadUpdate() {
             class="text-[12px] text-[#e74c3c]"
           >连接失败</span>
         </div>
+
+        <!-- 上传方式 -->
+        <div class="mt-4 pt-3 border-t border-[#eee] dark:border-[#444]">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-2 block">粘贴/拖拽上传方式</label>
+          <div class="flex gap-2">
+            <label
+              class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
+              :class="pasteDropMode === 'local' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
+            >
+              <input type="radio" class="sr-only" value="local" :checked="pasteDropMode === 'local'" @change="savePasteDropMode('local')" />
+              本地存储
+            </label>
+            <label
+              class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
+              :class="pasteDropMode === 'github' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
+            >
+              <input type="radio" class="sr-only" value="github" :checked="pasteDropMode === 'github'" @change="savePasteDropMode('github')" />
+              GitHub 图床
+            </label>
+          </div>
+          <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
+            本地存储：图片以 base64 编码嵌入文档（单张 ≤1000KB），建议开启压缩以减少文档体积<br />
+            GitHub 图床：上传至仓库后使用 CDN 链接（单张 ≤5MB）
+          </p>
+        </div>
+
+        <!-- 压缩质量 -->
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-[12px] text-[#666] dark:text-[#999]">压缩质量</label>
+            <span class="text-[12px] font-medium tabular-nums" :style="{ color: colors.accent }">{{ compressQuality }}%</span>
+          </div>
+          <input
+            type="range"
+            min="10"
+            max="100"
+            step="5"
+            :value="compressQuality"
+            class="compress-slider w-full cursor-pointer"
+            @input="saveCompressQuality(Number(($event.target as HTMLInputElement).value))"
+          />
+          <div class="flex justify-between text-[10px] text-[#999] dark:text-[#666] mt-0.5">
+            <span>低（小体积）</span>
+            <span>高（高画质）</span>
+          </div>
+          <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
+            对应 JPEG 压缩质量，值越高图片越清晰，体积越大。
+          </p>
+          <p class="text-[10px] text-[#999] dark:text-[#666] mt-0.5">
+            压缩后图片将统一转为 JPEG 格式
+          </p>
+        </div>
       </section>
     </template>
 
@@ -394,3 +462,44 @@ async function doDownloadUpdate() {
     />
   </BaseDialog>
 </template>
+
+<style scoped>
+.compress-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #e5e5e5;
+  border-radius: 2px;
+  outline: none;
+}
+
+:global(.dark) .compress-slider {
+  background: #444;
+}
+
+.compress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+}
+
+.compress-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+}
+
+.compress-slider::-moz-range-track {
+  height: 4px;
+  background: #e5e5e5;
+  border-radius: 2px;
+}
+</style>
