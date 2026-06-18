@@ -58,6 +58,16 @@ watch(() => props.visible, async (v) => {
   if (!v) return
   selectedId.value = null
   activeCategory.value = 'title'
+  await refreshRendered()
+})
+
+// 主题色切换时重新渲染所有组件预览 HTML
+watch(colors, async () => {
+  if (!props.visible) return
+  await refreshRendered()
+})
+
+async function refreshRendered() {
   const c = colors.value
   const items = await Promise.all(
     components
@@ -71,7 +81,7 @@ watch(() => props.visible, async (v) => {
       })),
   )
   compItems.value = items
-})
+}
 
 const filteredComponents = computed(() => {
   return compItems.value.filter(c => componentCategoryMap[c.id] === activeCategory.value)
@@ -114,8 +124,8 @@ function handleClose() {
         <button
           v-for="cat in categories"
           :key="cat.key"
-          class="cursor-pointer whitespace-nowrap rounded-full border-0 bg-transparent px-3 py-[5px] text-xs text-[#999] transition-colors hover:text-[#333] dark:hover:text-[#ccc]"
-          :style="activeCategory === cat.key ? { backgroundColor: colors.accent, color: '#fff' } : {}"
+          class="cursor-pointer whitespace-nowrap rounded-full border-0 transition-colors px-3 py-[5px] text-xs"
+          :class="activeCategory === cat.key ? 'bg-[var(--accent)] text-white' : 'bg-transparent text-[#999] hover:text-[#333] dark:hover:text-[#ccc]'"
           @click="activeCategory = cat.key; selectedId = null"
         >{{ cat.label }}</button>
       </div>
