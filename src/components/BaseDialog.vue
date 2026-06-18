@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
             </button>
             <button
               class="cursor-pointer rounded-lg border-0 px-5 py-2 text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
-              :style="accent ? { backgroundColor: accent } : { backgroundColor: '#07C160' }"
+              :class="accent ? 'bg-[var(--accent)]' : 'bg-[#07C160]'"
               :disabled="confirmDisabled"
               @click="emit('confirm')"
             >

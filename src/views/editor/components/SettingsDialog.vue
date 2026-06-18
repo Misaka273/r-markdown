@@ -193,15 +193,19 @@ async function doDownloadUpdate() {
       <div class="flex gap-1">
         <button
           v-if="isTauri"
-          class="cursor-pointer whitespace-nowrap rounded-full border-0 bg-transparent px-3 py-[5px] text-xs text-[#999] transition-colors hover:text-[#333] dark:hover:text-[#ccc]"
-          :style="settingsTab === 'basic' ? { backgroundColor: colors.accent, color: '#fff' } : {}"
+          class="cursor-pointer whitespace-nowrap rounded-full border-0 px-3 py-[5px] text-xs transition-colors"
+          :class="settingsTab === 'basic'
+            ? 'bg-[var(--accent)] text-white'
+            : 'bg-transparent text-[#999] hover:text-[#333] dark:hover:text-[#ccc]'"
           @click="settingsTab = 'basic'"
         >
           基础设置
         </button>
         <button
-          class="cursor-pointer whitespace-nowrap rounded-full border-0 bg-transparent px-3 py-[5px] text-xs text-[#999] transition-colors hover:text-[#333] dark:hover:text-[#ccc]"
-          :style="settingsTab === 'github' ? { backgroundColor: colors.accent, color: '#fff' } : {}"
+          class="cursor-pointer whitespace-nowrap rounded-full border-0 px-3 py-[5px] text-xs transition-colors"
+          :class="settingsTab === 'github'
+            ? 'bg-[var(--accent)] text-white'
+            : 'bg-transparent text-[#999] hover:text-[#333] dark:hover:text-[#ccc]'"
           @click="settingsTab = 'github'"
         >
           图床设置
@@ -426,7 +430,7 @@ async function doDownloadUpdate() {
         <div class="mt-3">
           <div class="flex items-center justify-between mb-1">
             <label class="text-[12px] text-[#666] dark:text-[#999]">压缩质量</label>
-            <span class="text-[12px] font-medium tabular-nums" :style="{ color: colors.accent }">{{ compressQuality }}%</span>
+            <span class="text-[12px] font-medium tabular-nums text-[var(--accent)]">{{ compressQuality }}%</span>
           </div>
           <input
             type="range"
@@ -471,6 +475,7 @@ async function doDownloadUpdate() {
   background: #e5e5e5;
   border-radius: 2px;
   outline: none;
+  accent-color: var(--accent);
 }
 
 :global(.dark) .compress-slider {

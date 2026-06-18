@@ -14,7 +14,8 @@ import {
   Image, Upload, Plus, Braces,
   Highlighter, Sparkles, Pill, ArrowBigUp,
   Underline, Strikethrough, Bold, Italic,
-  Code2, Superscript, Subscript, Type
+  Code2, Superscript, Subscript, Type,
+  Save
 } from 'lucide-vue-next'
 
 const formatIcons: Record<string, any> = {
@@ -607,11 +608,12 @@ function formatTime(full: string) {
   }
   return s
 }
-const saveHint = ref(savedTime ? '自动保存于 ' + formatTime(savedTime) : '')
+const saveMode = ref<'自动' | '手动' | ''>(savedTime ? (autoSaveEnabled.value ? '自动' : '手动') : '')
+const saveHint = ref(savedTime ? saveMode.value + '保存于 ' + formatTime(savedTime) : '')
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function saveContent(value: string) {
+function saveContent(value: string, isManual = false) {
   localStorage.setItem(STORAGE_KEY, value)
   saveBase64Store()
   const now = new Date()
@@ -628,7 +630,8 @@ function saveContent(value: string) {
     ':' +
     String(now.getSeconds()).padStart(2, '0')
   localStorage.setItem(SAVE_TIME_KEY, timeStr)
-  saveHint.value = '自动保存于 ' + formatTime(timeStr)
+  saveMode.value = isManual ? '手动' : '自动'
+  saveHint.value = saveMode.value + '保存于 ' + formatTime(timeStr)
 }
 
 function onInput(value: string) {
@@ -699,19 +702,26 @@ function loadDemo() {
     ':' +
     String(now.getSeconds()).padStart(2, '0')
   localStorage.setItem(SAVE_TIME_KEY, timeStr)
+  saveMode.value = '自动'
   saveHint.value = '自动保存于 ' + formatTime(timeStr)
 }
 
 function downloadDemo() {
-  const blob = new Blob([DEMO_CONTENT], { type: 'text/markdown;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'R-Markdown示例.md'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  try {
+    const blob = new Blob([DEMO_CONTENT], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'R-Markdown示例.md'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast('示例下载完成')
+  } catch (e) {
+    showToast('示例下载失败')
+    console.error('下载示例失败:', e)
+  }
 }
 
 function handleCopyRichText() {
@@ -831,29 +841,14 @@ onBeforeUnmount(() => {
             <span class="opacity-50">v{{ pkg.version }}</span>
           </span>
           <span class="hidden sm:inline text-[11px] opacity-50 ml-1.5 shrink-0">{{ saveHint }}</span>
-          <svg v-if="saveHint.startsWith('自动保存于')" class="hidden sm:inline shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg v-if="saveMode" class="hidden sm:inline shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="sm:hidden">R-Markdown</span>
         </router-link>
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
-        <svg v-if="saveHint.startsWith('自动保存于')" class="sm:hidden shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg v-if="saveMode" class="sm:hidden shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
-        <button
-          v-if="isTauri && !autoSaveEnabled"
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="saveContent(markdown)"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-          暂存
-        </button>
         <button
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleCopyHTML"
@@ -1037,7 +1032,7 @@ onBeforeUnmount(() => {
                 class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn"
                 :class="editorRef?.hasInlineSelection ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
                 :disabled="!editorRef?.hasInlineSelection"
-                :title="opt.label + ' — ' + opt.hint"
+                :title="opt.label + '：' + opt.hint"
                 @click="editorRef?.hasInlineSelection && editorRef?.applyInlineFormat(opt.syntax, opt.wrapType ?? 'delim')"
               >
                 <component :is="formatIcons[opt.syntax]" :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
@@ -1051,6 +1046,14 @@ onBeforeUnmount(() => {
               </span>
             </span>
           </span>
+          <button
+            v-if="isTauri && !autoSaveEnabled"
+            class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn cursor-pointer"
+            title="暂存"
+            @click="saveContent(markdown, true)"
+          >
+            <Save :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+          </button>
         </div>
         <!-- 图床上传进度 -->
         <div
