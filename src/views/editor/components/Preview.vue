@@ -8,6 +8,7 @@ import Toast from '@/components/Toast.vue'
 const props = defineProps<{
   markdown: string
   colors: ThemeColors
+  isMobile: boolean
 }>()
 
 const previewRef = ref<HTMLElement>()
@@ -54,7 +55,7 @@ function copyRichText() {
   navigator.clipboard
     .write([item])
     .then(() => {
-      showToast('✅ 已复制富文本，可直接粘贴到公众号后台')
+      showToast('已复制富文本，可直接粘贴到公众号后台')
     })
     .catch(() => {
       const tmp = document.createElement('div')
@@ -70,7 +71,7 @@ function copyRichText() {
       document.execCommand('copy')
       sel?.removeAllRanges()
       document.body.removeChild(tmp)
-      showToast('✅ 已复制富文本（降级模式）')
+      showToast('已复制富文本（降级模式）')
     })
 }
 
@@ -80,7 +81,7 @@ function copyHTML() {
   navigator.clipboard
     .writeText(el.innerHTML)
     .then(() => {
-      showToast('✅ 已复制 HTML 源码（全部内联样式）')
+      showToast('已复制 HTML 源码（全部内联样式）')
     })
     .catch(() => {
       const ta = document.createElement('textarea')
@@ -89,7 +90,7 @@ function copyHTML() {
       ta.select()
       document.execCommand('copy')
       document.body.removeChild(ta)
-      showToast('✅ 已复制 HTML 源码')
+      showToast('已复制 HTML 源码')
     })
 }
 
@@ -135,7 +136,7 @@ async function saveAsImage() {
     link.download = `公众号预览_${dateStr}.png`
     link.href = dataUrl
     link.click()
-    showToast('✅ 图片已保存')
+    showToast('图片已保存')
   } catch (err: unknown) {
     const msg =
       err instanceof Error
@@ -143,7 +144,7 @@ async function saveAsImage() {
         : typeof Event !== 'undefined' && err instanceof Event
           ? '渲染失败（可能有图片加载不出来）'
           : String(err)
-    showToast('❌ 生成失败：' + msg)
+    showToast('生成失败：' + msg)
   } finally {
     saving.value = false
   }
@@ -165,27 +166,26 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
   >
     <div
       class="phone-frame"
-      style="
-        width: 100%;
-        max-width: 700px;
-        flex-shrink: 0;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
-        overflow: hidden;
-        margin: 0 auto;
-      "
+      :style="{
+        width: '100%',
+        maxWidth: '700px',
+        flexShrink: 0,
+        background: 'transparent',
+        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
+        overflow: 'hidden',
+        margin: '0 auto',
+      }"
     >
       <div
         ref="previewRef"
         style="
-          padding: 20px 20px 20px;
+          padding: 18px;
           color: #333;
           font-size: 15px;
           line-height: 1.8;
           word-wrap: break-word;
           overflow-wrap: break-word;
-          background-color: #fff;
+          background-color: transparent;
         "
       ></div>
     </div>
@@ -194,9 +194,6 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
 </template>
 
 <style scoped>
-.preview-scroll {
-  padding: 16px;
-}
 .preview-scroll::-webkit-scrollbar {
   display: none;
 }
