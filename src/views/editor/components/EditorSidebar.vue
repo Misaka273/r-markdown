@@ -3,12 +3,13 @@ import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { getSetting, setSetting } from '@/config/settings'
 import {
   LayoutGrid, FilePlus, FileText, Download, Sparkles,
-  Sun, Moon, Monitor, Settings, ChevronDown, ChevronUp
+  Sun, Moon, Monitor, Settings, ChevronDown, ChevronUp, SquareBottomDashedScissors
 } from 'lucide-vue-next'
 
 const props = defineProps<{
   activeTab?: string
   darkMode?: string
+  draftCount?: number
 }>()
 
 const emit = defineEmits<{
@@ -16,6 +17,7 @@ const emit = defineEmits<{
   (e: 'toggleDarkMode'): void
   (e: 'openSettings'): void
   (e: 'openComponents'): void
+  (e: 'openDrafts'): void
   (e: 'exampleAction', action: 'load' | 'download' | 'aiDemo'): void
 }>()
 
@@ -74,14 +76,29 @@ function toggleCollapse() {
   >
     <!-- Top content: hidden when collapsed -->
     <div
-      class="flex flex-col items-center gap-1 pt-2 pb-1 transition-all duration-300 overflow-hidden"
+      class="flex flex-col items-center gap-1 pt-2 pb-1 transition-all duration-300"
       :style="{
         maxHeight: collapsed ? '0px' : '200px',
         opacity: collapsed ? 0 : 1,
+        overflow: collapsed ? 'hidden' : 'visible',
         paddingTop: collapsed ? '0px' : undefined,
         paddingBottom: collapsed ? '0px' : undefined,
       }"
     >
+      <!-- 草稿列表 button -->
+      <button
+        class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
+        title="草稿列表"
+        @click="emit('openDrafts')"
+      >
+        <SquareBottomDashedScissors :size="20" class="w-5 h-5 shrink-0" />
+        <span class="text-[10px] leading-tight">草稿</span>
+        <span
+          v-if="draftCount && draftCount > 0"
+          class="min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-semibold text-white"
+          :style="{ background: 'var(--accent)' }"
+        >{{ draftCount > 99 ? '99+' : draftCount }}</span>
+      </button>
       <!-- 扩展组件 button -->
       <button
         class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
@@ -106,28 +123,25 @@ function toggleCollapse() {
         <div
           v-if="showExamples"
           ref="examplesRef"
-          class="fixed rounded-lg shadow-lg border z-50 py-1 min-w-[120px]"
-          :style="{ background: 'var(--bg-primary)', borderColor: 'var(--border-color)', top: popoverPos.top, left: popoverPos.left }"
+          class="examples-popover fixed rounded-xl z-50 p-1.5 min-w-[120px]"
+          :style="{ background: 'white', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', top: popoverPos.top, left: popoverPos.left }"
         >
           <button
-            class="flex items-center gap-2 w-full px-3 py-2 text-[13px] border-none cursor-pointer bg-transparent hover:bg-[var(--accent-light)] transition-colors"
-            style="color: var(--text-primary)"
+            class="examples-item flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] border-none bg-transparent cursor-pointer text-black/80 transition-colors duration-150 hover:bg-black/5"
             @click="selectExample('load')"
           >
             <FileText :size="14" class="w-3.5 h-3.5 shrink-0" />
             加载示例
           </button>
           <button
-            class="flex items-center gap-2 w-full px-3 py-2 text-[13px] border-none cursor-pointer bg-transparent hover:bg-[var(--accent-light)] transition-colors"
-            style="color: var(--text-primary)"
+            class="examples-item flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] border-none bg-transparent cursor-pointer text-black/80 transition-colors duration-150 hover:bg-black/5"
             @click="selectExample('download')"
           >
             <Download :size="14" class="w-3.5 h-3.5 shrink-0" />
             下载示例
           </button>
           <button
-            class="flex items-center gap-2 w-full px-3 py-2 text-[13px] border-none cursor-pointer bg-transparent hover:bg-[var(--accent-light)] transition-colors"
-            style="color: var(--text-primary)"
+            class="examples-item flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] border-none bg-transparent cursor-pointer text-black/80 transition-colors duration-150 hover:bg-black/5"
             @click="selectExample('aiDemo')"
           >
             <Sparkles :size="14" class="w-3.5 h-3.5 shrink-0" />
@@ -196,5 +210,18 @@ function toggleCollapse() {
 }
 .sidebar-item.active:hover {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+</style>
+
+<style>
+[data-theme='dark'] .examples-popover {
+  background: #2a2a2e !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+[data-theme='dark'] .examples-item {
+  color: #ccc !important;
+}
+[data-theme='dark'] .examples-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 </style>
