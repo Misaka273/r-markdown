@@ -8,6 +8,8 @@ import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { uploadToGitHub } from '@/services/githubUploader'
 import { DEMO_CONTENT } from '@/data/demoContent'
+import { DraftStorage, type Draft } from '@/services/DraftStorage'
+import { extractTitle, sanitizeFilename } from '@/utils/extractTitle'
 import Editor from './components/Editor.vue'
 import { inlineFormatOptions } from '@/utils/inlineFormat'
 import {
@@ -15,7 +17,7 @@ import {
   Highlighter, Sparkles, Pill, ArrowBigUp,
   Underline, Strikethrough, Bold, Italic,
   Code2, Superscript, Subscript, Type,
-  Save
+  Save, FilePlus, CheckCircle
 } from 'lucide-vue-next'
 
 const formatIcons: Record<string, any> = {
@@ -41,6 +43,9 @@ import MobileActionsMenu from './components/mobile/MobileActionsMenu.vue'
 import XhsExporter from './components/XhsExporter.vue'
 import TagPropsForm from './components/TagPropsForm.vue'
 import ComponentPickerDialog from './components/ComponentPickerDialog.vue'
+import SaveDraftDialog from './components/SaveDraftDialog.vue'
+import DraftListDialog from './components/DraftListDialog.vue'
+import FinalizeDialog from './components/FinalizeDialog.vue'
 import EditorSidebar from './components/EditorSidebar.vue'
 import Toast from '@/components/Toast.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -197,6 +202,7 @@ function onEditorScrollAll(ratio: number) {
 }
 
 onMounted(() => {
+  refreshDrafts()
   window.addEventListener('resize', onResize)
   // 恢复页面缩放
   if (import.meta.env.VITE_TAURI === 'true') {
@@ -329,6 +335,21 @@ async function doAutoUpdateDownload() {
 // ── 插入扩展组件 ──
 const componentDialogVisible = ref(false)
 const confirmLoadVisible = ref(false)
+
+// ── 草稿功能 ──
+const draftListVisible = ref(false)
+const saveDraftVisible = ref(false)
+const finalizeVisible = ref(false)
+const finalizeDeleteConfirmVisible = ref(false)
+const drafts = ref<Draft[]>([])
+const currentDraftId = ref<number | null>(null)
+
+const extractedTitle = computed(() => extractTitle(markdown.value) || '')
+const draftCount = computed(() => drafts.value.length)
+
+async function refreshDrafts() {
+  drafts.value = await DraftStorage.list()
+}
 
 // ── 插入图片 ──
 const imageInputRef = ref<HTMLInputElement>()
@@ -736,6 +757,106 @@ function handleSaveImage() {
   previewRef.value?.saveAsImage()
 }
 
+// ── 草稿业务方法 ──
+function handleOpenSaveDraft() {
+  saveDraftVisible.value = true
+}
+
+async function handleSaveDraft(_draftId: number, title: string) {
+  const isDup = await DraftStorage.isDuplicate(title, markdown.value, currentDraftId.value ?? undefined)
+  if (isDup) {
+    showToast('内容无变化，无需重复保存')
+    return
+  }
+
+  // 如果正在编辑已有草稿但标题变了，按新建处理，保留原草稿
+  let targetId: number | undefined
+  if (currentDraftId.value) {
+    const existing = await DraftStorage.getById(currentDraftId.value)
+    if (existing && existing.title === title) {
+      targetId = currentDraftId.value
+    }
+  }
+
+  if (targetId !== undefined) {
+    await DraftStorage.save(title, markdown.value, targetId)
+  } else {
+    const id = await DraftStorage.save(title, markdown.value)
+    currentDraftId.value = id
+  }
+
+  saveDraftVisible.value = false
+  showToast('草稿已保存')
+  await refreshDrafts()
+}
+
+async function handleLoadDraft(id: number) {
+  const draft = await DraftStorage.getById(id)
+  if (draft) {
+    markdown.value = draft.content
+    currentDraftId.value = draft.id!
+    showToast('已加载草稿')
+    draftListVisible.value = false
+  }
+}
+
+async function handleDeleteDraft(id: number) {
+  await DraftStorage.remove(id)
+  if (currentDraftId.value === id) {
+    currentDraftId.value = null
+  }
+  showToast('草稿已删除')
+  await refreshDrafts()
+}
+
+function handleOpenFinalize() {
+  finalizeVisible.value = true
+}
+
+async function handleFinalize(title: string) {
+  const safeName = sanitizeFilename(title)
+  try {
+    // 桌面端：弹出原生保存对话框选择路径
+    const { save } = await import('@tauri-apps/plugin-dialog')
+    const { writeTextFile } = await import('@tauri-apps/plugin-fs')
+    const filePath = await save({
+      defaultPath: safeName + '.md',
+      filters: [{ name: 'Markdown', extensions: ['md'] }],
+    })
+    if (!filePath) return // 用户取消
+    await writeTextFile(filePath, markdown.value)
+    showToast('已保存')
+  } catch {
+    // Web 端 / 对话框失败：降级为下载
+    const blob = new Blob([markdown.value], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = safeName + '.md'
+    a.click()
+    URL.revokeObjectURL(url)
+    showToast('已下载')
+  }
+  finalizeVisible.value = false
+  // 定稿成功后，如有当前草稿则询问是否删除
+  if (currentDraftId.value !== null) {
+    // 等定稿弹窗关闭动画结束后再弹出确认
+    setTimeout(() => {
+      finalizeDeleteConfirmVisible.value = true
+    }, 200)
+  }
+}
+
+async function handleDeleteAfterFinalize() {
+  finalizeDeleteConfirmVisible.value = false
+  if (currentDraftId.value !== null) {
+    await DraftStorage.remove(currentDraftId.value)
+    currentDraftId.value = null
+    showToast('草稿已删除')
+    await refreshDrafts()
+  }
+}
+
 // 滚动同步
 let pendingRatio: number | null = null
 let syncSource: 'editor' | 'preview' | null = null
@@ -957,10 +1078,12 @@ onBeforeUnmount(() => {
         <EditorSidebar
           :active-tab="sidebarTab"
           :dark-mode="darkMode"
+          :draft-count="draftCount"
           @select="onSidebarSelect"
           @toggle-dark-mode="onToggleDarkMode"
           @open-settings="settingsVisible = true"
           @open-components="$router.push('/components')"
+          @open-drafts="draftListVisible = true"
           @example-action="onExampleAction"
         />
       </div>
@@ -1046,6 +1169,7 @@ onBeforeUnmount(() => {
               </span>
             </span>
           </span>
+          <span class="flex items-center gap-1">
           <button
             v-if="isTauri && !autoSaveEnabled"
             class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn cursor-pointer"
@@ -1054,6 +1178,23 @@ onBeforeUnmount(() => {
           >
             <Save :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
           </button>
+          <button
+            class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent
+                   transition-all duration-150 panel-action-btn cursor-pointer"
+            title="保存草稿"
+            @click="handleOpenSaveDraft"
+          >
+            <FilePlus :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+          </button>
+          <button
+            class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent
+                   transition-all duration-150 panel-action-btn cursor-pointer"
+            title="定稿"
+            @click="handleOpenFinalize"
+          >
+            <CheckCircle :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+          </button>
+          </span>
         </div>
         <!-- 图床上传进度 -->
         <div
@@ -1193,7 +1334,42 @@ onBeforeUnmount(() => {
         />
       </div>
     </div>
+    <!-- 定稿后删除草稿确认弹窗 -->
+    <ConfirmDialog
+      :visible="finalizeDeleteConfirmVisible"
+      title="定稿完成"
+      message="定稿已保存，是否删除当前草稿？"
+      confirm-text="删除"
+      confirm-type="danger"
+      @confirm="handleDeleteAfterFinalize"
+      @update:visible="finalizeDeleteConfirmVisible = $event"
+    />
   </div>
+
+  <!-- 草稿列表弹窗 -->
+  <DraftListDialog
+    :visible="draftListVisible"
+    :drafts="drafts"
+    @close="draftListVisible = false"
+    @load="handleLoadDraft"
+    @delete="handleDeleteDraft"
+  />
+
+  <!-- 保存草稿弹窗 -->
+  <SaveDraftDialog
+    :visible="saveDraftVisible"
+    :initial-title="extractedTitle"
+    @close="saveDraftVisible = false"
+    @saved="handleSaveDraft"
+  />
+
+  <!-- 定稿弹窗 -->
+  <FinalizeDialog
+    :visible="finalizeVisible"
+    :initial-title="extractedTitle"
+    @close="finalizeVisible = false"
+    @finalize="handleFinalize"
+  />
 </template>
 
 <style scoped>
