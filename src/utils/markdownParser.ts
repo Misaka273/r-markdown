@@ -54,7 +54,6 @@ function highlightLine(rest: string, lang: string): string {
 import { inlineFormat } from './inlineFormat'
 import { renderMath, preloadMathJax } from './mathRenderer'
 import {
-  renderFrontMatter,
   parseCtaInline,
   parseCtaTag,
   parseCompare,
@@ -170,19 +169,6 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
   const lines = processedMd.split('\n')
   let html = ''
   let i = 0
-
-  // front-matter
-  if (lines[0] && lines[0].trim() === '---') {
-    i = 1
-    const meta: Record<string, string> = {}
-    while (i < lines.length && lines[i].trim() !== '---') {
-      const m = lines[i].match(/^(\w+):\s*(.+)/)
-      if (m) meta[m[1]] = m[2].trim()
-      i++
-    }
-    i++
-    html += renderFrontMatter(meta, md, t)
-  }
 
   // 收集 p-title level1（用于 <reading-path> 标签）
   const pTitleLevel1List: { num: string; title: string; subtitle: string }[] = []
