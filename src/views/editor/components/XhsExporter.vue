@@ -337,7 +337,7 @@ async function downloadOne(idx: number) {
   busy.value = true
   try {
     triggerDownload(await cardDataUrl(idx), fileName(idx))
-    emit('toast', '✅ 已保存')
+    emit('toast', '已保存')
   } catch (e) {
     status.value = '导出失败：' + errText(e)
   } finally {
