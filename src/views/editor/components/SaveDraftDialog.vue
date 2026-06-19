@@ -58,7 +58,7 @@ function handleSave() {
           @keyup.enter="handleSave"
         />
         <p v-if="errorMsg" class="text-[var(--danger)] text-[11px] mt-1">{{ errorMsg }}</p>
-        <p v-else class="text-[var(--text-tertiary,#aaa)] text-[11px] mt-1">同名草稿将被覆盖更新，如不覆盖，请修改标题</p>
+        <p v-else class="text-[var(--text-tertiary,#aaa)] text-[11px] mt-1">标题默认从# 和 p-title标签获取</p>
       </div>
     </div>
   </BaseDialog>

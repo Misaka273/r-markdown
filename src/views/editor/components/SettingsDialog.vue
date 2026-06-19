@@ -403,7 +403,7 @@ async function doDownloadUpdate() {
 
         <!-- 上传方式 -->
         <div class="mt-4 pt-3 border-t border-[#eee] dark:border-[#444]">
-          <label class="text-[12px] text-[#666] dark:text-[#999] mb-2 block">粘贴/拖拽上传方式</label>
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-2 block">{{ isTauri ? '粘贴上传方式' : '粘贴/拖拽上传方式' }}</label>
           <div class="flex gap-2">
             <label
               class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
