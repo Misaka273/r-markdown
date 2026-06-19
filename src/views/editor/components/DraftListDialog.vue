@@ -59,7 +59,7 @@ function formatTime(ts: number): string {
 <template>
   <BaseDialog
     :visible="visible"
-    title="草稿列表"
+    title="草稿箱"
     width="800px"
     :show-footer="false"
     @close="emit('close')"
