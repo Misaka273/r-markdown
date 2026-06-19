@@ -45,38 +45,38 @@ function lightenHex(hex: string, factor: number): string {
   return '#' + ((1 << 24) + (lr << 16) + (lg << 8) + lb).toString(16).slice(1)
 }
 
-export function useTheme() {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  let init = THEMES[3]
-  let isCustom = false
-  if (saved) {
-    try {
-      const t = JSON.parse(saved)
-      if (t.accent) {
-        const match = THEMES.find((t2) => t2.accent.toLowerCase() === t.accent.toLowerCase())
-        if (match) {
-          init = match
-        } else {
-          init = { accent: t.accent, dark: t.dark }
-          isCustom = true
-        }
-      }
-    } catch {
-      /* ignore */
-    }
+// 模块级单例 ref，确保所有 useTheme() 调用方共享同一份响应式状态
+const saved = (() => {
+  const raw = localStorage.getItem(STORAGE_KEY)
+  if (!raw) return null
+  try { return JSON.parse(raw) } catch { return null }
+})()
+
+let init = THEMES[3]
+let isCustom = false
+if (saved?.accent) {
+  const match = THEMES.find((t2) => t2.accent.toLowerCase() === saved.accent.toLowerCase())
+  if (match) {
+    init = match
+  } else {
+    init = { accent: saved.accent, dark: saved.dark }
+    isCustom = true
   }
+}
 
-  const accent = ref(init.accent)
-  const accentDark = ref(init.dark)
-  const customColor = ref(isCustom ? init.accent : '#6c5ce7')
+const accent = ref(init.accent)
+const accentDark = ref(init.dark)
+const customColor = ref(isCustom ? init.accent : '#6c5ce7')
 
-  const colors = computed<ThemeColors>(() => ({
-    accent: accent.value,
-    dark: accentDark.value,
-    light: accent.value + '26',
-    border: accent.value + '33',
-    rgb: hexToRgb(accent.value),
-  }))
+const colors = computed<ThemeColors>(() => ({
+  accent: accent.value,
+  dark: accentDark.value,
+  light: accent.value + '26',
+  border: accent.value + '33',
+  rgb: hexToRgb(accent.value),
+}))
+
+export function useTheme() {
 
   function setTheme(a: string, d: string) {
     accent.value = a

@@ -25,4 +25,8 @@ export const DEFAULT_SETTINGS: Record<string, SettingDef> = {
   githubToken: { default: '' },
   /** GitHub 仓库分支 */
   githubBranch: { default: 'main' },
+  /** 粘贴/拖拽图片上传方式：'local' 本地 base64 | 'github' GitHub 图床 */
+  pasteDropMode: { default: 'local' },
+  /** 图片压缩质量 10-100，对应 JPEG quality 0.1-1.0 */
+  compressQuality: { default: 100 },
 }

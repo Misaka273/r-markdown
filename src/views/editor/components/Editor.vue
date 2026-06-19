@@ -43,6 +43,11 @@ const emit = defineEmits<{
       to: number
     } | null,
   ]
+  pasteImage: [file: File]
+  pasteMultipleImages: []
+  dropImage: [file: File, from: number]
+  dropMultipleImages: []
+  dropNonImage: []
 }>()
 
 const editorRef = ref<HTMLDivElement>()
@@ -54,6 +59,22 @@ const isAtLineStart = ref(false)
 
 // ── 行内样式选中检测 ──
 const hasInlineSelection = ref(false)
+
+// ── 标签内检测 ──
+const isInsideTag = ref(false)
+
+function checkCursorInTag(state: EditorState): boolean {
+  const pos = state.selection.main.head
+  const doc = state.doc.toString()
+  let i = pos - 1
+  while (i >= 0) {
+    const ch = doc[i]
+    if (ch === '>') return false
+    if (ch === '<') return doc.indexOf('>', pos) !== -1
+    i--
+  }
+  return false
+}
 
 function checkInlineSelection(state: EditorState) {
   const sel = state.selection.main
@@ -264,13 +285,13 @@ const warmTheme = EditorView.theme(
       caretColor: 'var(--accent)',
     },
     '.cm-gutters': {
-      backgroundColor: 'var(--bg-secondary)',
+      backgroundColor: 'var(--bg-editor)',
       color: 'var(--text-muted)',
       borderRight: '1px solid var(--border-color)',
       minWidth: '40px',
     },
     '.cm-activeLineGutter': {
-      backgroundColor: 'var(--bg-secondary)',
+      backgroundColor: 'var(--bg-editor)',
     },
     '.cm-activeLine': {
       backgroundColor: 'transparent',
@@ -397,6 +418,7 @@ onMounted(async () => {
       const sel = update.state.selection.main
       const line = update.state.doc.lineAt(sel.from)
       isAtLineStart.value = sel.from === line.from
+      isInsideTag.value = checkCursorInTag(update.state)
       checkTagSelection(update.state)
       checkInlineSelection(update.state)
     }
@@ -438,6 +460,51 @@ onMounted(async () => {
     const maxScroll = el.scrollHeight - el.clientHeight
     if (maxScroll > 0) {
       emit('scroll', el.scrollTop / maxScroll)
+    }
+  })
+
+  // 粘贴图片
+  view.dom.addEventListener('paste', (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+    let imageFile: File | null = null
+    let imageCount = 0
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        imageCount++
+        imageFile = items[i].getAsFile()
+      }
+    }
+    if (imageCount === 0) return
+    e.preventDefault()
+    if (imageCount > 1) {
+      emit('pasteMultipleImages')
+    } else if (imageFile) {
+      emit('pasteImage', imageFile)
+    }
+  })
+
+  // 拖拽图片
+  view.dom.addEventListener('dragover', (e: DragEvent) => {
+    if (!e.dataTransfer?.types.includes('Files')) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  })
+
+  view.dom.addEventListener('drop', (e: DragEvent) => {
+    const files = e.dataTransfer?.files
+    if (!files || files.length === 0) return
+    const imgFiles = Array.from(files).filter((f) => f.type.startsWith('image/'))
+    if (imgFiles.length === 0) {
+      emit('dropNonImage')
+      return
+    }
+    e.preventDefault()
+    if (imgFiles.length > 1) {
+      emit('dropMultipleImages')
+    } else {
+      const pos = view!.posAtCoords({ x: e.clientX, y: e.clientY }) ?? view!.state.selection.main.head
+      emit('dropImage', imgFiles[0], pos)
     }
   })
 })
@@ -488,11 +555,11 @@ function insertAtCursor(text: string) {
   })
 }
 
-defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineSelection, applyInlineFormat })
+defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineSelection, isInsideTag, applyInlineFormat })
 </script>
 
 <template>
-  <div class="editor-wrap flex h-full overflow-hidden" style="background: var(--bg-editor)">
+  <div class="editor-wrap flex h-full overflow-hidden">
     <div ref="editorRef" class="editor-container flex-1 h-full overflow-hidden"></div>
   </div>
 </template>

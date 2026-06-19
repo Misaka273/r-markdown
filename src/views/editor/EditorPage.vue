@@ -8,17 +8,45 @@ import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { uploadToGitHub } from '@/services/githubUploader'
 import { DEMO_CONTENT } from '@/data/demoContent'
+import { DraftStorage, type Draft } from '@/services/DraftStorage'
+import { extractTitle, sanitizeFilename } from '@/utils/extractTitle'
 import Editor from './components/Editor.vue'
 import { inlineFormatOptions } from '@/utils/inlineFormat'
+import {
+  Image, ImageUp, Puzzle, Braces, Baseline,
+  Highlighter, Sparkles, Pill, TriangleAlert,
+  Underline, Strikethrough, Bold, Italic,
+  Code2, Superscript, Subscript, RemoveFormatting,
+  Save, SquareBottomDashedScissors, CheckCircle
+} from 'lucide-vue-next'
+
+const formatIcons: Record<string, any> = {
+  '==': Highlighter,
+  '::': Sparkles,
+  '!!': Pill,
+  '^^': TriangleAlert,
+  '__': Baseline,
+  '~~': Strikethrough,
+  '**': Bold,
+  '*': Italic,
+  '***': RemoveFormatting,
+  '`': Code2,
+  'sup': Superscript,
+  'sub': Subscript,
+  'u': Underline,
+}
 import Preview from './components/Preview.vue'
 import ThemePicker from './components/ThemePicker.vue'
-import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import Dropdown from './components/Dropdown.vue'
 import MobileActionsMenu from './components/mobile/MobileActionsMenu.vue'
 import XhsExporter from './components/XhsExporter.vue'
 import TagPropsForm from './components/TagPropsForm.vue'
 import ComponentPickerDialog from './components/ComponentPickerDialog.vue'
+import SaveDraftDialog from './components/SaveDraftDialog.vue'
+import DraftListDialog from './components/DraftListDialog.vue'
+import FinalizeDialog from './components/FinalizeDialog.vue'
+import EditorSidebar from './components/EditorSidebar.vue'
 import Toast from '@/components/Toast.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import pkg from '../../../package.json'
@@ -82,9 +110,79 @@ function cleanupUnusedBase64() {
   if (removed) saveBase64Store()
 }
 
+// ── 图片压缩（Canvas） ──
+const MAX_DIMENSION = 1920
+
+async function compressImage(file: File, maxSizeKB: number, maxQuality: number): Promise<File> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new window.Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('图片加载失败'))
+    }
+    img.src = url
+  })
+
+  const canvas = document.createElement('canvas')
+  let { width, height } = img
+  if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+    const ratio = MAX_DIMENSION / Math.max(width, height)
+    width = Math.round(width * ratio)
+    height = Math.round(height * ratio)
+  }
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(img, 0, 0, width, height)
+
+  const maxBytes = maxSizeKB * 1024
+  let low = 0.1
+  let high = maxQuality
+  let best: Blob | null = null
+
+  for (let i = 0; i < 6; i++) {
+    const mid = (low + high) / 2
+    const blob = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((b) => resolve(b!), 'image/jpeg', mid)
+    })
+    if (blob.size <= maxBytes) {
+      best = blob
+      low = mid
+    } else {
+      high = mid
+    }
+  }
+
+  if (!best) {
+    best = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((b) => resolve(b!), 'image/jpeg', low)
+    })
+  }
+
+  const newName = file.name.replace(/\.[^.]+$/, '.jpg')
+  return new File([best], newName, { type: 'image/jpeg' })
+}
+
 const { accent, colors, setTheme, setCustomTheme, customColor, themes } = useTheme()
 const { mode: darkMode, isDark, setMode: setDarkMode } = useDarkMode()
 useAutoUpdater()
+
+// ── 左侧侧栏 ──
+const sidebarTab = ref('editor')
+
+function onSidebarSelect(tab: string) {
+  sidebarTab.value = tab
+}
+
+function onToggleDarkMode() {
+  const cycle: Record<string, string> = { light: 'dark', dark: 'system', system: 'light' }
+  setDarkMode(cycle[darkMode.value] as 'light' | 'dark' | 'system')
+}
 
 // ── 移动端 Tab 切换 ──
 const mobileTab = ref<'editor' | 'preview'>('editor')
@@ -104,6 +202,7 @@ function onEditorScrollAll(ratio: number) {
 }
 
 onMounted(() => {
+  refreshDrafts()
   window.addEventListener('resize', onResize)
   // 恢复页面缩放
   if (import.meta.env.VITE_TAURI === 'true') {
@@ -118,7 +217,7 @@ onBeforeUnmount(() => {
 })
 
 // ── 拖动调整宽度 ──
-const previewWidth = ref(450)
+const previewWidth = ref(430)
 const isDragging = ref(false)
 let startX = 0
 let startWidth = 0
@@ -136,7 +235,7 @@ function onDragStart(e: MouseEvent) {
 function onDragMove(e: MouseEvent) {
   const delta = startX - e.clientX
   const minW = 407
-  const maxW = 750
+  const maxW = 700
   const newWidth = Math.min(Math.max(startWidth + delta, minW), maxW)
   previewWidth.value = newWidth
 }
@@ -147,6 +246,28 @@ function onDragEnd() {
   document.removeEventListener('mouseup', onDragEnd)
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
+}
+
+// ── 拖拽条圆形按钮 hover 显示 ──
+const resizeHandleRef = ref<HTMLElement | null>(null)
+const handleBtnVisible = ref(false)
+const handleBtnTop = ref(0)
+
+function onHandleEnter() {
+  handleBtnVisible.value = true
+}
+
+function onHandleMove(e: MouseEvent) {
+  const el = resizeHandleRef.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const top = e.clientY - rect.top - 12 // 12 = 半按钮高
+  const clamped = Math.max(0, Math.min(top, rect.height - 24))
+  handleBtnTop.value = clamped
+}
+
+function onHandleLeave() {
+  handleBtnVisible.value = false
 }
 
 const STORAGE_KEY = 'r-markdown-editorContent'
@@ -215,6 +336,21 @@ async function doAutoUpdateDownload() {
 const componentDialogVisible = ref(false)
 const confirmLoadVisible = ref(false)
 
+// ── 草稿功能 ──
+const draftListVisible = ref(false)
+const saveDraftVisible = ref(false)
+const finalizeVisible = ref(false)
+const finalizeDeleteConfirmVisible = ref(false)
+const drafts = ref<Draft[]>([])
+const currentDraftId = ref<number | null>(null)
+
+const extractedTitle = computed(() => extractTitle(markdown.value) || '')
+const draftCount = computed(() => drafts.value.length)
+
+async function refreshDrafts() {
+  drafts.value = await DraftStorage.list()
+}
+
 // ── 插入图片 ──
 const imageInputRef = ref<HTMLInputElement>()
 const githubImageInputRef = ref<HTMLInputElement>()
@@ -280,6 +416,118 @@ function onImageSelected(e: Event) {
     input.value = ''
   }
   reader.readAsDataURL(file)
+}
+
+// ── 粘贴/拖拽图片 ──
+async function processImageInsert(file: File, insertAt: number | null = null) {
+  // 检查是否在标签内部（不允许在组件标签内插入）
+  if (editorRef.value?.isInsideTag) {
+    showToast('不能在组件标签内插入图片')
+    return
+  }
+
+  // 限制最多 10 张图片
+  const currentCount = (markdown.value.match(/IMG_\d+_[a-z0-9]{6}/g) ?? []).length
+  if (currentCount >= 10) {
+    showToast('最多插入 10 张图片')
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    showToast('请选择图片文件')
+    return
+  }
+
+  const mode = getSetting<string>('pasteDropMode') || 'local'
+
+  if (mode === 'github') {
+    const repo = getSetting<string>('githubRepo')
+    const token = getSetting<string>('githubToken')
+    if (!repo || !token) {
+      showToast('请先在设置中配置 GitHub 图床')
+      return
+    }
+    let uploadFile = file
+    const quality = (getSetting<number>('compressQuality') || 100) / 100
+    if (quality < 1.0) {
+      showToast('正在压缩图片...')
+      uploadFile = await compressImage(file, 5000, quality)
+    }
+    githubUploading.value = true
+    githubUploadProgress.value = 0
+    uploadToGitHub(
+      uploadFile,
+      { repo, token, branch: getSetting<string>('githubBranch') || 'main' },
+      (percent) => { githubUploadProgress.value = percent },
+    )
+      .then((result) => {
+        const tag = `<img src="${result.url}" width="100%" height="auto" radius="8px" fit="cover" />`
+        if (insertAt !== null) {
+          editorRef.value?.replaceRange(insertAt, insertAt, tag)
+        } else {
+          editorRef.value?.insertAtCursor(tag)
+        }
+        showToast('上传成功')
+      })
+      .catch((e: any) => {
+        showToast(e.message || '上传失败')
+      })
+      .finally(() => {
+        githubUploading.value = false
+        githubUploadProgress.value = 0
+      })
+    return
+  }
+
+  // 本地模式
+  let finalFile = file
+  const quality = (getSetting<number>('compressQuality') || 100) / 100
+  if (quality >= 1.0 && file.size > 1000 * 1024) {
+    showToast('图片超过 1MB，请开启压缩或使用图床上传')
+    return
+  }
+  if (quality < 1.0) {
+    showToast('正在压缩图片...')
+    finalFile = await compressImage(file, 1000, quality)
+  }
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    const dataUrl = reader.result as string
+    const compacted = compactBase64(dataUrl)
+    const tag = `<img src="${compacted}" width="100%" height="auto" radius="8px" fit="cover" />`
+    if (insertAt !== null) {
+      editorRef.value?.replaceRange(insertAt, insertAt, tag)
+    } else {
+      editorRef.value?.insertAtCursor(tag)
+    }
+    const cleanup = window.requestIdleCallback || ((fn: () => void) => setTimeout(fn, 200))
+    cleanup(() => cleanupUnusedBase64())
+  }
+  reader.onerror = () => {
+    showToast('图片读取失败')
+  }
+  reader.readAsDataURL(finalFile)
+}
+
+function handlePasteImage(file: File) {
+  processImageInsert(file)
+}
+
+function handlePasteMultipleImages() {
+  showToast('一次只能粘贴一张图片')
+}
+
+function handleDropImage(file: File, from: number) {
+  processImageInsert(file, from)
+}
+
+function handleDropMultipleImages() {
+  showToast('一次只能拖入一张图片')
+}
+
+function handleDropNonImage() {
+  showToast('请拖入图片文件')
 }
 
 // ── 图床上传 ──
@@ -372,18 +620,21 @@ function onTagDialogUpdate(attrs: Record<string, string>) {
 
 const savedTime = localStorage.getItem(SAVE_TIME_KEY)
 function formatTime(full: string) {
-  if (!isMobile.value) return full
+  // desktop: MM-DD HH:mm:ss, mobile: MM-DD HH:mm
   let s = full
-  if (s.length >= 4 && s[4] === '-') s = s.slice(5)
-  const lastColon = s.lastIndexOf(':')
-  if (lastColon > 0) s = s.slice(0, lastColon)
+  if (s.length >= 5 && s[4] === '-') s = s.slice(5) // strip YYYY-
+  if (isMobile.value) {
+    const lastColon = s.lastIndexOf(':')
+    if (lastColon > 0) s = s.slice(0, lastColon)
+  }
   return s
 }
-const saveHint = ref(savedTime ? '已保存 ' + formatTime(savedTime) : '')
+const saveMode = ref<'自动' | '手动' | ''>(savedTime ? (autoSaveEnabled.value ? '自动' : '手动') : '')
+const saveHint = ref(savedTime ? saveMode.value + '保存于 ' + formatTime(savedTime) : '')
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function saveContent(value: string) {
+function saveContent(value: string, isManual = false) {
   localStorage.setItem(STORAGE_KEY, value)
   saveBase64Store()
   const now = new Date()
@@ -400,7 +651,8 @@ function saveContent(value: string) {
     ':' +
     String(now.getSeconds()).padStart(2, '0')
   localStorage.setItem(SAVE_TIME_KEY, timeStr)
-  saveHint.value = '已保存 ' + formatTime(timeStr)
+  saveMode.value = isManual ? '手动' : '自动'
+  saveHint.value = saveMode.value + '保存于 ' + formatTime(timeStr)
 }
 
 function onInput(value: string) {
@@ -417,17 +669,9 @@ function onInput(value: string) {
 }
 
 // ── 通用下拉菜单数据 ──
-const svgDoc = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'
 const svgDownload = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'
-const svgSparkle = '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/>'
 const svgImage = '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'
 const svgXhs = '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>'
-
-const exampleItems = [
-  { label: '加载示例', svgInner: svgDoc, action: 'load' },
-  { label: '下载示例', svgInner: svgDownload, action: 'download' },
-  { label: 'AI排版示例', svgInner: svgSparkle, action: 'aiDemo' },
-]
 
 const exportItems = [
   { label: '保存图片', svgInner: svgImage, action: 'saveImage' },
@@ -435,14 +679,77 @@ const exportItems = [
 ]
 
 function onDropdownSelect(groupId: string, action: string) {
-  if (groupId === 'example') {
-    if (action === 'download') downloadDemo()
-    else if (action === 'load') confirmLoadVisible.value = true
-    else if (action === 'aiDemo') openAiDemo()
-  } else if (groupId === 'export') {
+  if (groupId === 'export') {
     if (action === 'saveImage') handleSaveImage()
     else if (action === 'xhs') xhsVisible.value = true
   }
+}
+
+function onExampleAction(action: string) {
+  if (action === 'download') downloadDemo()
+  else if (action === 'load') confirmLoadVisible.value = true
+  else if (action === 'aiDemo') openAiDemo()
+}
+
+// ── 导入 ──
+async function onImportClick() {
+  // 判断是否 Tauri 环境
+  const isTauri = import.meta.env.VITE_TAURI === 'true'
+
+  if (isTauri) {
+    // 桌面端：Tauri 原生对话框
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog')
+      const filePath = await open({
+        multiple: false,
+        filters: [{ name: '文档', extensions: ['md', 'txt', 'docx'] }]
+      })
+      if (!filePath) return
+
+      const fp = Array.isArray(filePath) ? filePath[0] : filePath
+      if (fp.endsWith('.docx')) {
+        const { readFile } = await import('@tauri-apps/plugin-fs')
+        const buffer = await readFile(fp)
+        const mammoth = await import('mammoth')
+        const result = await mammoth.extractRawText({ arrayBuffer: buffer.buffer })
+        markdown.value = result.value
+      } else {
+        const { readTextFile } = await import('@tauri-apps/plugin-fs')
+        markdown.value = await readTextFile(fp)
+      }
+      localStorage.setItem(STORAGE_KEY, markdown.value)
+      showToast('导入成功')
+    } catch (e: any) {
+      showToast(e?.toString() || '导入失败')
+      console.error('导入失败:', e)
+    }
+    return
+  }
+
+  // Web 端：浏览器文件选择
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.md,.txt,.docx'
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0]
+    if (!file) return
+    try {
+      if (file.name.endsWith('.docx')) {
+        const buf = await file.arrayBuffer()
+        const mammoth = await import('mammoth')
+        const result = await mammoth.extractRawText({ arrayBuffer: buf })
+        markdown.value = result.value
+      } else {
+        markdown.value = await file.text()
+      }
+      localStorage.setItem(STORAGE_KEY, markdown.value)
+      showToast('导入成功')
+    } catch (e: any) {
+      showToast(e?.toString() || '导入失败')
+      console.error('导入失败:', e)
+    }
+  })
+  input.click()
 }
 
 // ── 外链：Tauri 中用系统浏览器打开，Web 中用 window.open ──
@@ -477,19 +784,26 @@ function loadDemo() {
     ':' +
     String(now.getSeconds()).padStart(2, '0')
   localStorage.setItem(SAVE_TIME_KEY, timeStr)
-  saveHint.value = '已保存 ' + formatTime(timeStr)
+  saveMode.value = '自动'
+  saveHint.value = '自动保存于 ' + formatTime(timeStr)
 }
 
 function downloadDemo() {
-  const blob = new Blob([DEMO_CONTENT], { type: 'text/markdown;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'R-Markdown示例.md'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  try {
+    const blob = new Blob([DEMO_CONTENT], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'R-Markdown示例.md'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast('示例下载完成')
+  } catch (e) {
+    showToast('示例下载失败')
+    console.error('下载示例失败:', e)
+  }
 }
 
 function handleCopyRichText() {
@@ -502,6 +816,106 @@ function handleCopyHTML() {
 
 function handleSaveImage() {
   previewRef.value?.saveAsImage()
+}
+
+// ── 草稿业务方法 ──
+function handleOpenSaveDraft() {
+  saveDraftVisible.value = true
+}
+
+async function handleSaveDraft(_draftId: number, title: string) {
+  const isDup = await DraftStorage.isDuplicate(title, markdown.value, currentDraftId.value ?? undefined)
+  if (isDup) {
+    showToast('内容无变化，无需重复保存')
+    return
+  }
+
+  // 如果正在编辑已有草稿但标题变了，按新建处理，保留原草稿
+  let targetId: number | undefined
+  if (currentDraftId.value) {
+    const existing = await DraftStorage.getById(currentDraftId.value)
+    if (existing && existing.title === title) {
+      targetId = currentDraftId.value
+    }
+  }
+
+  if (targetId !== undefined) {
+    await DraftStorage.save(title, markdown.value, targetId)
+  } else {
+    const id = await DraftStorage.save(title, markdown.value)
+    currentDraftId.value = id
+  }
+
+  saveDraftVisible.value = false
+  showToast('草稿已保存')
+  await refreshDrafts()
+}
+
+async function handleLoadDraft(id: number) {
+  const draft = await DraftStorage.getById(id)
+  if (draft) {
+    markdown.value = draft.content
+    currentDraftId.value = draft.id!
+    showToast('已加载草稿')
+    draftListVisible.value = false
+  }
+}
+
+async function handleDeleteDraft(id: number) {
+  await DraftStorage.remove(id)
+  if (currentDraftId.value === id) {
+    currentDraftId.value = null
+  }
+  showToast('草稿已删除')
+  await refreshDrafts()
+}
+
+function handleOpenFinalize() {
+  finalizeVisible.value = true
+}
+
+async function handleFinalize(title: string) {
+  const safeName = sanitizeFilename(title)
+  try {
+    // 桌面端：弹出原生保存对话框选择路径
+    const { save } = await import('@tauri-apps/plugin-dialog')
+    const { writeTextFile } = await import('@tauri-apps/plugin-fs')
+    const filePath = await save({
+      defaultPath: safeName + '.md',
+      filters: [{ name: 'Markdown', extensions: ['md'] }],
+    })
+    if (!filePath) return // 用户取消
+    await writeTextFile(filePath, markdown.value)
+    showToast('已保存')
+  } catch {
+    // Web 端 / 对话框失败：降级为下载
+    const blob = new Blob([markdown.value], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = safeName + '.md'
+    a.click()
+    URL.revokeObjectURL(url)
+    showToast('已下载')
+  }
+  finalizeVisible.value = false
+  // 定稿成功后，如有当前草稿则询问是否删除
+  if (currentDraftId.value !== null) {
+    // 等定稿弹窗关闭动画结束后再弹出确认
+    setTimeout(() => {
+      finalizeDeleteConfirmVisible.value = true
+    }, 200)
+  }
+}
+
+async function handleDeleteAfterFinalize() {
+  finalizeDeleteConfirmVisible.value = false
+  if (currentDraftId.value !== null) {
+    await DraftStorage.remove(currentDraftId.value)
+    currentDraftId.value = null
+    showToast('草稿已删除')
+    await refreshDrafts()
+  }
 }
 
 // 滚动同步
@@ -587,7 +1001,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex flex-col h-screen">
     <!-- Toolbar -->
-    <div class="toolbar flex items-center justify-between px-4 py-2 border-b shrink-0">
+    <div class="toolbar flex items-center justify-between px-4 py-2 shrink-0">
       <div class="flex items-center min-w-0">
         <router-link
           to="/"
@@ -608,51 +1022,17 @@ onBeforeUnmount(() => {
             <span class="opacity-60">for 公众号</span>
             <span class="opacity-50">v{{ pkg.version }}</span>
           </span>
+          <span class="hidden sm:inline text-[11px] opacity-50 ml-1.5 shrink-0">{{ saveHint }}</span>
+          <svg v-if="saveMode" class="hidden sm:inline shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="sm:hidden">R-Markdown</span>
         </router-link>
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
+        <svg v-if="saveMode" class="sm:hidden shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
         <button
-          v-if="isTauri && !autoSaveEnabled"
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="saveContent(markdown)"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-          暂存
-        </button>
-        <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
-          @click="$router.push('/components')"
-        >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-          扩展组件
-        </button>
-        <Dropdown
-          group-id="example"
-          label="示例"
-          :svg-trigger-inner="svgDoc"
-          :items="exampleItems"
-          @select="(action: string) => onDropdownSelect('example', action)"
-        />
-        <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleCopyHTML"
         >
           <svg
@@ -672,7 +1052,7 @@ onBeforeUnmount(() => {
           @select="(action: string) => onDropdownSelect('export', action)"
         />
         <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
           @click="handleCopyRichText"
         >
           <svg
@@ -702,17 +1082,6 @@ onBeforeUnmount(() => {
           @select="setTheme"
           @custom-select="setCustomTheme"
         />
-        <DarkModeToggle :mode="darkMode" @select="setDarkMode" />
-        <button
-          class="w-7 h-7 rounded-full border-2 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110 border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]"
-          title="编辑器设置"
-          @click="settingsVisible = true"
-        >
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
-        </button>
         <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
       </div>
     </div>
@@ -764,86 +1133,132 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="flex flex-1 overflow-hidden">
+      <div class="flex flex-1 overflow-hidden" :style="{ padding: isMobile ? '0px' : '10px', background: 'var(--bg-frame)' }">
+      <!-- 桌面端左侧侧栏 -->
+      <div class="hidden md:flex shrink-0">
+        <EditorSidebar
+          :active-tab="sidebarTab"
+          :dark-mode="darkMode"
+          :draft-count="draftCount"
+          @select="onSidebarSelect"
+          @toggle-dark-mode="onToggleDarkMode"
+          @open-settings="settingsVisible = true"
+          @open-components="$router.push('/components')"
+          @open-drafts="draftListVisible = true"
+          @example-action="onExampleAction"
+          @open-import="onImportClick"
+        />
+      </div>
       <!-- Editor Panel -->
       <div
-        class="flex flex-col overflow-hidden flex-1 min-w-0 relative"
+        class="flex flex-col overflow-x-hidden flex-1 min-w-0 relative"
+        style="background: var(--bg-primary)"
         :class="{
           'hidden md:flex': mobileTab !== 'editor',
           'mobile-near-bottom': nearBottom && isMobile,
+          'rounded-xl': !isMobile,
         }"
       >
         <div
           class="panel-header hidden md:flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
+          style="background: var(--bg-primary)"
         >
-          <span class="flex items-center gap-2">
-            <span class="flex items-center gap-1.5">
-              <svg
-                class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-                viewBox="0 0 24 24"
+          <span class="flex flex-wrap items-center gap-3">
+            <!-- 操作按钮组：图标+文字 -->
+            <span class="flex items-center gap-1">
+              <button
+                class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
+                :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                :disabled="!editorRef?.isAtLineStart"
+                title="本地插入图片"
+                @click="editorRef?.isAtLineStart && handleInsertImage()"
               >
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-              Markdown 编辑
-            </span>
-            <span class="panel-header-muted font-normal text-[11px]">{{ saveHint }}</span>
-          </span>
-          <span class="flex items-center gap-2">
-            <!-- 插入图片下拉 -->
-            <span v-if="editorRef?.isAtLineStart" class="relative inline-flex items-center group">
+                <Image :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                <span>本地</span>
+              </button>
               <button
-                class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
-              >插入图片</button>
-              <span class="absolute top-full right-0 mt-1.5 w-28 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-auto">
-                <button
-                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors border-b border-[#e5e5e5] dark:border-white/5"
-                  @click="handleInsertImage"
-                >本地插入</button>
-                <button
-                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                  :disabled="githubUploading"
-                  @click="handleUploadToGitHub"
-                >
-                  <span>上传图床</span>
-                </button>
-              </span>
-            </span>
-            <button
-              v-if="editorRef?.isAtLineStart"
-              class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
-              @click="componentDialogVisible = true"
-            >插入组件</button>
-            <button
-              v-if="tagInfo && !showTagDialog && !isMobile"
-              class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
-              @click="showTagDialog = true"
-            >
-              解析 &lt;{{ tagInfo.tagName }}&gt;属性
-            </button>
-            <!-- 行内样式按钮 -->
-            <span v-if="editorRef?.hasInlineSelection" class="relative inline-flex items-center group">
+                class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
+                :class="editorRef?.isAtLineStart && !githubUploading ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                :disabled="!editorRef?.isAtLineStart || githubUploading"
+                title="上传到图床"
+                @click="editorRef?.isAtLineStart && !githubUploading && handleUploadToGitHub()"
+              >
+                <ImageUp :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                <span>图床</span>
+              </button>
               <button
-                class="inline-flex items-center gap-1 px-2.5 rounded-[5px] bg-transparent text-[11px] font-medium cursor-pointer transition-all duration-150 whitespace-nowrap panel-action-btn"
-              >行内样式</button>
-              <span class="absolute top-full right-0 mt-1.5 w-44 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-auto">
-                <button
-                  v-for="opt in inlineFormatOptions"
-                  :key="opt.syntax"
-                  class="flex items-center justify-between w-full px-3 py-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors border-b border-[#e5e5e5] dark:border-white/5 last:border-b-0"
-                  @click="editorRef?.applyInlineFormat(opt.syntax, opt.wrapType ?? 'delim')"
-                >
-                  <span>{{ opt.label }}</span>
-                  <span class="text-[#999] dark:text-white/40 ml-2">{{ opt.hint }}</span>
-                </button>
-              </span>
+                class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
+                :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                :disabled="!editorRef?.isAtLineStart"
+                title="插入组件"
+                @click="editorRef?.isAtLineStart && (componentDialogVisible = true)"
+              >
+                <Puzzle :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                <span>组件</span>
+              </button>
+              <button
+                class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
+                :class="(tagInfo && !showTagDialog && !isMobile) ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                :disabled="!tagInfo || showTagDialog || isMobile"
+                :title="tagInfo ? '解析 <' + tagInfo.tagName + '> 属性' : '解析标签 — 选中扩展组件标签后可用'"
+                @click="tagInfo && !showTagDialog && !isMobile && (showTagDialog = true)"
+              >
+                <Braces :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                <span>解析</span>
+              </button>
+            </span>
+            <!-- 分隔符 -->
+            <span class="w-px h-4 bg-current opacity-15"></span>
+            <!-- 行内样式按钮组 -->
+            <span class="flex items-center gap-0.5">
+              <button
+                v-for="opt in inlineFormatOptions"
+                :key="opt.syntax"
+                class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn"
+                :class="editorRef?.hasInlineSelection ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                :disabled="!editorRef?.hasInlineSelection"
+                :title="opt.label + '：' + opt.hint"
+                @click="editorRef?.hasInlineSelection && editorRef?.applyInlineFormat(opt.syntax, opt.wrapType ?? 'delim')"
+              >
+                <component :is="formatIcons[opt.syntax]" :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+              </button>
             </span>
             <!-- 帮助提示 -->
-            <span class="relative ml-1 inline-flex items-center group">
+            <span class="relative inline-flex items-center group">
               <svg class="w-3.5 h-3.5 text-[#aaa] cursor-help hover:text-[var(--accent)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               <span class="absolute top-full right-0 mt-1.5 w-56 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
-                1、选中非扩展组件标签的普通文字时出现「行内样式」按钮，鼠标移入可选择行内修饰语法。<br>2、光标停在空行时出现「插入图片」和「插入组件」按钮。<br>3、全选扩展组件标签出现「解析标签」按钮，进行属性可视化编辑。
+                选中非标签内文字后可加样式<br>本地/图床/组件：仅空行可点击<br>解析：选中组件标签后可点击。
               </span>
             </span>
+          </span>
+          <span class="flex flex-col lg:flex-row lg:items-center gap-1">
+          <button
+            v-if="isTauri && !autoSaveEnabled"
+            class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium cursor-pointer whitespace-nowrap"
+            title="暂存"
+            @click="saveContent(markdown, true)"
+          >
+            <Save :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+            <span>暂存</span>
+          </button>
+          <button
+            class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent
+                   transition-all duration-150 panel-action-btn text-[11px] font-medium cursor-pointer whitespace-nowrap"
+            title="保存草稿"
+            @click="handleOpenSaveDraft"
+          >
+            <SquareBottomDashedScissors :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+            <span>草稿</span>
+          </button>
+          <button
+            class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent
+                   transition-all duration-150 panel-action-btn text-[11px] font-medium cursor-pointer whitespace-nowrap"
+            title="定稿导出"
+            @click="handleOpenFinalize"
+          >
+            <CheckCircle :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+            <span>定稿</span>
+          </button>
           </span>
         </div>
         <!-- 图床上传进度 -->
@@ -870,6 +1285,11 @@ onBeforeUnmount(() => {
             @update:model-value="onInput"
             @scroll="onEditorScrollAll"
             @tag-selected="onTagSelected"
+            @paste-image="handlePasteImage"
+            @paste-multiple-images="handlePasteMultipleImages"
+            @drop-image="handleDropImage"
+            @drop-multiple-images="handleDropMultipleImages"
+            @drop-non-image="handleDropNonImage"
           />
           <input
             ref="imageInputRef"
@@ -898,7 +1318,25 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Resize Handle (仅桌面端) -->
-      <div class="resize-handle hidden md:block" @mousedown="onDragStart"></div>
+      <div
+        class="resize-handle hidden md:block"
+        @mousedown="onDragStart"
+        @mouseenter="onHandleEnter"
+        @mousemove="onHandleMove"
+        @mouseleave="onHandleLeave"
+        ref="resizeHandleRef"
+      >
+        <div
+          class="resize-handle-btn"
+          :class="{ 'resize-handle-btn--visible': handleBtnVisible }"
+          :style="{ top: handleBtnTop + 'px' }"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 8 21 12 17 16" />
+            <polyline points="7 8 3 12 7 16" />
+          </svg>
+        </div>
+      </div>
 
       <!-- Preview Panel -->
       <div
@@ -906,27 +1344,12 @@ onBeforeUnmount(() => {
         :class="{
           'hidden md:flex': mobileTab !== 'preview',
           'mobile-near-bottom': nearBottom && isMobile,
+          'rounded-xl': !isMobile,
         }"
-        :style="isMobile ? {} : { width: previewWidth + 'px' }"
+        :style="isMobile ? { background: '#fff' } : { width: previewWidth + 'px', background: '#fff' }"
       >
-        <div
-          class="panel-header hidden md:flex items-center justify-between px-4 py-2 border-b text-xs font-semibold shrink-0"
-        >
-          <span class="flex items-center gap-1.5">
-            <svg
-              class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-              viewBox="0 0 24 24"
-            >
-              <rect x="5" y="2" width="14" height="20" rx="2" />
-              <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
-            </svg>
-            公众号预览
-          </span>
-          <span class="panel-header-muted font-normal text-[11px]"
-            >实时渲染 · 可直接复制到公众号</span
-          >
-        </div>
-        <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" />
+        <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" :is-mobile="isMobile" />
+      </div>
       </div>
     </div>
 
@@ -976,7 +1399,42 @@ onBeforeUnmount(() => {
         />
       </div>
     </div>
+    <!-- 定稿后删除草稿确认弹窗 -->
+    <ConfirmDialog
+      :visible="finalizeDeleteConfirmVisible"
+      title="定稿完成"
+      message="定稿已保存，是否删除当前草稿？"
+      confirm-text="删除"
+      confirm-type="danger"
+      @confirm="handleDeleteAfterFinalize"
+      @update:visible="finalizeDeleteConfirmVisible = $event"
+    />
   </div>
+
+  <!-- 草稿列表弹窗 -->
+  <DraftListDialog
+    :visible="draftListVisible"
+    :drafts="drafts"
+    @close="draftListVisible = false"
+    @load="handleLoadDraft"
+    @delete="handleDeleteDraft"
+  />
+
+  <!-- 保存草稿弹窗 -->
+  <SaveDraftDialog
+    :visible="saveDraftVisible"
+    :initial-title="extractedTitle"
+    @close="saveDraftVisible = false"
+    @saved="handleSaveDraft"
+  />
+
+  <!-- 定稿弹窗 -->
+  <FinalizeDialog
+    :visible="finalizeVisible"
+    :initial-title="extractedTitle"
+    @close="finalizeVisible = false"
+    @finalize="handleFinalize"
+  />
 </template>
 
 <style scoped>
@@ -1051,11 +1509,9 @@ onBeforeUnmount(() => {
 
 /* 面板操作按钮 - 结构用 Tailwind，仅保留 CSS 变量相关样式 */
 .panel-action-btn {
-  border: 1px solid var(--border-color);
   color: var(--text-secondary);
 }
 .panel-action-btn:hover {
-  border-color: var(--accent, #6c5ce7);
   color: var(--accent, #6c5ce7);
   background: var(--accent-light, rgba(108, 92, 231, 0.08));
 }
