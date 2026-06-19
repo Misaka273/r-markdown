@@ -2,8 +2,8 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { getSetting, setSetting } from '@/config/settings'
 import {
-  LayoutGrid, FilePlus, FileText, Download, Sparkles,
-  Sun, Moon, Monitor, Settings, ChevronDown, ChevronUp, SquareBottomDashedScissors
+  Component, Paperclip, FilePlus, Download, Bot,
+  Sun, Moon, Monitor, Bolt, ChevronDown, ChevronUp, SquareBottomDashedScissors
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -76,7 +76,7 @@ function toggleCollapse() {
   >
     <!-- Top content: hidden when collapsed -->
     <div
-      class="flex flex-col items-center gap-1 pt-2 pb-1 transition-all duration-300"
+      class="flex flex-col items-center gap-1 pt-2 pb-1 transition-all duration-300 space-y-2"
       :style="{
         maxHeight: collapsed ? '0px' : '200px',
         opacity: collapsed ? 0 : 1,
@@ -91,7 +91,7 @@ function toggleCollapse() {
         title="草稿列表"
         @click="emit('openDrafts')"
       >
-        <SquareBottomDashedScissors :size="20" class="w-5 h-5 shrink-0" />
+        <SquareBottomDashedScissors :size="24" class="shrink-0" />
         <span class="text-[10px] leading-tight">草稿</span>
         <span
           v-if="draftCount && draftCount > 0"
@@ -105,7 +105,7 @@ function toggleCollapse() {
         title="扩展组件"
         @click="emit('openComponents')"
       >
-        <LayoutGrid :size="20" class="w-5 h-5 shrink-0" />
+        <Component :size="24" class="shrink-0" />
         <span class="text-[10px] leading-tight">组件</span>
       </button>
       <!-- 示例 button with popover -->
@@ -116,7 +116,7 @@ function toggleCollapse() {
           title="示例"
           @click.stop="toggleExamples"
         >
-          <FilePlus :size="20" class="w-5 h-5 shrink-0" />
+          <Paperclip :size="24" class="shrink-0" />
           <span class="text-[10px] leading-tight">示例</span>
         </button>
         <!-- Examples popover -->
@@ -130,21 +130,21 @@ function toggleCollapse() {
             class="examples-item flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] border-none bg-transparent cursor-pointer text-black/80 transition-colors duration-150 hover:bg-black/5"
             @click="selectExample('load')"
           >
-            <FileText :size="14" class="w-3.5 h-3.5 shrink-0" />
+            <FilePlus :size="14" class="shrink-0" />
             加载示例
           </button>
           <button
             class="examples-item flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] border-none bg-transparent cursor-pointer text-black/80 transition-colors duration-150 hover:bg-black/5"
             @click="selectExample('download')"
           >
-            <Download :size="14" class="w-3.5 h-3.5 shrink-0" />
+            <Download :size="14" class="shrink-0" />
             下载示例
           </button>
           <button
             class="examples-item flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] border-none bg-transparent cursor-pointer text-black/80 transition-colors duration-150 hover:bg-black/5"
             @click="selectExample('aiDemo')"
           >
-            <Sparkles :size="14" class="w-3.5 h-3.5 shrink-0" />
+            <Bot :size="14" class="shrink-0" />
             AI排版示例
           </button>
         </div>
@@ -153,7 +153,7 @@ function toggleCollapse() {
 
     <!-- Bottom buttons: dark mode / settings / collapse — always visible -->
     <div
-      class="flex items-center gap-1"
+      class="flex items-center gap-1 space-y-1"
       :class="collapsed ? 'flex-col px-1 py-1.5' : 'flex-col pb-2 mt-auto'"
     >
       <button
@@ -162,9 +162,9 @@ function toggleCollapse() {
         :title="darkMode === 'dark' ? '切换跟随系统' : darkMode === 'system' ? '切换浅色模式' : '切换深色模式'"
         @click="emit('toggleDarkMode')"
       >
-        <Sun v-if="darkMode === 'dark'" :size="16" class="w-4 h-4" />
-        <Monitor v-else-if="darkMode === 'system'" :size="16" class="w-4 h-4" />
-        <Moon v-else :size="16" class="w-4 h-4" />
+        <Sun v-if="darkMode === 'dark'" :size="20" />
+        <Monitor v-else-if="darkMode === 'system'" :size="20" />
+        <Moon v-else :size="20" />
       </button>
       <button
         class="sidebar-bottom-btn flex items-center justify-center w-8 h-8 cursor-pointer transition-all duration-200 hover:scale-110"
@@ -172,19 +172,19 @@ function toggleCollapse() {
         title="编辑器设置"
         @click="emit('openSettings')"
       >
-        <Settings :size="16" class="w-4 h-4" />
+        <Bolt :size="20" />
       </button>
 
       <!-- Collapse / Expand button -->
       <button
         class="flex items-center justify-center w-8 h-8 border-none cursor-pointer transition-colors duration-150"
-        :class="collapsed ? 'rounded-full' : 'rounded'"
+        :class="collapsed ? 'rounded-full' : 'rounded-lg'"
         :style="{ background: `color-mix(in srgb, var(--accent) 10%, transparent)`, color: 'var(--accent)' }"
         :title="collapsed ? '展开侧栏' : '收起侧栏'"
         @click="toggleCollapse"
       >
-        <ChevronDown v-if="!collapsed" :size="16" class="w-4 h-4" />
-        <ChevronUp v-else :size="16" class="w-4 h-4" />
+        <ChevronDown v-if="!collapsed" :size="20" />
+        <ChevronUp v-else :size="20" />
       </button>
     </div>
   </div>

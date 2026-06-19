@@ -13,23 +13,23 @@ import { extractTitle, sanitizeFilename } from '@/utils/extractTitle'
 import Editor from './components/Editor.vue'
 import { inlineFormatOptions } from '@/utils/inlineFormat'
 import {
-  Image, Upload, Plus, Braces,
-  Highlighter, Sparkles, Pill, ArrowBigUp,
+  Image, ImageUp, Puzzle, Braces, Baseline,
+  Highlighter, Sparkles, Pill, TriangleAlert,
   Underline, Strikethrough, Bold, Italic,
-  Code2, Superscript, Subscript, Type,
-  Save, FilePlus, CheckCircle
+  Code2, Superscript, Subscript, RemoveFormatting,
+  Save, SquareBottomDashedScissors, CheckCircle
 } from 'lucide-vue-next'
 
 const formatIcons: Record<string, any> = {
   '==': Highlighter,
   '::': Sparkles,
   '!!': Pill,
-  '^^': ArrowBigUp,
-  '__': Underline,
+  '^^': TriangleAlert,
+  '__': Baseline,
   '~~': Strikethrough,
   '**': Bold,
   '*': Italic,
-  '***': Type,
+  '***': RemoveFormatting,
   '`': Code2,
   'sup': Superscript,
   'sub': Subscript,
@@ -1121,7 +1121,7 @@ onBeforeUnmount(() => {
                 title="上传到图床"
                 @click="editorRef?.isAtLineStart && !githubUploading && handleUploadToGitHub()"
               >
-                <Upload :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                <ImageUp :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
                 <span>图床</span>
               </button>
               <button
@@ -1131,7 +1131,7 @@ onBeforeUnmount(() => {
                 title="插入组件"
                 @click="editorRef?.isAtLineStart && (componentDialogVisible = true)"
               >
-                <Plus :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                <Puzzle :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
                 <span>组件</span>
               </button>
               <button
@@ -1184,7 +1184,7 @@ onBeforeUnmount(() => {
             title="保存草稿"
             @click="handleOpenSaveDraft"
           >
-            <FilePlus :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+            <SquareBottomDashedScissors :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
           </button>
           <button
             class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent
