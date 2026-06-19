@@ -691,6 +691,67 @@ function onExampleAction(action: string) {
   else if (action === 'aiDemo') openAiDemo()
 }
 
+// ── 导入 ──
+async function onImportClick() {
+  // 判断是否 Tauri 环境
+  const isTauri = import.meta.env.VITE_TAURI === 'true'
+
+  if (isTauri) {
+    // 桌面端：Tauri 原生对话框
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog')
+      const filePath = await open({
+        multiple: false,
+        filters: [{ name: '文档', extensions: ['md', 'txt', 'docx'] }]
+      })
+      if (!filePath) return
+
+      const fp = Array.isArray(filePath) ? filePath[0] : filePath
+      if (fp.endsWith('.docx')) {
+        const { readFile } = await import('@tauri-apps/plugin-fs')
+        const buffer = await readFile(fp)
+        const mammoth = await import('mammoth')
+        const result = await mammoth.extractRawText({ arrayBuffer: buffer.buffer })
+        markdown.value = result.value
+      } else {
+        const { readTextFile } = await import('@tauri-apps/plugin-fs')
+        markdown.value = await readTextFile(fp)
+      }
+      localStorage.setItem(STORAGE_KEY, markdown.value)
+      showToast('导入成功')
+    } catch (e: any) {
+      showToast(e?.toString() || '导入失败')
+      console.error('导入失败:', e)
+    }
+    return
+  }
+
+  // Web 端：浏览器文件选择
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.md,.txt,.docx'
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0]
+    if (!file) return
+    try {
+      if (file.name.endsWith('.docx')) {
+        const buf = await file.arrayBuffer()
+        const mammoth = await import('mammoth')
+        const result = await mammoth.extractRawText({ arrayBuffer: buf })
+        markdown.value = result.value
+      } else {
+        markdown.value = await file.text()
+      }
+      localStorage.setItem(STORAGE_KEY, markdown.value)
+      showToast('导入成功')
+    } catch (e: any) {
+      showToast(e?.toString() || '导入失败')
+      console.error('导入失败:', e)
+    }
+  })
+  input.click()
+}
+
 // ── 外链：Tauri 中用系统浏览器打开，Web 中用 window.open ──
 const AI_DEMO_URL = 'https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4'
 
@@ -1085,6 +1146,7 @@ onBeforeUnmount(() => {
           @open-components="$router.push('/components')"
           @open-drafts="draftListVisible = true"
           @example-action="onExampleAction"
+          @open-import="onImportClick"
         />
       </div>
       <!-- Editor Panel -->
@@ -1169,30 +1231,33 @@ onBeforeUnmount(() => {
               </span>
             </span>
           </span>
-          <span class="flex items-center gap-1">
+          <span class="flex flex-col lg:flex-row lg:items-center gap-1">
           <button
             v-if="isTauri && !autoSaveEnabled"
-            class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn cursor-pointer"
+            class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium cursor-pointer whitespace-nowrap"
             title="暂存"
             @click="saveContent(markdown, true)"
           >
             <Save :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+            <span>暂存</span>
           </button>
           <button
-            class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent
-                   transition-all duration-150 panel-action-btn cursor-pointer"
+            class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent
+                   transition-all duration-150 panel-action-btn text-[11px] font-medium cursor-pointer whitespace-nowrap"
             title="保存草稿"
             @click="handleOpenSaveDraft"
           >
             <SquareBottomDashedScissors :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+            <span>草稿</span>
           </button>
           <button
-            class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent
-                   transition-all duration-150 panel-action-btn cursor-pointer"
-            title="定稿"
+            class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent
+                   transition-all duration-150 panel-action-btn text-[11px] font-medium cursor-pointer whitespace-nowrap"
+            title="定稿导出"
             @click="handleOpenFinalize"
           >
             <CheckCircle :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+            <span>定稿</span>
           </button>
           </span>
         </div>

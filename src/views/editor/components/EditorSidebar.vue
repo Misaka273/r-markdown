@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { getSetting, setSetting } from '@/config/settings'
 import {
-  Component, Paperclip, FilePlus, Download, Bot,
+  Component, Paperclip, FilePlus, Download, Bot, Import,
   Sun, Moon, Monitor, Bolt, ChevronDown, ChevronUp, SquareBottomDashedScissors
 } from 'lucide-vue-next'
 
@@ -19,6 +19,7 @@ const emit = defineEmits<{
   (e: 'openComponents'): void
   (e: 'openDrafts'): void
   (e: 'exampleAction', action: 'load' | 'download' | 'aiDemo'): void
+  (e: 'openImport'): void
 }>()
 
 const showExamples = ref(false)
@@ -98,6 +99,15 @@ function toggleCollapse() {
           class="min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-semibold text-white"
           :style="{ background: 'var(--accent)' }"
         >{{ draftCount > 99 ? '99+' : draftCount }}</span>
+      </button>
+      <!-- 导入 button -->
+      <button
+        class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
+        title="导入文件"
+        @click="emit('openImport')"
+      >
+        <Import :size="24" class="shrink-0" />
+        <span class="text-[10px] leading-tight">导入</span>
       </button>
       <!-- 扩展组件 button -->
       <button

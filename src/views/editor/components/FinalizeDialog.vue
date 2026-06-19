@@ -45,7 +45,7 @@ function handleFinalize() {
 <template>
   <BaseDialog
     :visible="visible"
-    title="定稿"
+    title="定稿导出"
     :show-footer="true"
     confirm-text="保存"
     :confirm-disabled="!fileName.trim()"
