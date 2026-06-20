@@ -109,6 +109,14 @@ export const PTitle = {
       options: ['', 'num', 'line'],
       description: '隐藏指定元素：num（隐藏序号）/ line（隐藏章节线及横线），留空则全部显示',
     },
+    {
+      key: 'num-style',
+      label: '序号样式（level≠1）',
+      required: false,
+      default: '',
+      options: ['', 'circle', 'square'],
+      description: '序号背景样式（仅 level=2/3/4 生效）：circle=圆形背景 / square=圆角矩形背景',
+    },
   ],
   example: `<p-title num="01" title="段落标题组件" subtitle="PARAGRAPH TITLE · 分段标题" level="1"></p-title>`,
 
@@ -127,6 +135,7 @@ export const PTitle = {
     const hasPrefix = prefix !== ''
     const hasSuffix = suffix !== ''
     const hide = attrs.hide || ''
+    const numStyle = attrs['num-style'] || ''
 
     // ── Level 1: 完整章节标题（CHAPTER + 大号装饰数字 + 标题 + 副标题）──
     if (level === 1) {
@@ -200,10 +209,16 @@ export const PTitle = {
     if (level === 2) {
       const titleText = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
       if (hasNum) {
+        const numBlock2 =
+          numStyle === 'circle'
+            ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:${accent}"><span style="font-size:14px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+            : numStyle === 'square'
+              ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;background:${accent}"><span style="font-size:14px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+              : `<section style="float:left;white-space:nowrap;font-size:24px;font-weight:900;color:${numColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${num}</span></section>`
         return `
 <section style="margin:32px 0px 20px;overflow:hidden">
-    <section style="float:left;white-space:nowrap;font-size:24px;font-weight:900;color:${numColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${num}</span></section>
-    <section style="margin-left:32px;font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></section>
+    ${numBlock2}
+    <section style="margin-left:${numStyle ? '36px' : '32px'};font-size:24px;font-weight:800;color:${titleColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${titleText}</span></section>
 </section>`
       }
       return `
@@ -216,10 +231,16 @@ export const PTitle = {
     if (level === 3) {
       const titleText3 = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
       if (hasNum) {
+        const numBlock3 =
+          numStyle === 'circle'
+            ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${accent}"><span style="font-size:12px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+            : numStyle === 'square'
+              ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:4px;background:${accent}"><span style="font-size:12px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+              : `<section style="float:left;white-space:nowrap;font-size:20px;font-weight:900;color:${numColor};line-height:1.45"><span leaf="">${num}</span></section>`
         return `
 <section style="margin:28px 0px 16px;overflow:hidden">
-    <section style="float:left;white-space:nowrap;font-size:20px;font-weight:900;color:${numColor};line-height:1.45"><span leaf="">${num}</span></section>
-    <section style="margin-left:28px;font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></section>
+    ${numBlock3}
+    <section style="margin-left:${numStyle ? '32px' : '28px'};font-size:20px;font-weight:700;color:${titleColor};line-height:1.45"><span leaf="">${titleText3}</span></section>
 </section>`
       }
       return `
@@ -231,10 +252,16 @@ export const PTitle = {
     // ── Level 4: 四级标题（####）──
     const titleText4 = `${hasPrefix ? prefix + ' ' : ''}${leaf(title)}${hasSuffix ? ' ' + suffix : ''}`
     if (hasNum) {
+      const numBlock4 =
+        numStyle === 'circle'
+          ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${accent}"><span style="font-size:11px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+          : numStyle === 'square'
+            ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;background:${accent}"><span style="font-size:11px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+            : `<section style="float:left;white-space:nowrap;font-size:16px;font-weight:900;color:${numColor};line-height:1.5"><span leaf="">${num}</span></section>`
       return `
 <section style="margin:24px 0px 12px;overflow:hidden">
-    <section style="float:left;white-space:nowrap;font-size:16px;font-weight:900;color:${numColor};line-height:1.5"><span leaf="">${num}</span></section>
-    <section style="margin-left:24px;font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></section>
+    ${numBlock4}
+    <section style="margin-left:${numStyle ? '28px' : '24px'};font-size:16px;font-weight:700;color:${titleColor};line-height:1.5"><span leaf="">${titleText4}</span></section>
 </section>`
     }
     return `
