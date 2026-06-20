@@ -1,56 +1,6 @@
 import type { ThemeColors } from '@/composables/useTheme'
 import hljs from 'highlight.js/lib/common'
 import { leaf, esc, parseAttrs } from './helpers'
-
-// 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
-// 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
-const HL_COLORS: Record<string, string> = {
-  keyword: '#c678dd',
-  built_in: '#56b6c2',
-  type: '#e5c07b',
-  literal: '#56b6c2',
-  number: '#d19a66',
-  string: '#98c379',
-  regexp: '#98c379',
-  comment: '#7f848e',
-  doctag: '#7f848e',
-  meta: '#7f848e',
-  title: '#61afef',
-  attr: '#d19a66',
-  attribute: '#d19a66',
-  variable: '#e06c75',
-  tag: '#e06c75',
-  name: '#e06c75',
-  params: '#abb2bf',
-  property: '#e06c75',
-  operator: '#56b6c2',
-  symbol: '#56b6c2',
-  selector: '#e06c75',
-  bullet: '#61afef',
-  link: '#98c379',
-  quote: '#98c379',
-  addition: '#98c379',
-  deletion: '#e06c75',
-  section: '#61afef',
-  function: '#61afef',
-}
-
-// 单行高亮：highlight.js 出 class 标记，再把 class 换成内联 color（自包含，不依赖外部样式表）。
-function highlightLine(rest: string, lang: string): string {
-  let out: string
-  try {
-    out =
-      lang && hljs.getLanguage(lang)
-        ? hljs.highlight(rest, { language: lang }).value
-        : hljs.highlightAuto(rest).value
-  } catch {
-    out = esc(rest)
-  }
-  return out.replace(/class="hljs-([a-z_]+)[^"]*"/g, (_m, c: string) =>
-    HL_COLORS[c] ? `style="color:${HL_COLORS[c]}"` : '',
-  )
-}
-
 import { inlineFormat } from './inlineFormat'
 import { renderMath, preloadMathJax } from './mathRenderer'
 import {
@@ -75,6 +25,55 @@ import { Engage_DA02 } from '@/editor-components/Engage_DA02'
 import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
 import { Slider_DA01 } from '@/editor-components/Slider_DA01'
 import { Img_DA01 } from '@/editor-components/Img_DA01'
+
+// 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
+// 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
+const HL_COLORS: Record<string, string> = {
+    keyword: '#c678dd',
+    built_in: '#56b6c2',
+    type: '#e5c07b',
+    literal: '#56b6c2',
+    number: '#d19a66',
+    string: '#98c379',
+    regexp: '#98c379',
+    comment: '#7f848e',
+    doctag: '#7f848e',
+    meta: '#7f848e',
+    title: '#61afef',
+    attr: '#d19a66',
+    attribute: '#d19a66',
+    variable: '#e06c75',
+    tag: '#e06c75',
+    name: '#e06c75',
+    params: '#abb2bf',
+    property: '#e06c75',
+    operator: '#56b6c2',
+    symbol: '#56b6c2',
+    selector: '#e06c75',
+    bullet: '#61afef',
+    link: '#98c379',
+    quote: '#98c379',
+    addition: '#98c379',
+    deletion: '#e06c75',
+    section: '#61afef',
+    function: '#61afef',
+}
+
+// 单行高亮：highlight.js 出 class 标记，再把 class 换成内联 color（自包含，不依赖外部样式表）。
+function highlightLine(rest: string, lang: string): string {
+    let out: string
+    try {
+        out =
+            lang && hljs.getLanguage(lang)
+                ? hljs.highlight(rest, { language: lang }).value
+                : hljs.highlightAuto(rest).value
+    } catch {
+        out = esc(rest)
+    }
+    return out.replace(/class="hljs-([a-z_]+)[^"]*"/g, (_m, c: string) =>
+        HL_COLORS[c] ? `style="color:${HL_COLORS[c]}"` : '',
+    )
+}
 
 /**
  * 收集 md 中所有公式（去重），按 inline/block 分类返回，用于预渲染。

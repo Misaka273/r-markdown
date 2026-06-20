@@ -211,10 +211,10 @@ export const PTitle = {
       if (hasNum) {
         const numBlock2 =
           numStyle === 'circle'
-            ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:${accent}"><span style="font-size:14px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+            ? `<section style="float:left;margin-top:3px"><section style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:${accent}"><span style="font-size:14px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
             : numStyle === 'square'
-              ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;background:${accent}"><span style="font-size:14px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
-              : `<section style="float:left;white-space:nowrap;font-size:24px;font-weight:900;color:${numColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${num}</span></section>`
+              ? `<section style="float:left;margin-top:3px"><section style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;background:${accent}"><span style="font-size:14px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+              : `<section style="float:left;margin-top:3px;white-space:nowrap;font-size:24px;font-weight:900;color:${numColor};line-height:1.4;letter-spacing:-0.3px"><span leaf="">${num}</span></section>`
         return `
 <section style="margin:32px 0px 20px;overflow:hidden">
     ${numBlock2}
@@ -254,10 +254,10 @@ export const PTitle = {
     if (hasNum) {
       const numBlock4 =
         numStyle === 'circle'
-          ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${accent}"><span style="font-size:11px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+          ? `<section style="float:left;margin-top:-3px"><section style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${accent}"><span style="font-size:11px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
           : numStyle === 'square'
-            ? `<section style="float:left"><section style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;background:${accent}"><span style="font-size:11px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
-            : `<section style="float:left;white-space:nowrap;font-size:16px;font-weight:900;color:${numColor};line-height:1.5"><span leaf="">${num}</span></section>`
+            ? `<section style="float:left;margin-top:-3px"><section style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;background:${accent}"><span style="font-size:11px;font-weight:900;color:#fff;line-height:1" leaf="">${num}</span></section></section>`
+            : `<section style="float:left;margin-top:-3px;white-space:nowrap;font-size:16px;font-weight:900;color:${numColor};line-height:1.5"><span leaf="">${num}</span></section>`
       return `
 <section style="margin:24px 0px 12px;overflow:hidden">
     ${numBlock4}
