@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { SquarePen, Home } from 'lucide-vue-next'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -59,11 +60,11 @@ const isTauri = import.meta.env.VITE_TAURI === 'true'
 
 const showcaseNavItems = computed(() => {
   const items = [
-    { key: 'editor', label: '编辑器', to: '/editor', iconPath: 'M17 3l4 4L7 21H3v-4L17 3z' },
+    { key: 'editor', label: '编辑器', to: '/editor', icon: SquarePen },
   ]
   // Web 端首页和编辑器是不同页面，Tauri 客户端首页即编辑器，去除重复项
   if (!isTauri) {
-    items.unshift({ key: 'home', label: '首页', to: '/', iconPath: 'M12 3L3 12h3v8h12v-8h3L12 3z' })
+    items.unshift({ key: 'home', label: '首页', to: '/', icon: Home })
   }
   return items
 })
