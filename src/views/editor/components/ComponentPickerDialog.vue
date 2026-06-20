@@ -35,6 +35,7 @@ const componentCategoryMap: Record<string, string> = {
   CaseFlow_DA01: 'layout',
   Compare_DA01: 'layout', Compare_DA02: 'layout',
   Timeline_DA01: 'layout',
+  Chart_DA01: 'other',
   CTA_DA01: 'interactive',
   Engage_DA01: 'interactive', Engage_DA02: 'interactive',
   Slider_DA01: 'image', Img_DA01: 'image',

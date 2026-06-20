@@ -44,6 +44,7 @@ const componentCategoryMap: Record<string, string> = {
   Compare_DA01: 'layout',
   Compare_DA02: 'layout',
   Timeline_DA01: 'layout',
+  Chart_DA01: 'other',
   Badges_DA01: 'other',
   CTA_DA01: 'interactive',
   Engage_DA01: 'interactive',
