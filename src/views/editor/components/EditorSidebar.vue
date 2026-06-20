@@ -89,7 +89,7 @@ function toggleCollapse() {
       <!-- 草稿列表 button -->
       <button
         class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
-        title="草稿列表"
+        title="草稿箱"
         @click="emit('openDrafts')"
       >
         <SquareBottomDashedScissors :size="24" class="shrink-0" />
@@ -112,7 +112,7 @@ function toggleCollapse() {
       <!-- 扩展组件 button -->
       <button
         class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
-        title="扩展组件"
+        title="扩展组件API"
         @click="emit('openComponents')"
       >
         <Component :size="24" class="shrink-0" />
