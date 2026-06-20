@@ -1068,7 +1068,6 @@ onBeforeUnmount(() => {
           @select="setTheme"
           @custom-select="setCustomTheme"
         />
-        <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
       </div>
     </div>
 
@@ -1326,64 +1325,65 @@ onBeforeUnmount(() => {
       </div>
       </div>
     </div>
-
-    <XhsExporter
-      :visible="xhsVisible"
-      :markdown="resolvedMarkdown"
-      :colors="colors"
-      @close="xhsVisible = false"
-      @toast="showToast"
-    />
-    <ComponentPickerDialog
-      :visible="componentDialogVisible"
-      @close="componentDialogVisible = false"
-      @insert="(code: string) => editorRef?.insertAtCursor(code)"
-    />
-    <Toast :visible="toastVisible" :message="toastMessage" />
-    <ConfirmDialog
-      :visible="confirmLoadVisible"
-      title="加载示例"
-      message="加载示例将覆盖当前编辑内容，确定继续吗？"
-      confirm-text="加载"
-      @confirm="loadDemo"
-      @update:visible="confirmLoadVisible = $event"
-    />
-    <!-- 自动更新确认弹窗 -->
-    <ConfirmDialog
-      :visible="autoUpdateDialogVisible"
-      title="发现新版本"
-      :message="`版本 ${autoUpdateVersion} 可用，是否立即下载安装？`"
-      confirm-text="立即更新"
-      @confirm="doAutoUpdateDownload"
-      @update:visible="autoUpdateDialogVisible = $event"
-    />
-    <!-- 自动更新下载进度 -->
-    <div
-      v-if="autoUpdateDownloading"
-      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-xl bg-[#111] text-white text-sm shadow-lg"
-    >
-      <div class="flex items-center gap-2 mb-1.5">
-        <span>正在下载更新...</span>
-        <span class="font-medium text-[var(--accent)]">{{ autoUpdateProgress }}%</span>
-      </div>
-      <div class="h-1 w-48 rounded-full bg-[#444] overflow-hidden">
-        <div
-          class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
-          :style="{ width: autoUpdateProgress + '%' }"
-        />
-      </div>
-    </div>
-    <!-- 定稿后删除草稿确认弹窗 -->
-    <ConfirmDialog
-      :visible="finalizeDeleteConfirmVisible"
-      title="定稿完成"
-      message="定稿已保存，是否删除当前草稿？"
-      confirm-text="删除"
-      confirm-type="danger"
-      @confirm="handleDeleteAfterFinalize"
-      @update:visible="finalizeDeleteConfirmVisible = $event"
-    />
   </div>
+
+  <Toast :visible="toastVisible" :message="toastMessage" />
+  <XhsExporter
+    :visible="xhsVisible"
+    :markdown="resolvedMarkdown"
+    :colors="colors"
+    @close="xhsVisible = false"
+    @toast="showToast"
+  />
+  <ComponentPickerDialog
+    :visible="componentDialogVisible"
+    @close="componentDialogVisible = false"
+    @insert="(code: string) => editorRef?.insertAtCursor(code)"
+  />
+  <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
+  <ConfirmDialog
+    :visible="confirmLoadVisible"
+    title="加载示例"
+    message="加载示例将覆盖当前编辑内容，确定继续吗？"
+    confirm-text="加载"
+    @confirm="loadDemo"
+    @update:visible="confirmLoadVisible = $event"
+  />
+  <!-- 自动更新确认弹窗 -->
+  <ConfirmDialog
+    :visible="autoUpdateDialogVisible"
+    title="发现新版本"
+    :message="`版本 ${autoUpdateVersion} 可用，是否立即下载安装？`"
+    confirm-text="立即更新"
+    @confirm="doAutoUpdateDownload"
+    @update:visible="autoUpdateDialogVisible = $event"
+  />
+  <!-- 自动更新下载进度 -->
+  <div
+    v-if="autoUpdateDownloading"
+    class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-xl bg-[#111] text-white text-sm shadow-lg"
+  >
+    <div class="flex items-center gap-2 mb-1.5">
+      <span>正在下载更新...</span>
+      <span class="font-medium text-[var(--accent)]">{{ autoUpdateProgress }}%</span>
+    </div>
+    <div class="h-1 w-48 rounded-full bg-[#444] overflow-hidden">
+      <div
+        class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+        :style="{ width: autoUpdateProgress + '%' }"
+      />
+    </div>
+  </div>
+  <!-- 定稿后删除草稿确认弹窗 -->
+  <ConfirmDialog
+    :visible="finalizeDeleteConfirmVisible"
+    title="定稿完成"
+    message="定稿已保存，是否删除当前草稿？"
+    confirm-text="删除"
+    confirm-type="danger"
+    @confirm="handleDeleteAfterFinalize"
+    @update:visible="finalizeDeleteConfirmVisible = $event"
+  />
 
   <!-- 草稿列表弹窗 -->
   <DraftListDialog
