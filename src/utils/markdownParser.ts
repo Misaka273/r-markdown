@@ -560,9 +560,8 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     }
 
     // 代码块：用微信自带的 code-snippet 结构（外层 <section> + <pre class="…code-snippet_nowrap">
-    // + 每行一个 block <code> + <span leaf>）。微信识别这套 class 后会渲染成原生代码块：不换行、
-    // 可左右滑。行首缩进转 &nbsp;（微信会吞普通空格），行内空格保留（方便复制）。token 颜色由
-    // highlight.js 内联上去（自包含，预览和公众号都能显示高亮）。
+    // + 每行一个 block <code>）。微信 code-snippet 会合并 <code> 内所有 <span>，因此 highlight
+    // token 改用 <section> 标签（微信不合并 section），同时设 display:inline 保持同行排列。
     if (/^```/.test(line)) {
       const lang = line.replace(/^`+/, '').trim() || 'text'
       i++
@@ -577,10 +576,11 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         const lead = (ln.match(/^[ \t]*/) || [''])[0]
         const indent = lead.replace(/\t/g, '  ').replace(/ /g, '&nbsp;')
         const rest = ln.slice(lead.length)
-        const body = indent + (rest ? highlightLine(rest, lang) : '') || '&nbsp;'
-        codeInner += `<code style="display:block;background:none;color:inherit;font-family:inherit">${leaf(body)}</code>`
+        const hl = rest ? highlightLine(rest, lang).replace(/<\/span> <span/g, '</span>&nbsp;<span') : ''
+        const body = indent + hl || '&nbsp;'
+        codeInner += `<section leaf="" style="white-space:nowrap">${body}</section>`
       }
-      html += `<section class="code-snippet__js" style="margin:24px 0"><pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="${esc(lang)}" style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</pre></section>`
+      html += `<section data-lang="${esc(lang)}" style="white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:24px 0;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</section>`
       continue
     }
 
