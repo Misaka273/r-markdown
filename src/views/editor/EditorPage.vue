@@ -1021,11 +1021,11 @@ onBeforeUnmount(() => {
             <span class="opacity-50">v{{ pkg.version }}</span>
           </span>
           <span class="hidden sm:inline text-[11px] opacity-50 ml-1.5 shrink-0">{{ saveHint }}</span>
-          <CircleCheck v-if="saveMode" :size="14" fill="var(--accent)" color="#fff" class="hidden sm:inline shrink-0 ml-1" />
+          <CircleCheck v-if="saveMode" :size="14" color="var(--accent)" class="hidden sm:inline shrink-0 ml-1" />
           <span class="sm:hidden">R-Markdown</span>
         </router-link>
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
-        <CircleCheck v-if="saveMode" :size="14" fill="var(--accent)" color="#fff" class="sm:hidden shrink-0 ml-1" />
+        <CircleCheck v-if="saveMode" :size="14" color="var(--accent)" class="sm:hidden shrink-0 ml-1" />
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
