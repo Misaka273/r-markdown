@@ -17,7 +17,9 @@ import {
   Highlighter, Sparkles, Pill, TriangleAlert,
   Underline, Strikethrough, Bold, Italic,
   Code2, Superscript, Subscript, RemoveFormatting,
-  Save, SquareBottomDashedScissors, CheckCircle
+  Save, SquareBottomDashedScissors, CheckCircle,
+  Download, Copy, FileText, CircleCheck,
+  Smartphone, SquarePen, CircleQuestionMark
 } from 'lucide-vue-next'
 
 const formatIcons: Record<string, any> = {
@@ -669,13 +671,9 @@ function onInput(value: string) {
 }
 
 // ── 通用下拉菜单数据 ──
-const svgDownload = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'
-const svgImage = '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'
-const svgXhs = '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>'
-
 const exportItems = [
-  { label: '保存图片', svgInner: svgImage, action: 'saveImage' },
-  { label: '小红书图', svgInner: svgXhs, action: 'xhs' },
+  { label: '保存图片', icon: Image, action: 'saveImage' },
+  { label: '小红书图', icon: FileText, action: 'xhs' },
 ]
 
 function onDropdownSelect(groupId: string, action: string) {
@@ -1023,11 +1021,11 @@ onBeforeUnmount(() => {
             <span class="opacity-50">v{{ pkg.version }}</span>
           </span>
           <span class="hidden sm:inline text-[11px] opacity-50 ml-1.5 shrink-0">{{ saveHint }}</span>
-          <svg v-if="saveMode" class="hidden sm:inline shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <CircleCheck v-if="saveMode" :size="14" fill="var(--accent)" color="#fff" class="hidden sm:inline shrink-0 ml-1" />
           <span class="sm:hidden">R-Markdown</span>
         </router-link>
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
-        <svg v-if="saveMode" class="sm:hidden shrink-0 ml-1" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill="var(--accent)"/><path d="M3.5 6l1.7 1.7L8.5 4.5" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <CircleCheck v-if="saveMode" :size="14" fill="var(--accent)" color="#fff" class="sm:hidden shrink-0 ml-1" />
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
@@ -1035,19 +1033,13 @@ onBeforeUnmount(() => {
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handleCopyHTML"
         >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <polyline points="16 18 22 12 16 6" />
-            <polyline points="8 6 2 12 8 18" />
-          </svg>
+          <Braces :size="14" />
           复制 HTML
         </button>
         <Dropdown
           group-id="export"
           label="导出"
-          :svg-trigger-inner="svgDownload"
+          :icon-trigger="Download"
           :items="exportItems"
           @select="(action: string) => onDropdownSelect('export', action)"
         />
@@ -1055,13 +1047,7 @@ onBeforeUnmount(() => {
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
           @click="handleCopyRichText"
         >
-          <svg
-            class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <rect x="9" y="9" width="13" height="13" rx="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
+          <Copy :size="14" />
           复制富文本
         </button>
         <!-- 移动端：下拉菜单 -->
@@ -1106,13 +1092,7 @@ onBeforeUnmount(() => {
           :class="{ active: mobileTab === 'editor' }"
           @click="mobileTab = 'editor'"
         >
-          <svg
-            class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
+          <SquarePen :size="16" />
           编辑
         </button>
         <button
@@ -1120,13 +1100,7 @@ onBeforeUnmount(() => {
           :class="{ active: mobileTab === 'preview' }"
           @click="mobileTab = 'preview'"
         >
-          <svg
-            class="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-            viewBox="0 0 24 24"
-          >
-            <rect x="5" y="2" width="14" height="20" rx="2" />
-            <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2.5" />
-          </svg>
+          <Smartphone :size="16" />
           预览
         </button>
       </div>
@@ -1225,8 +1199,8 @@ onBeforeUnmount(() => {
             </span>
             <!-- 帮助提示 -->
             <span class="relative inline-flex items-center group">
-              <svg class="w-3.5 h-3.5 text-[#aaa] cursor-help hover:text-[var(--accent)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span class="absolute top-full right-0 mt-1.5 w-56 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
+              <CircleQuestionMark :size="14" />
+              <span class="absolute top-full right-0 mt-1.5 w-45 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
                 选中非标签内文字后可加样式<br>本地/图床/组件：仅空行可点击<br>解析：选中组件标签后可点击。
               </span>
             </span>

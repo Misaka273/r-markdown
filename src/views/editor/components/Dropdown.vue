@@ -4,7 +4,9 @@ import { useDropdownGroup } from '@/composables/useDropdownGroup'
 
 export interface DropdownItem {
   label: string
-  svgInner: string
+  svgInner?: string
+  /** lucide 组件，优先级高于 svgInner */
+  icon?: any
   href?: string
   action?: string
 }
@@ -12,7 +14,9 @@ export interface DropdownItem {
 const props = defineProps<{
   groupId: string
   label: string
-  svgTriggerInner: string
+  svgTriggerInner?: string
+  /** lucide 组件，优先级高于 svgTriggerInner */
+  iconTrigger?: any
   items: DropdownItem[]
 }>()
 
@@ -55,7 +59,13 @@ onBeforeUnmount(() => {
       class="dd-trigger inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
       @click.stop="toggle"
     >
+      <component
+        v-if="iconTrigger"
+        :is="iconTrigger"
+        :size="14"
+      />
       <svg
+        v-else
         class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
         viewBox="0 0 24 24"
         v-html="svgTriggerInner"
@@ -82,7 +92,13 @@ onBeforeUnmount(() => {
           :class="[optionClass, 'dd-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 no-underline transition-colors duration-150 hover:bg-black/5']"
           @click="groupToggle(false)"
         >
+          <component
+            v-if="item.icon"
+            :is="item.icon"
+            :size="14"
+          />
           <svg
+            v-else
             class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
             viewBox="0 0 24 24"
             v-html="item.svgInner"
@@ -94,7 +110,13 @@ onBeforeUnmount(() => {
           :class="[optionClass, 'dd-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5']"
           @click="onItemClick(item)"
         >
+          <component
+            v-if="item.icon"
+            :is="item.icon"
+            :size="14"
+          />
           <svg
+            v-else
             class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
             viewBox="0 0 24 24"
             v-html="item.svgInner"
