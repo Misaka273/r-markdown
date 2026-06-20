@@ -25,6 +25,7 @@ import { Engage_DA02 } from '@/editor-components/Engage_DA02'
 import { Timeline_DA01 } from '@/editor-components/Timeline_DA01'
 import { Slider_DA01 } from '@/editor-components/Slider_DA01'
 import { Img_DA01 } from '@/editor-components/Img_DA01'
+import { Chart_DA01 } from '@/editor-components/Chart_DA01'
 
 // 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
 // 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
@@ -666,6 +667,14 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       } else {
         html += `<img src="${esc(src)}" alt="${esc(alt)}" style="max-width:100%;border-radius:6px;margin:24px 0px;display:block">`
       }
+      i++
+      continue
+    }
+
+    // <chart>
+    if (/^<chart\b/.test(line.trim())) {
+      const attrs = parseAttrs(line.trim())
+      html += Chart_DA01.render(attrs, '', t)
       i++
       continue
     }
