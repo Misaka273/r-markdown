@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useDropdownGroup } from '@/composables/useDropdownGroup'
-import { Sun } from 'lucide-vue-next'
+import { Palette } from 'lucide-vue-next'
 
 const props = defineProps<{
   themes: { accent: string; dark: string }[]
@@ -53,7 +53,7 @@ function onCustomInput(e: Event) {
       :style="{ background: currentAccent, color: '#fff' }"
       @click="toggle"
     >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette-icon lucide-palette"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+     <Palette :size="24" />
     </button>
     <div
       class="theme-picker absolute top-full right-0 mt-2 p-3 rounded-xl z-10 w-50"
@@ -83,7 +83,7 @@ function onCustomInput(e: Event) {
             class="flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-[12px] font-medium transition-all duration-150 hover:bg-[var(--accent-light)]"
             :style="{ color: 'var(--accent)' }"
           >
-            <Sun :size="14" />
+            <Palette :size="14" />
             自定义颜色
             <input type="color" :value="customColor" class="sr-only" @input="onCustomInput" />
           </label>
