@@ -82,7 +82,7 @@ function saveBase64Store() {
 }
 
 function compactBase64(dataUrl: string): string {
-  const m = dataUrl.match(/^(data:image\/\w+);base64,(.+)$/)
+  const m = dataUrl.match(/^(data:image\/[\w+]+);base64,(.+)$/)
   if (!m) return dataUrl
   const [, prefix, b64] = m
   if (b64.length <= 100) return dataUrl
