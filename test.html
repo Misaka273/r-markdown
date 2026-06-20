@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:rgb(17,24,39);line-height:1.4">草稿保存功能设计方案
+    v3</h1>
+<section
+        style="margin:14px 0px;padding:12px 16px;background:rgb(247,248,252);border-left:3px solid #27ae60;border-radius:0px 6px 6px 0px;color:rgb(85,85,85);font-size:14px">
+    <section><p style="margin:4px 0px">2026-06-19 修订：区分暂存/草稿/定稿三种操作，草稿列表以弹窗承载</p></section>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="typescript"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf=""><span
+            style="color:#c678dd">export</span> <span style="color:#c678dd">function</span> <span style="color:#61afef">resolveColor</span>(<span
+            style="color:#abb2bf"><span style="color:#d19a66">color</span>: <span
+            style="color:#56b6c2">string</span></span>): <span style="color:#56b6c2">string</span> {</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#c678dd">if</span> (!color) <span style="color:#c678dd">return</span> color</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#7f848e">// 已经是 hex</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#c678dd">if</span> (color.<span style="color:#61afef">startsWith</span>(<span
+            style="color:#98c379">'#'</span>)) <span style="color:#c678dd">return</span> color</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#7f848e">// rgb/rgba → hex</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#c678dd">const</span> rgbMatch = color.<span style="color:#61afef">match</span>(<span
+            style="color:#98c379">/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/</span>)</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#c678dd">if</span> (rgbMatch) {</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#c678dd">const</span> r = <span style="color:#56b6c2">parseInt</span>(rgbMatch[<span
+            style="color:#d19a66">1</span>]).<span style="color:#61afef">toString</span>(<span
+            style="color:#d19a66">16</span>).<span style="color:#61afef">padStart</span>(<span
+            style="color:#d19a66">2</span>, <span style="color:#98c379">'0'</span>)</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#c678dd">const</span> g = <span style="color:#56b6c2">parseInt</span>(rgbMatch[<span
+            style="color:#d19a66">2</span>]).<span style="color:#61afef">toString</span>(<span
+            style="color:#d19a66">16</span>).<span style="color:#61afef">padStart</span>(<span
+            style="color:#d19a66">2</span>, <span style="color:#98c379">'0'</span>)</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#c678dd">const</span> b = <span style="color:#56b6c2">parseInt</span>(rgbMatch[<span
+            style="color:#d19a66">3</span>]).<span style="color:#61afef">toString</span>(<span
+            style="color:#d19a66">16</span>).<span style="color:#61afef">padStart</span>(<span
+            style="color:#d19a66">2</span>, <span style="color:#98c379">'0'</span>)</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#c678dd">return</span> <span style="color:#98c379">`#<span>${r}</span><span>${g}</span><span>${b}</span>`</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;}</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#7f848e">// 颜色名 → hex</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#c678dd">return</span> <span style="color:#e06c75">NAMED_COLORS</span>[color.<span
+            style="color:#61afef">toLowerCase</span>()] || color</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">}</span></code></pre>
+</section>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="html"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf=""><span
+            style="color:#e06c75">&lt;<span style="color:#e06c75">div</span> <span
+            style="color:#d19a66">class</span>=<span
+            style="color:#98c379">"flex flex-col gap-4"</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;<span style="color:#e06c75">div</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;<span style="color:#e06c75">label</span> <span style="color:#d19a66">class</span>=<span
+            style="color:#98c379">"block text-[12px] font-medium text-[var(--text-secondary)] mb-1.5"</span>&gt;</span>文章标题<span
+            style="color:#e06c75">&lt;/<span style="color:#e06c75">label</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;<span style="color:#e06c75">input</span> <span
+            style="color:#d19a66">v-model</span>=<span style="color:#98c379">"fileName"</span> <span
+            style="color:#d19a66">type</span>=<span style="color:#98c379">"text"</span> <span style="color:#d19a66">placeholder</span>=<span
+            style="color:#98c379">"请输入文章标题"</span> <span style="color:#d19a66">class</span>=<span
+            style="color:#98c379">"finalize-input w-full h-9 px-3 rounded-[5px] border bg-[var(--bg-primary)] text-[13px] text-[var(--text-primary)] outline-none"</span> @<span
+            style="color:#d19a66">keyup.enter</span>=<span
+            style="color:#98c379">"handleFinalize"</span> /&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;<span style="color:#e06c75">p</span> <span style="color:#d19a66">v-if</span>=<span
+            style="color:#98c379">"errorMsg"</span> <span style="color:#d19a66">class</span>=<span
+            style="color:#98c379">"text-[var(--danger)] text-[11px] mt-1"</span>&gt;</span>{{ errorMsg }}<span
+            style="color:#e06c75">&lt;/<span style="color:#e06c75">p</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;<span style="color:#e06c75">p</span> <span
+            style="color:#d19a66">v-else</span> <span style="color:#d19a66">class</span>=<span style="color:#98c379">"text-[var(--text-tertiary,#aaa)] text-[11px] mt-1"</span>&gt;</span>将导出为 Markdown 文件到本地<span
+            style="color:#e06c75">&lt;/<span style="color:#e06c75">p</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;/<span style="color:#e06c75">div</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;<span style="color:#e06c75">div</span> <span
+            style="color:#d19a66">class</span>=<span style="color:#98c379">"py-1 rounded-[5px] bg-[var(--bg-hover)] text-[12px] text-[var(--text-secondary)]"</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文件名预览：{{
+            preview
+        }}</span></code><code style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;/<span style="color:#e06c75">div</span>&gt;</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;&nbsp;&nbsp;<span
+            style="color:#e06c75">&lt;/<span style="color:#e06c75">div</span>&gt;</span></span></code></pre>
+</section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">1.
+    三个操作的概念区分</h2>
+<section
+        style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)">
+    <section style="padding:28px 20px;background:rgba(255,255,255,0.92)">
+        <section class="tableWrapper" style="width:100%">
+            <table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%">
+                <thead>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        操作
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        按钮位置
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        行为
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        存储位置
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <strong><span leaf="">暂存</span></strong></td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        toolbar 最右侧（已有）
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        临时保存当前编辑内容，防崩溃
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        当前临时状态（不变）
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <strong><span leaf="">保存草稿</span></strong></td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        toolbar 最右侧（新增）
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        写入草稿存储，可多份草稿
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        IndexedDB / <code
+                            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">~/Documents/R-Markdown/drafts/</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <strong><span leaf="">定稿</span></strong></td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        toolbar 最右侧（新增）
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        导出 .md 文件到磁盘指定目录，可选删除草稿
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        用户指定的磁盘目录
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </section>
+</section>
+<section style="margin:0px 0px 24px"><p
+        style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">
+    <strong><span leaf="">草稿列表入口</span></strong>：左侧窄侧边栏，仅放置一个草稿列表按钮，点击弹出 DraftListDialog。</p>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">2. UI 布局</h2>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="text"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">┌─────────────────────────────────────────────────────────────────┐</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  公众号    手动保存于 06-19 01:45  ✓                             │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">├────┬────────────────────────────────────────────────────────────┤</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│ 📋 │  editor toolbar                                             │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│    │  (加粗/斜体/图片/组件...)          [💾] [📄] [📌]          │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│    │                                  暂存  草稿  定稿           │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">├────┤                                                            │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│    │                     编辑区域                                │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│    │                                                            │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│    │                                                            │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│    │                                                            │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">└────┴────────────────────────────────────────────────────────────┘</span></code></pre>
+</section>
+<section style="margin:24px 0px;padding-left:24px">
+    <section style="margin:5px 0px">左侧窄条（约 48px）：仅一个「草稿列表」图标按钮（<code
+            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">Files</code>
+        图标），点击弹出弹窗
+    </section>
+    <section style="margin:5px 0px">草稿数量 &gt; 0 时按钮右上角显示数字角标</section>
+    <section style="margin:5px 0px">工具栏右侧：暂存 / 保存草稿 / 定稿 三个图标按钮</section>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">3. 草稿列表弹窗</h2>
+<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">3.1 触发</h3>
+<section style="margin:0px 0px 24px"><p
+        style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">
+    点击左侧栏「草稿列表」按钮 → 弹出 DraftListDialog（复用 BaseDialog）</p></section>
+<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">3.2 弹窗布局</h3>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="text"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">┌──────────────────────────────────┐</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  草稿列表 (3)              [关闭]│</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">├──────────────────────────────────┤</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  ┌────────────────────────────┐  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │ ● 功能全集：排版组件指南   │  │  ← 当前关联有圆点</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │   06-19 01:30              │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │                    [删除]  │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  └────────────────────────────┘  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  ┌────────────────────────────┐  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │   新版发布说明              │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │   06-18 22:15              │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │                    [删除]  │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  └────────────────────────────┘  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  ┌────────────────────────────┐  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │   产品发布会邀请函          │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │   06-15 18:00              │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  │                    [删除]  │  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">│  └────────────────────────────┘  │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">└──────────────────────────────────┘</span></code></pre>
+</section>
+<section style="margin:24px 0px;padding-left:24px">
+    <section style="margin:5px 0px">每个草稿卡片：标题 + 日期 + 删除按钮</section>
+    <section style="margin:5px 0px">卡片 hover 边框 <code
+            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">var(--accent)</code>，点击加载草稿
+    </section>
+    <section style="margin:5px 0px">当前编辑器关联的草稿前有圆点标记</section>
+    <section style="margin:5px 0px">空列表显示「暂无草稿」</section>
+    <section style="margin:5px 0px">加载草稿后自动关闭弹窗</section>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">4. 交互流程</h2>
+<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">4.1
+    标题提取策略（用于预填弹窗，用户可编辑）</h3>
+<section style="margin:0px 0px 24px"><p
+        style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">
+    提取优先级（命中即止），提取到则预填到弹窗，未提取到则字段为空需手动输入：</p></section>
+<section
+        style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)">
+    <section style="padding:28px 20px;background:rgba(255,255,255,0.92)">
+        <section class="tableWrapper" style="width:100%">
+            <table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%">
+                <thead>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        优先级
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        来源
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        正则
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        1
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">&lt;title&gt;</code>
+                        组件 body
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">/^&lt;title\b[^&gt;]*&gt;([\s\S]*?)&lt;\/title&gt;/m</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        2
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        Front-matter <code
+                            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">title</code>
+                        字段
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        `/^---\s<em><span leaf="">\n(?:[\s\S]</span></em>?\n)?title:\s*(.+?)(?:\n\
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        $)/m`
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        3
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        Markdown <code
+                            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">#</code>
+                        一级标题
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">/^#\s+(.+)/m</code>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </section>
+</section>
+<section style="margin:0px 0px 24px"><p
+        style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">
+    不提取 <code
+        style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">&lt;p-title&gt;</code>
+    段落标题（仅为文内小节标题，不作为文章主标题）。</p></section>
+<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">4.2 保存草稿</h3>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="text"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">点击「保存草稿」按钮</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">弹出「保存草稿」BaseDialog</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;┌──────────────────────────────┐</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  保存草稿                     │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│                              │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  草稿标题：                   │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  ┌──────────────────────────┐ │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  │ 功能全集：排版组件指南    │ │  ← 可编辑，已提取的标题预填</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  └──────────────────────────┘ │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│                              │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│            [取消]    [保存]   │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;└──────────────────────────────┘</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓ 点击「保存」</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">标题为空？</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;├─ 是 → 弹窗内部红色提示「请输入标题」，不关闭弹窗</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;└─ 否 → 继续</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">如果当前编辑器已关联草稿 ID → 覆盖更新该草稿（保持原 ID）</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">如果新文章 → 新建草稿记录，写入 DraftStorage</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">关闭弹窗</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">左侧栏草稿角标刷新</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">Toast「草稿已保存」</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">编辑器关联该草稿 ID</span></code></pre>
+</section>
+<section style="margin:0px 0px 24px"><p
+        style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">
+    <strong><span leaf="">关键约束</span></strong>：</p></section>
+<section style="margin:24px 0px;padding-left:24px">
+    <section style="margin:5px 0px">标题必填，为空时无法保存，按钮置灰或点击后红字提示</section>
+    <section style="margin:5px 0px">如果当前编辑器和已有草稿内容完全相同 → Toast「内容无变化，无需重复保存」，不写入
+    </section>
+</section>
+<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">4.2 加载草稿</h3>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="text"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">点击侧边栏草稿项</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">当前编辑器有未保存内容？</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;├─ 是 → BaseDialog 确认弹窗</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│        「当前内容尚未保存，是否保存后再打开？」</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│        [保存并打开] [不保存直接打开] [取消]</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;└─ 否 → 直接加载</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">编辑器关联该草稿 ID</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">侧边栏圆点标记移到新草稿</span></code></pre>
+</section>
+<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">4.3 定稿</h3>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="text"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">点击「定稿」按钮</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">弹出「定稿」BaseDialog</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;┌──────────────────────────────┐</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  定稿                         │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│                              │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  文章标题：                   │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  ┌──────────────────────────┐ │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  │ 功能全集：排版组件指南    │ │  ← 可修改</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  └──────────────────────────┘ │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│                              │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  保存位置：                   │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  ┌──────────────────────────┐ │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  │ ~/Documents/公众号文章/   │ │  ← 路径选择器</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  │                    [浏览]│ │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  └──────────────────────────┘ │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│                              │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│  文件名：功能全集：排版组件指南.md │ ← 只读预览</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│                              │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│            [取消]    [保存]   │</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;└──────────────────────────────┘</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓ 点击「保存」</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">检查目标路径是否已存在同名文件？</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;├─ 是 → 弹出覆盖确认弹窗</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│   「{文件名}.md 已存在，是否覆盖？」</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│   [取消] [覆盖]</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│   ├─ 取消 → 回到定稿弹窗</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;│   └─ 覆盖 → 继续写入</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;└─ 否 → 继续写入</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">将 markdown 内容写入 `{路径}/{标题}.md`</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">写入成功 → Toast「已保存到 {路径}」</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">弹出确认弹窗：</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;「定稿已保存，是否删除该草稿？」</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;[是，删除草稿] [保留草稿]</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span
+            leaf="">&nbsp;&nbsp;↓</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;├─ 删除 → 从 DraftStorage 删除 + 侧边栏移除 + 取消编辑器草稿关联</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;└─ 保留 → 不做额外操作</span></code></pre>
+</section>
+<section style="margin:0px 0px 24px"><p
+        style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">
+    <strong><span leaf="">标题处理</span></strong>：</p></section>
+<section style="margin:24px 0px;padding-left:24px">
+    <section style="margin:5px 0px">默认按标题提取策略（4.1）提取</section>
+    <section style="margin:5px 0px">用户可手动修改</section>
+    <section style="margin:5px 0px">自动去除文件名非法字符（<code
+            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">/</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">\</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">:</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">*</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">?</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">"</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">&lt;</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">&gt;</code>
+        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">|</code>）
+    </section>
+</section>
+<section style="margin:0px 0px 24px"><p
+        style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word">
+    <strong><span leaf="">路径选择</span></strong>：</p></section>
+<section style="margin:24px 0px;padding-left:24px">
+    <section style="margin:5px 0px">桌面端（Tauri）：使用 Tauri 原生目录选择对话框</section>
+    <section style="margin:5px 0px">Web 端：浏览器不支持选择目录，降级为普通下载（浏览器默认下载路径）</section>
+    <section style="margin:5px 0px">记忆上次选择的目录</section>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">5. 数据模型</h2>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="typescript"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf=""><span
+            style="color:#c678dd">interface</span> <span style="color:#61afef">Draft</span> {</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#d19a66">id</span>: <span style="color:#56b6c2">string</span>            <span
+            style="color:#7f848e">// 唯一 ID，时间戳生成</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#d19a66">title</span>: <span style="color:#56b6c2">string</span>         <span
+            style="color:#7f848e">// 从 markdown 首行 # 标题提取</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#d19a66">content</span>: <span style="color:#56b6c2">string</span>       <span
+            style="color:#7f848e">// 完整 markdown 原文</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#d19a66">preview</span>: <span style="color:#56b6c2">string</span>       <span
+            style="color:#7f848e">// 正文前 80 字（去标记），用于侧边栏展示</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#d19a66">createdAt</span>: <span style="color:#56b6c2">number</span>     <span
+            style="color:#7f848e">// 首次保存时间</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#d19a66">updatedAt</span>: <span style="color:#56b6c2">number</span>     <span
+            style="color:#7f848e">// 最后保存时间</span></span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">}</span></code></pre>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">6. 存储方案</h2>
+<section
+        style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)">
+    <section style="padding:28px 20px;background:rgba(255,255,255,0.92)">
+        <section class="tableWrapper" style="width:100%">
+            <table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%">
+                <thead>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)"></td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        Web 端
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        桌面端（Tauri）
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        存储位置
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        IndexedDB（idb）
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">~/Documents/R-Markdown/drafts/</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        文件格式
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        DB 记录
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        每个草稿一个 <code
+                            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">.md</code>
+                        文件
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </section>
+</section>
+<section class="code-snippet__js" style="margin:24px 0">
+    <pre class="code-snippet__js code-snippet code-snippet_nowrap" data-lang="typescript"
+         style="overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:14px 0px;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace"><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf=""><span
+            style="color:#c678dd">interface</span> <span style="color:#61afef">DraftStorage</span> {</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#61afef">save</span>(<span style="color:#d19a66">draft</span>: <span style="color:#61afef">Draft</span>): <span
+            style="color:#61afef">Promise</span>&lt;<span style="color:#56b6c2">void</span>&gt;</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#61afef">delete</span>(<span style="color:#d19a66">id</span>: <span style="color:#56b6c2">string</span>): <span
+            style="color:#61afef">Promise</span>&lt;<span style="color:#56b6c2">void</span>&gt;</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#61afef">list</span>(): <span style="color:#61afef">Promise</span>&lt;<span
+            style="color:#61afef">Draft</span>[]&gt;</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">&nbsp;&nbsp;<span
+            style="color:#61afef">get</span>(<span style="color:#d19a66">id</span>: <span
+            style="color:#56b6c2">string</span>): <span style="color:#61afef">Promise</span>&lt;<span
+            style="color:#61afef">Draft</span> | <span style="color:#56b6c2">null</span>&gt;</span></code><code
+            style="display:block;background:none;color:inherit;font-family:inherit"><span leaf="">}</span></code></pre>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">7. 涉及文件</h2>
+<section
+        style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)">
+    <section style="padding:28px 20px;background:rgba(255,255,255,0.92)">
+        <section class="tableWrapper" style="width:100%">
+            <table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%">
+                <thead>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        文件
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        操作
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">
+                        说明
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">src/services/draftStorageWeb.ts</code>
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        新增
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        Web 端 IndexedDB
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">src/services/draftStorageDesktop.ts</code>
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        新增
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        桌面端文件系统
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">src/services/draftStorage.ts</code>
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        新增
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        统一入口
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">src/components/DraftListDialog.vue</code>
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        新增
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        草稿列表弹窗（继承 BaseDialog 模式）
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">src/components/FinalizeDialog.vue</code>
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        新增
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        定稿弹窗（标题编辑 + 路径选择）
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">src/views/editor/EditorPage.vue</code>
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        修改
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        左侧栏草稿按钮、toolbar 保存草稿/定稿按钮、弹窗逻辑
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        <code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">package.json</code>
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        修改
+                    </td>
+                    <td valign="top" align="left"
+                        style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">
+                        +1 依赖 <code
+                            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">idb</code>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </section>
+</section>
+<section
+        style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>
+<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">8. 关键决策</h2>
+<section style="margin:10px 0px;padding-left:24px">
+    <section style="margin:5px 0px"><span
+            style="color:rgb(148,163,184);font-weight:700;margin-right:6px">1.</span><strong><span leaf="">草稿列表用弹窗而非侧边栏内嵌</span></strong>：左侧仅保留一个图标按钮，点击弹出
+        DraftListDialog。符合已有 BaseDialog 统一风格，不挤占编辑区域。
+    </section>
+</section>
+<section style="margin:10px 0px;padding-left:24px">
+    <section style="margin:5px 0px"><span
+            style="color:rgb(148,163,184);font-weight:700;margin-right:6px">1.</span><strong><span
+            leaf="">三种按钮独立</span></strong>：暂存（临时恢复）、保存草稿（持久化版本）、定稿（导出成品）职责清晰
+    </section>
+</section>
+<section style="margin:10px 0px;padding-left:24px">
+    <section style="margin:5px 0px"><span
+            style="color:rgb(148,163,184);font-weight:700;margin-right:6px">1.</span><strong><span
+            leaf="">定稿路径选择</span></strong>：桌面端用原生对话框，Web 端降级为下载
+    </section>
+</section>
+<section style="margin:10px 0px;padding-left:24px">
+    <section style="margin:5px 0px"><span
+            style="color:rgb(148,163,184);font-weight:700;margin-right:6px">1.</span><strong><span
+            leaf="">内容去重</span></strong>：保存草稿时检查内容是否与上次完全相同，避免重复条目
+    </section>
+</section>
+<section style="margin:10px 0px;padding-left:24px">
+    <section style="margin:5px 0px"><span
+            style="color:rgb(148,163,184);font-weight:700;margin-right:6px">1.</span><strong><span
+            leaf="">主题色一致性</span></strong>：弹窗按钮、角标、卡片边框均使用 <code
+            style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">var(--accent)</code>
+    </section>
+</section>
+</body>
+</html>
