@@ -10,6 +10,24 @@ import MobileNavMenu from '@/components/mobile/MobileNavMenu.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import type { NavItem } from '@/components/NavCapsule.vue'
 import type { ThemeColors } from '@/composables/useTheme'
+import {
+  FileCode2,
+  ClipboardPaste,
+  Palette,
+  Puzzle,
+  SlidersHorizontal,
+  ImageDown,
+  HardDrive,
+  Braces,
+  BookOpenText,
+  NotebookPen,
+  ArrowLeftRight,
+  Monitor,
+  LayoutGrid,
+  Puzzle as PuzzleIcon,
+  Download,
+  ArrowRight,
+} from 'lucide-vue-next'
 
 const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
 const { colors } = useTheme()
@@ -338,20 +356,18 @@ const homeNavItems: NavItem[] = [
   {
     key: 'features',
     label: '功能',
-    iconPath:
-      'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z',
+    icon: LayoutGrid,
   },
   {
     key: 'components',
     label: '扩展组件',
-    iconPath: 'M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z',
+    icon: PuzzleIcon,
     to: '/components',
   },
   {
     key: 'download',
     label: '客户端下载',
-    iconPath: 'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z',
-    iconViewBox: '0 0 24 24',
+    icon: Download,
   },
   {
     key: 'github',
@@ -414,49 +430,64 @@ function renderMdLine(line: string): Array<{ type: string; text: string }> {
 
 const features = [
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M14 18h20M14 24h14M14 30h18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    icon: FileCode2,
     title: 'Markdown 实时编辑',
     desc: '左侧编写 Markdown，右侧即时预览公众号排版效果，所见即所得。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M16 24l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    icon: ClipboardPaste,
     title: '一键复制到公众号',
     desc: '富文本一键复制，直接粘贴到公众号编辑器，排版零损耗。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><circle cx="24" cy="24" r="8" stroke="currentColor" stroke-width="2.5"/><path d="M24 16v-4M24 36v-4M16 24h-4M36 24h-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    icon: Palette,
     title: '多主题切换',
     desc: '内置多套配色主题，支持自定义强调色，打造专属公众号风格。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><rect x="11" y="11" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2.5"/><rect x="29" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="2.5"/><rect x="29" y="25" width="8" height="8" rx="2" stroke="currentColor" stroke-width="2.5"/><rect x="13" y="29" width="12" height="8" rx="2" stroke="currentColor" stroke-width="2.5"/></svg>`,
+    icon: Puzzle,
     title: '自研扩展组件',
     desc: '标题卡片、步骤流、时间线、对比卡片、行动号召、轮播图等自研扩展组件。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><rect x="10" y="10" width="7" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M22 14h14M22 21h10M22 28h12M22 35h9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    icon: SlidersHorizontal,
     title: '属性编辑器',
     desc: '选中扩展组件即可通过侧栏表单编辑所有属性，实时预览，所见即所得。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M16 32V20l6 6 6-6v12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 32h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    icon: ImageDown,
     title: '保存为图片',
     desc: '一键将排版好的文章导出为高清长图、小红书图，方便分享到朋友圈或其他平台。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M15 15h18v18H15z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15V12h6v3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    icon: HardDrive,
     title: '本地存储',
     desc: '所有内容自动保存在浏览器本地，无需登录注册，打开即用。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><rect x="16" y="16" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M22 16v-2a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M20 24h8M20 28h5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    icon: Braces,
     title: '复制 HTML',
     desc: '一键复制排版后的 HTML 源码，方便嵌入网页、博客或其他平台使用。',
   },
   {
-    icon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2.5"/><path d="M18 16l-6 8 6 8M30 16l6 8-6 8M26 13l-4 22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    icon: BookOpenText,
     title: '语法示例',
     desc: '语法简单易上手，编辑器内置示例一键加载，边写边学零门槛。',
+  },
+  {
+    icon: NotebookPen,
+    title: '草稿箱',
+    desc: '支持多草稿管理，随时保存、加载和删除，灵感不丢失。',
+  },
+  {
+    icon: ArrowLeftRight,
+    title: '导入 & 导出',
+    desc: '支持导入 .md / .txt / .docx 文件，导出 Markdown 格式，跨平台无缝衔接。',
+  },
+  {
+    icon: Monitor,
+    title: '桌面客户端',
+    desc: '支持 macOS 和 Windows，独立窗口沉浸写作，本地文件管理更便捷。',
   },
 ]
 </script>
@@ -528,19 +559,7 @@ const features = [
           class="cta-btn inline-flex items-center gap-2 mt-8 sm:mt-10 px-8 sm:px-10 py-3.5 sm:py-4 bg-[var(--accent)] text-white text-base sm:text-lg font-semibold rounded-xl no-underline transition-all hover:bg-[var(--accent-dark)] hover:-translate-y-px active:scale-[0.97]"
           @mouseenter="preloadEditor"
         >
-          <svg
-            class="cta-arrow"
-            viewBox="0 0 20 20"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M4 10h12M12 5l5 5-5 5" />
-          </svg>
+          <ArrowRight :size="18" class="cta-arrow" />
           打开编辑器
         </router-link>
         <p class="hero-hint mt-3 sm:mt-4 ml-4 text-[13px] sm:text-[15px] text-black/[0.55]">
@@ -626,10 +645,10 @@ const features = [
             :class="featuresVisible ? '!opacity-100 !translate-y-0 !scale-100' : ''"
             :style="{ transitionDelay: `${i * 0.12}s` }"
           >
-            <div
-              class="w-10 h-10 text-[var(--accent)] mb-4.5 [&_svg]:w-full [&_svg]:h-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-              v-html="f.icon"
-            ></div>
+            <component
+              :is="f.icon"
+              class="w-10 h-10 text-[var(--accent)] mb-4.5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+            />
             <h3
               class="text-lg font-bold text-[#111] m-0 mb-2 transition-colors duration-300 group-hover:text-[var(--accent)]"
             >
@@ -658,19 +677,7 @@ const features = [
           class="cta-btn inline-flex items-center gap-2 bg-[var(--accent)] text-white no-underline px-9 py-3.5 rounded-xl text-base font-semibold transition-all hover:bg-[var(--accent-dark)] hover:-translate-y-px"
         >
           打开编辑器
-          <svg
-            class="cta-arrow"
-            viewBox="0 0 20 20"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M4 10h12M12 5l5 5-5 5" />
-          </svg>
+          <ArrowRight :size="18" class="cta-arrow" />
         </router-link>
       </div>
 
@@ -696,7 +703,7 @@ const features = [
             rel="noopener"
             class="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-white w-44 px-0 py-3.5 text-base font-semibold text-[var(--accent)] no-underline transition-all hover:bg-white hover:-translate-y-px justify-center"
           >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <Download :size="16" />
             百度网盘下载
           </a>
         </div>

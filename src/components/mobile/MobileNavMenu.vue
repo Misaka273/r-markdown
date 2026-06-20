@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useDropdownGroup } from '@/composables/useDropdownGroup'
+import { EllipsisVertical } from 'lucide-vue-next'
 
 export interface MobileNavItem {
   key: string
   label: string
   iconPath?: string
   iconViewBox?: string
+  icon?: any
   external?: boolean
   to?: string
 }
@@ -49,24 +51,11 @@ onBeforeUnmount(() => {
 <template>
   <div class="mobile-nav-menu relative sm:hidden">
     <button
-      class="w-7 h-7 rounded-full border-2 border-white/30 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110 hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)] bg-[#2d3436] text-white"
+      class="w-7 h-7 rounded-full border-2 border-white/30 cursor-pointer flex items-center justify-center p-0 shrink-0 transition-all duration-200 hover:scale-110 hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)] bg-[var(--accent)] text-white"
       title="导航菜单"
       @click.stop="toggle"
     >
-      <svg
-        viewBox="0 0 24 24"
-        width="15"
-        height="15"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="12" cy="5" r="1" fill="currentColor" />
-        <circle cx="12" cy="12" r="1" fill="currentColor" />
-        <circle cx="12" cy="19" r="1" fill="currentColor" />
-      </svg>
+      <EllipsisVertical :size="15" />
     </button>
     <div
       class="mobile-nav-dropdown absolute top-full right-0 mt-2 p-1.5 bg-white rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 w-40"
@@ -81,8 +70,9 @@ onBeforeUnmount(() => {
           rel="noopener noreferrer"
           class="mobile-nav-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 no-underline transition-colors duration-150 hover:bg-black/5"
         >
+          <component v-if="item.icon" :is="item.icon" :size="14" />
           <svg
-            v-if="item.iconPath"
+            v-else-if="item.iconPath"
             :viewBox="item.iconViewBox || '0 0 24 24'"
             width="14"
             height="14"
@@ -98,8 +88,9 @@ onBeforeUnmount(() => {
           class="mobile-nav-option w-full flex items-center gap-2 px-3 py-2 rounded-lg border-none bg-transparent cursor-pointer text-[13px] text-black/80 transition-colors duration-150 hover:bg-black/5"
           @click="handleItemClick(item.key)"
         >
+          <component v-if="item.icon" :is="item.icon" :size="14" />
           <svg
-            v-if="item.iconPath"
+            v-else-if="item.iconPath"
             :viewBox="item.iconViewBox || '0 0 24 24'"
             width="14"
             height="14"
