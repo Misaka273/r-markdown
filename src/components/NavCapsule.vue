@@ -8,6 +8,8 @@ export interface NavItem {
   iconPath?: string
   /** 图标 SVG viewBox（可选，默认 '0 0 24 24'） */
   iconViewBox?: string
+  /** Lucide 图标组件（可选，优先级高于 iconPath） */
+  icon?: any
   /** 是否外部链接 */
   external?: boolean
   /** 链接地址（router-link to 或 href） */
@@ -71,8 +73,9 @@ function onNavLeave() {
         class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]"
         @mouseenter="onNavEnter($event, item.key)"
       >
+        <component v-if="item.icon" :is="item.icon" :size="16" />
         <svg
-          v-if="item.iconPath"
+          v-else-if="item.iconPath"
           :viewBox="item.iconViewBox || '0 0 24 24'"
           width="16"
           height="16"
@@ -89,8 +92,9 @@ function onNavLeave() {
         class="nav-link relative z-10 inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[14px] font-medium text-[#555] no-underline transition-colors hover:text-[#111]"
         @mouseenter="onNavEnter($event, item.key)"
       >
+        <component v-if="item.icon" :is="item.icon" :size="16" />
         <svg
-          v-if="item.iconPath"
+          v-else-if="item.iconPath"
           :viewBox="item.iconViewBox || '0 0 24 24'"
           width="16"
           height="16"
@@ -112,8 +116,9 @@ function onNavLeave() {
         @mouseenter="onNavEnter($event, item.key)"
         @click="$emit('click', item.key)"
       >
+        <component v-if="item.icon" :is="item.icon" :size="16" />
         <svg
-          v-if="item.iconPath"
+          v-else-if="item.iconPath"
           :viewBox="item.iconViewBox || '0 0 24 24'"
           width="16"
           height="16"
