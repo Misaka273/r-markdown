@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useDropdownGroup } from '@/composables/useDropdownGroup'
+import { Sun } from 'lucide-vue-next'
 
 const props = defineProps<{
   themes: { accent: string; dark: string }[]
@@ -82,15 +83,7 @@ function onCustomInput(e: Event) {
             class="flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer text-[12px] font-medium transition-all duration-150 hover:bg-[var(--accent-light)]"
             :style="{ color: 'var(--accent)' }"
           >
-            <svg
-              class="w-3.5 h-3.5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path
-                d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"
-              />
-            </svg>
+            <Sun :size="14" />
             自定义颜色
             <input type="color" :value="customColor" class="sr-only" @input="onCustomInput" />
           </label>
