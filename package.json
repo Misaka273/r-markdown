@@ -12,7 +12,8 @@
     "tauri:build": "tauri build",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
-    "check": "eslint . && prettier --check ."
+    "check": "eslint . && prettier --check .",
+    "sm:update": "bash update-submodules.sh"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
