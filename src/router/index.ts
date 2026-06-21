@@ -21,7 +21,7 @@ const router = createRouter({
     {
       path: '/components',
       name: 'components',
-      component: () => import('../views/component-showcase/ComponentShowcase.vue'),
+      component: () => import('@/views/extension/ExtensionPage.vue'),
     },
   ],
   scrollBehavior() {
