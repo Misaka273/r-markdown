@@ -1,11 +1,16 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
+import { existsSync } from 'fs'
 
 declare const process: { env: Record<string, string | undefined> }
 
 const isTauri = process.env.VITE_TAURI === 'true'
 const isWebDeploy = process.env.GITHUB_ACTIONS && !isTauri
+
+// 闭源 extension 子模块：不存在时 fallback 到本地空 stub，避免编译报错
+const extensionDir = `${__dirname}/src/extension`
+const hasExtension = existsSync(extensionDir) && existsSync(`${extensionDir}/index.ts`)
 
 export default defineConfig({
   base: isWebDeploy ? '/r-markdown/' : isTauri ? './' : '/',
@@ -13,6 +18,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
+      ...(!hasExtension ? { '@/extension': '/src/extension-stubs' } : {}),
     },
     // .ts 优先于 .js，避免旧的 .js 残留文件被优先加载
     extensions: ['.ts', '.mts', '.js', '.mjs', '.jsx', '.tsx', '.json'],
