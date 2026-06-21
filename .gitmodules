@@ -1,0 +1,6 @@
+[submodule "src-tauri"]
+	path = src-tauri
+	url = git@github.com:RobocopMao/r-markdown-client.git
+[submodule "src/extension"]
+	path = src/extension
+	url = git@github.com:RobocopMao/r-markdown-extension.git
