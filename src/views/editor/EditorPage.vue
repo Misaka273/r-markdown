@@ -751,7 +751,7 @@ async function onImportClick() {
 }
 
 // ── 外链：Tauri 中用系统浏览器打开，Web 中用 window.open ──
-const AI_DEMO_URL = 'https://chat.deepseek.com/share/eq2bpaxrcrjbye1hc4'
+const AI_DEMO_URL = 'https://chat.deepseek.com/share/f6bhvloktj8wdl5fie'
 
 async function openAiDemo() {
   try {
