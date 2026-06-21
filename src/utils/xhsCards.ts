@@ -8,7 +8,7 @@
  * 本模块只产出 HTML 字符串（纯函数）。真正按高度自动分页的测量逻辑在
  * components/XhsExporter.vue 里——那一步需要 DOM。
  */
-import type { ThemeColors } from '../composables/useTheme'
+import type { ThemeColors } from '@/composables/useTheme'
 import { esc, parseAttrs } from './helpers'
 
 // ── 设计令牌（对齐公众号配图）──

@@ -1,4 +1,4 @@
-import type { ThemeColors } from '../composables/useTheme'
+import type { ThemeColors } from '@/composables/useTheme'
 import { esc, leaf, lightenHex } from './helpers'
 
 type InlineOption = {
