@@ -24,6 +24,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - uses: pnpm/action-setup@v4
         with:
