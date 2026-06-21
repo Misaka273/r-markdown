@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { components } from '../../../extension'
+import { components } from '@/extension'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
 import BaseDialog from '@/components/BaseDialog.vue'

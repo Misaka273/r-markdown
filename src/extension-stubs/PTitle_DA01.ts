@@ -7,3 +7,4 @@
 export const PTitle_DA01 = {
   render: (_attrs: Record<string, string>, _body: string, _t?: unknown): string => '',
 }
+export const PTitle = PTitle_DA01
