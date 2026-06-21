@@ -10,7 +10,7 @@ import NavCapsule from '@/components/NavCapsule.vue'
 import MobileNavMenu from '@/components/mobile/MobileNavMenu.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import Toast from '@/components/Toast.vue'
-import { components } from '@/editor-components'
+import { components } from '../../extension'
 
 const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
 const { colors } = useTheme()

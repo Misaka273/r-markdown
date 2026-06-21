@@ -2,9 +2,9 @@ import type { ThemeColors } from '@/composables/useTheme'
 import { esc, leaf, parseAttrs } from './helpers'
 import { resolveColor, darkenColor, colorToAlpha } from './colorUtils'
 import { inlineFormat } from './inlineFormat'
-import { Compare_DA01 } from '@/editor-components/Compare_DA01'
-import { Compare_DA02 } from '@/editor-components/Compare_DA02'
-import { CTA_DA01 } from '@/editor-components/Cta_DA01'
+import { Compare_DA01 } from '@/extension/Compare_DA01'
+import { Compare_DA02 } from '@/extension/Compare_DA02'
+import { CTA_DA01 } from '@/extension/Cta_DA01'
 
 export function parseCtaTag(
   lines: string[],

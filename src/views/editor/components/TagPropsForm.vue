@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { components } from '@/editor-components'
+import { components } from '../../../extension'
 
 interface TagInfo {
   tagName: string
