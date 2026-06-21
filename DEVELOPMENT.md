@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-公众号 Markdown 排版编辑器，支持实时预览、主题切换、深色模式、多种排版风格（Indigo V2 / 咸鱼幽默 / 技术圈 / 诗意散文）。
+公众号 Markdown 排版编辑器，支持实时预览、主题切换、深色模式。
 
 ## 技术栈
 
@@ -33,27 +33,32 @@ src/
 │   ├── Toast.vue            # 轻提示
 │   └── mobile/              # 移动端专用
 │       └── MobileNavMenu.vue    # 移动端导航菜单
-├── editor-components/   # 排版组件库
+├── extension/            # 排版组件库（git 子模块）
 │   ├── index.ts             # 组件注册与导出
 │   ├── Badges_DA01.ts       # 标签徽章
 │   ├── Breaking_DA01.ts     # 突发新闻卡片
 │   ├── CaseFlow_DA01.ts     # 案例流程
+│   ├── Chart_DA01.ts        # 图表组件
 │   ├── Compare_DA01.ts      # 对比布局 v1
 │   ├── Compare_DA02.ts      # 对比布局 v2
 │   ├── Cta_DA01.ts          # 行动召唤
 │   ├── Engage_DA01.ts       # 互动引导 v1
 │   ├── Engage_DA02.ts       # 互动引导 v2
+│   ├── Img_DA01.ts          # 单图组件
 │   ├── Lead_DA01.ts         # 引导文段
 │   ├── PTitle_DA01.ts       # 副标题
 │   ├── ReadingPath_DA01.ts  # 阅读路径
 │   ├── Slider_DA01.ts       # 图片幻灯片轮播
-│   ├── Img_DA01.ts          # 单图组件
 │   ├── Statement_DA01.ts    # 居中强调语
 │   ├── Steps_DA01.ts        # 步骤流 v1
 │   ├── Steps_DA02.ts        # 步骤流 v2
 │   ├── Timeline_DA01.ts     # 时间线
 │   ├── Title_DA01.ts        # 标题 v1
 │   └── Title_DA02.ts        # 标题 v2
+├── extension-stubs/     # 排版组件空桩（extension 不可用时的 fallback）
+│   ├── index.ts             # 与 extension/index.ts 接口一致的 stub
+│   ├── Badges_DA01.ts       # …（21 个组件，render 返回空字符串）
+│   └── ...
 ├── composables/         # Vue 组合式函数
 │   ├── useAutoUpdater.ts    # Tauri 自动更新检查
 │   ├── useDarkMode.ts       # 深色模式逻辑
@@ -75,8 +80,8 @@ src/
 │   ├── editor/
 │   │   ├── EditorPage.vue   # 编辑器页
 │   │   └── components/      # 编辑器专用组件（Editor/Preview/ThemePicker 等，mobile/ 下为移动端操作菜单）
-│   └── component-showcase/
-│       └── ComponentShowcase.vue # 组件展示页
+│   └── extension/
+│       └── ExtensionPage.vue # 组件展示页
 
 src-tauri/               # Tauri 桌面客户端（Rust）
 ├── src/
@@ -276,7 +281,40 @@ interface ThemeColors {
 | `<readingpath>` | 阅读路径组件   | -                      |
 | `<img>`         | 单图组件       | 支持宽高、圆角、裁切、对齐 |
 | `<slider>`      | 图片幻灯片轮播 | 支持 4 种轮播模式      |
+| `<chart>`       | 图表组件       | -                      |
 | `<badges>`      | 标签徽章       | -                      |
+
+## Extension 子模块机制
+
+`src/extension/` 是 git 子模块，仓库为闭源私有。无权限克隆时该目录为空。
+
+### Fallback 策略
+
+`vite.config.ts` 在构建时检测 `src/extension/` 是否为空目录（过滤 `.` / `..` 后无文件），若为空则通过 Vite alias 将 `@/extension` 重定向到 `src/extension-stubs/`：
+
+```typescript
+const extensionDir = `${__dirname}/src/extension`
+const hasExtension = existsSync(extensionDir)
+  && readdirSync(extensionDir).filter(f => !f.startsWith('.')).length > 0
+
+export default defineConfig({
+  resolve: {
+    alias: [
+      // 必须用数组形式确保 @/extension 优先于 @
+      ...(!hasExtension ? [{ find: '@/extension', replacement: '/src/extension-stubs' }] : []),
+      { find: '@', replacement: '/src' },
+    ],
+  },
+})
+```
+
+### Stub 结构
+
+`src/extension-stubs/` 包含 21 个组件，每个组件导出与 `extension/` 同名的 `ComponentDef` 对象，`render` 返回空字符串。`index.ts` 导出与 `extension/index.ts` 完全一致的 `ComponentDef` 接口、`components[]`、`componentMap`、`tagMap` 及所有独立组件。
+
+### 依赖
+
+- `@types/node` 需安装（用于 `existsSync` / `readdirSync` / `__dirname`）
 
 ## Git 工作流
 
@@ -310,9 +348,9 @@ style: 调整深色模式下卡片边框颜色
 
 ### Tag 规范
 
-格式：`v{major}.{minor}.{patch}-{date}`
+格式：`v{major}.{minor}.{patch}`
 
-示例：`v0.1.3-20260518`
+示例：`v0.1.3`
 
 ### ⚠️ 推送规则（强制）
 
@@ -338,10 +376,10 @@ git merge develop
 git push origin main
 
 # 4. 用户确认后删除旧 tag 并重新打 tag
-git tag -d v0.1.x-xxxxxx
-git push origin :refs/tags/v0.1.x-xxxxxx
-git tag v0.1.x-xxxxxx
-git push origin v0.1.x-xxxxxx
+git tag -d v0.1.x
+git push origin :refs/tags/v0.1.x
+git tag v0.1.x
+git push origin v0.1.x
 
 # 5. 用户确认后推送 develop
 git checkout develop

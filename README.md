@@ -50,6 +50,7 @@
 | `<readingpath>` | 阅读路径组件          |
 | `<img>`         | 单图组件（宽高、圆角、裁切、容器对齐） |
 | `<slider>`      | 图片幻灯片轮播        |
+| `<chart>`       | 图表组件              |
 | ` ``` `         | 代码块                |
 | `> [TIP]`       | 提示框                |
 
@@ -150,27 +151,31 @@ r-markdown/
 │   │   ├── Toast.vue          # 轻提示
 │   │   └── mobile/            # 移动端专用组件
 │   │       └── MobileNavMenu.vue  # 移动端导航菜单
-│   ├── editor-components/     # 排版组件库
-│   │   ├── index.ts           # 组件注册与导出
+│   ├── extension/             # 排版组件库（git 子模块）
 │   │   ├── Badges_DA01.ts     # 标签徽章
 │   │   ├── Breaking_DA01.ts   # 突发新闻卡片
 │   │   ├── CaseFlow_DA01.ts   # 案例流程
+│   │   ├── Chart_DA01.ts      # 图表组件
 │   │   ├── Compare_DA01.ts    # 对比布局 v1
 │   │   ├── Compare_DA02.ts    # 对比布局 v2
 │   │   ├── Cta_DA01.ts        # 行动召唤
 │   │   ├── Engage_DA01.ts     # 互动引导 v1
 │   │   ├── Engage_DA02.ts     # 互动引导 v2
+│   │   ├── Img_DA01.ts        # 单图组件
 │   │   ├── Lead_DA01.ts       # 引导文段
 │   │   ├── PTitle_DA01.ts     # 副标题
 │   │   ├── ReadingPath_DA01.ts # 阅读路径
 │   │   ├── Slider_DA01.ts     # 图片幻灯片轮播
-│   │   ├── Img_DA01.ts        # 单图组件
 │   │   ├── Statement_DA01.ts  # 居中强调语
 │   │   ├── Steps_DA01.ts      # 步骤流 v1
 │   │   ├── Steps_DA02.ts      # 步骤流 v2
 │   │   ├── Timeline_DA01.ts   # 时间线
 │   │   ├── Title_DA01.ts      # 标题 v1
-│   │   └── Title_DA02.ts      # 标题 v2
+│   │   ├── Title_DA02.ts      # 标题 v2
+│   │   └── index.ts           # 组件注册与导出
+│   ├── extension-stubs/       # 排版组件空桩（extension 不可用时的 fallback）
+│   │   ├── Badges_DA01.ts     # …（21 个组件，render 返回空字符串）
+│   │   └── index.ts
 │   ├── composables/           # 组合式函数
 │   │   ├── useTheme.ts        # 主题管理
 │   │   ├── useDarkMode.ts     # 暗色模式
@@ -191,8 +196,8 @@ r-markdown/
 │   │   │       ├── XhsExporter.vue    # 图片导出
 │   │   │       └── mobile/
 │   │   │           └── MobileActionsMenu.vue  # 移动端操作菜单
-│   │   └── component-showcase/
-│   │       └── ComponentShowcase.vue # 组件展示页
+│   │   └── extension/
+│   │       └── ExtensionPage.vue # 组件展示页
 │   ├── utils/                 # 工具函数
 │   │   ├── markdownParser.ts  # Markdown → HTML 解析
 │   │   ├── colorUtils.ts      # 颜色处理
