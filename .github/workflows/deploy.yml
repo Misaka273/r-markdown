@@ -23,15 +23,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.DEPLOY_KEY_CLIENT }}
-            ${{ secrets.DEPLOY_KEY_EXTENSION }}
       - uses: actions/checkout@v4
-      - run: |
-          git config --global url."git@github.com:".insteadOf "https://github.com/"
-          git submodule update --init --recursive
+        with:
+          submodules: true
+          token: ${{ secrets.PAT }}
 
       - uses: pnpm/action-setup@v4
         with:
