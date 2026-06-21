@@ -28,12 +28,10 @@ jobs:
           ssh-private-key: |
             ${{ secrets.DEPLOY_KEY_CLIENT }}
             ${{ secrets.DEPLOY_KEY_EXTENSION }}
-      - run: |
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          git config --global url."git@github.com:".insteadOf "https://github.com/"
       - uses: actions/checkout@v4
-        with:
-          submodules: true
+      - run: |
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
+          git submodule update --init --recursive
 
       - uses: pnpm/action-setup@v4
         with:
