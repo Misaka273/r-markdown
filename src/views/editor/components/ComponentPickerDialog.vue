@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { components } from '@/editor-components'
+import { components } from '../../../extension'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
 import BaseDialog from '@/components/BaseDialog.vue'
@@ -35,6 +35,7 @@ const componentCategoryMap: Record<string, string> = {
   CaseFlow_DA01: 'layout',
   Compare_DA01: 'layout', Compare_DA02: 'layout',
   Timeline_DA01: 'layout',
+  Chart_DA01: 'other',
   CTA_DA01: 'interactive',
   Engage_DA01: 'interactive', Engage_DA02: 'interactive',
   Slider_DA01: 'image', Img_DA01: 'image',

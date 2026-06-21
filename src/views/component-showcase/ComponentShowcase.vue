@@ -10,7 +10,7 @@ import NavCapsule from '@/components/NavCapsule.vue'
 import MobileNavMenu from '@/components/mobile/MobileNavMenu.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import Toast from '@/components/Toast.vue'
-import { components } from '@/editor-components'
+import { components } from '../../extension'
 
 const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
 const { colors } = useTheme()
@@ -44,6 +44,7 @@ const componentCategoryMap: Record<string, string> = {
   Compare_DA01: 'layout',
   Compare_DA02: 'layout',
   Timeline_DA01: 'layout',
+  Chart_DA01: 'other',
   Badges_DA01: 'other',
   CTA_DA01: 'interactive',
   Engage_DA01: 'interactive',

@@ -25,7 +25,14 @@ jobs:
       VITE_TAURI: 'true'
 
     steps:
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.DEPLOY_KEY_CLIENT }}
+            ${{ secrets.DEPLOY_KEY_EXTENSION }}
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - uses: pnpm/action-setup@v4
         with:

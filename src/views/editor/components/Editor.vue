@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useTheme } from '@/composables/useTheme'
-import { tagMap } from '@/editor-components'
+import { tagMap } from '../../../extension'
 import {
   EditorView,
   keymap,
