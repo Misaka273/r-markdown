@@ -28,6 +28,7 @@ jobs:
           ssh-private-key: |
             ${{ secrets.DEPLOY_KEY_CLIENT }}
             ${{ secrets.DEPLOY_KEY_EXTENSION }}
+      - run: git config --global url."git@github.com:".insteadOf "https://github.com/"
       - uses: actions/checkout@v4
         with:
           submodules: true
