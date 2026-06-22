@@ -8,6 +8,7 @@ import { autoUpdateEnabled, autoUpdatePending, autoUpdateRid, checkForUpdates, d
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { testConnection } from '@/services/githubUploader'
 import { useTheme } from '@/composables/useTheme'
+import ImageCacheDialog from './ImageCacheDialog.vue'
 
 defineProps<{
   visible: boolean
@@ -102,6 +103,8 @@ const pendingUpdate = ref<UpdateInfo | null>(null)
 const pendingRid = ref<number | null>(null)
 const downloading = ref(false)
 const downloadProgress = ref(0)
+
+const showImageCache = ref(false)
 
 async function applyZoom(scale: number) {
   currentZoom.value = scale
@@ -208,7 +211,7 @@ async function doDownloadUpdate() {
             : 'bg-transparent text-[#999] hover:text-[#333] dark:hover:text-[#ccc]'"
           @click="settingsTab = 'github'"
         >
-          图床设置
+          图片设置
         </button>
       </div>
     </template>
@@ -403,7 +406,7 @@ async function doDownloadUpdate() {
 
         <!-- 上传方式 -->
         <div class="mt-4 pt-3 border-t border-[#eee] dark:border-[#444]">
-          <label class="text-[12px] text-[#666] dark:text-[#999] mb-2 block">{{ isTauri ? '粘贴上传方式' : '粘贴/拖拽上传方式' }}</label>
+          <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">{{ isTauri ? '粘贴上传方式' : '粘贴/拖拽上传方式' }}</h3>
           <div class="flex gap-2">
             <label
               class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
@@ -421,7 +424,7 @@ async function doDownloadUpdate() {
             </label>
           </div>
           <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
-            本地存储：图片以 base64 编码嵌入文档（单张 ≤1000KB），建议开启压缩以减少文档体积<br />
+            本地存储：图片以 base64 编码嵌入文档（单张 ≤ 5M），建议开启压缩以减少文档体积<br />
             GitHub 图床：上传至仓库后使用 CDN 链接（单张 ≤5MB）
           </p>
         </div>
@@ -452,6 +455,19 @@ async function doDownloadUpdate() {
             压缩后图片将统一转为 JPEG 格式
           </p>
         </div>
+
+        <!-- 清理图片缓存 -->
+        <div class="mt-4 pt-3 border-t border-[#eee] dark:border-[#444]">
+          <button
+            class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333]"
+            @click="showImageCache = true"
+          >
+            清理图片缓存
+          </button>
+          <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
+            查看并清理编辑器本地存储的图片缓存，释放磁盘空间。
+          </p>
+        </div>
       </section>
     </template>
 
@@ -464,6 +480,8 @@ async function doDownloadUpdate() {
       @confirm="doDownloadUpdate"
       @cancel="updateDialogVisible = false"
     />
+
+    <ImageCacheDialog :visible="showImageCache" @close="showImageCache = false" />
   </BaseDialog>
 </template>
 

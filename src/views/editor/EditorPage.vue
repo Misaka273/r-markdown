@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -19,8 +19,10 @@ import {
   Code2, Superscript, Subscript, RemoveFormatting,
   Save, SquareBottomDashedScissors, CheckCircle,
   Download, Copy, FileText, CircleCheck,
-  Smartphone, SquarePen, CircleQuestionMark
+  Smartphone, SquarePen, CircleQuestionMark,
+  ImagePlus
 } from 'lucide-vue-next'
+import { putImage, getDataURL, cleanupImages } from '@/utils/imageDB'
 
 const formatIcons: Record<string, any> = {
   '==': Highlighter,
@@ -86,6 +88,12 @@ function compactBase64(dataUrl: string): string {
   if (!m) return dataUrl
   const [, prefix, b64] = m
   if (b64.length <= 100) return dataUrl
+  // 去重：相同 base64 内容复用已有 token
+  for (const [existingToken, existingB64] of base64Store) {
+    if (existingB64 === b64) {
+      return `${prefix};base64,${existingToken}`
+    }
+  }
   const token = `IMG_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   base64Store.set(token, b64)
   return `${prefix};base64,${token}`
@@ -275,9 +283,37 @@ function onHandleLeave() {
 const STORAGE_KEY = 'r-markdown-editorContent'
 const SAVE_TIME_KEY = 'r-markdown-editorSaveTime'
 
+function stripIdbSrc(text: string): string {
+  return text.replace(/src="idb:DBI_\d+_[a-z0-9]{6}"/g, 'src=""')
+}
+
 const saved = localStorage.getItem(STORAGE_KEY)
 const markdown = ref(saved !== null ? saved : DEMO_CONTENT)
-const resolvedMarkdown = computed(() => resolveBase64(markdown.value))
+const resolvedMarkdown = ref(stripIdbSrc(resolveBase64(markdown.value)))
+
+async function resolveIdbImages(text: string): Promise<string> {
+  const idbTokens = text.match(/idb:DBI_\d+_[a-z0-9]{6}/g)
+  if (!idbTokens || idbTokens.length === 0) return text
+  let result = text
+  for (const ref of idbTokens) {
+    const token = ref.slice(4) // 去掉 "idb:"
+    const dataUrl = await getDataURL(token)
+    if (dataUrl) {
+      result = result.split(ref).join(dataUrl)
+    }
+  }
+  return result
+}
+
+watch(markdown, async (val) => {
+  const step1 = resolveBase64(val)
+  const hasIdb = /idb:DBI_\d+_[a-z0-9]{6}/.test(step1)
+  if (!hasIdb) {
+    resolvedMarkdown.value = step1
+    return
+  }
+  resolvedMarkdown.value = await resolveIdbImages(step1)
+}, { immediate: true, flush: 'sync' })
 const previewRef = ref()
 const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
@@ -355,6 +391,7 @@ async function refreshDrafts() {
 
 // ── 插入图片 ──
 const imageInputRef = ref<HTMLInputElement>()
+const persistImageInputRef = ref<HTMLInputElement>()
 const githubImageInputRef = ref<HTMLInputElement>()
 // ── Toast ──
 const toastVisible = ref(false)
@@ -379,14 +416,6 @@ function onImageSelected(e: Event) {
   const file = input.files?.[0]
   if (!file) return
 
-  // 限制最多 10 张图片
-  const currentCount = (markdown.value.match(/IMG_\d+_[a-z0-9]{6}/g) ?? []).length
-  if (currentCount >= 10) {
-    showToast('最多插入 10 张图片')
-    input.value = ''
-    return
-  }
-
   // 验证文件类型
   if (!file.type.startsWith('image/')) {
     showToast('请选择图片文件')
@@ -394,13 +423,24 @@ function onImageSelected(e: Event) {
     return
   }
 
-  // 验证文件大小（500KB）
-  if (file.size > 500 * 1024) {
-    showToast('图片不能超过 500KB')
+  // 验证文件大小（2MB，未开启压缩时限制）
+  const quality = (getSetting<number>('compressQuality') || 100) / 100
+  if (quality >= 1.0 && file.size > 2 * 1024 * 1024) {
+    showToast('图片不能超过 2MB')
     input.value = ''
     return
   }
 
+  doInsertLocalImage(file, input)
+}
+
+async function doInsertLocalImage(file: File, input: HTMLInputElement) {
+  const quality = (getSetting<number>('compressQuality') || 100) / 100
+  let finalFile = file
+  if (quality < 1.0) {
+    showToast('正在压缩图片...')
+    finalFile = await compressImage(file, 2000, quality)
+  }
   const reader = new FileReader()
   reader.onload = () => {
     const dataUrl = reader.result as string
@@ -408,7 +448,6 @@ function onImageSelected(e: Event) {
     editorRef.value?.insertAtCursor(
       `<img src="${compacted}" width="100%" height="auto" radius="8px" fit="cover" />`,
     )
-    // 异步清理不再被引用的旧图片数据
     const cleanup = window.requestIdleCallback || ((fn) => setTimeout(fn, 200))
     cleanup(() => cleanupUnusedBase64())
     input.value = ''
@@ -417,7 +456,47 @@ function onImageSelected(e: Event) {
     showToast('图片读取失败')
     input.value = ''
   }
-  reader.readAsDataURL(file)
+  reader.readAsDataURL(finalFile)
+}
+
+// ── 长期存储图片（IndexedDB） ──
+function handleInsertImagePersist() {
+  persistImageInputRef.value?.click()
+}
+
+async function onImagePersistSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    showToast('请选择图片文件')
+    input.value = ''
+    return
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('图片不能超过 5MB')
+    input.value = ''
+    return
+  }
+
+  try {
+    const token = await putImage(file)
+    editorRef.value?.insertAtCursor(
+      `<img src="idb:${token}" width="100%" height="auto" radius="8px" fit="cover" />`,
+    )
+    await nextTick()
+    setTimeout(() => {
+      const tokensInUse = new Set(
+        (markdown.value.match(/idb:DBI_\d+_[a-z0-9]{6}/g) ?? []).map(t => t.slice(4)),
+      )
+      cleanupImages(tokensInUse)
+    }, 500)
+  } catch {
+    showToast('存储图片失败')
+  }
+  input.value = ''
 }
 
 // ── 粘贴/拖拽图片 ──
@@ -425,13 +504,6 @@ async function processImageInsert(file: File, insertAt: number | null = null) {
   // 检查是否在标签内部（不允许在组件标签内插入）
   if (editorRef.value?.isInsideTag) {
     showToast('不能在组件标签内插入图片')
-    return
-  }
-
-  // 限制最多 10 张图片
-  const currentCount = (markdown.value.match(/IMG_\d+_[a-z0-9]{6}/g) ?? []).length
-  if (currentCount >= 10) {
-    showToast('最多插入 10 张图片')
     return
   }
 
@@ -481,35 +553,29 @@ async function processImageInsert(file: File, insertAt: number | null = null) {
     return
   }
 
-  // 本地模式
-  let finalFile = file
-  const quality = (getSetting<number>('compressQuality') || 100) / 100
-  if (quality >= 1.0 && file.size > 1000 * 1024) {
-    showToast('图片超过 1MB，请开启压缩或使用图床上传')
-    return
-  }
-  if (quality < 1.0) {
-    showToast('正在压缩图片...')
-    finalFile = await compressImage(file, 1000, quality)
-  }
-
-  const reader = new FileReader()
-  reader.onload = () => {
-    const dataUrl = reader.result as string
-    const compacted = compactBase64(dataUrl)
-    const tag = `<img src="${compacted}" width="100%" height="auto" radius="8px" fit="cover" />`
+  // 本地模式 → IndexedDB 存储
+  try {
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('图片不能超过 5MB')
+      return
+    }
+    const token = await putImage(file)
+    const tag = `<img src="idb:${token}" width="100%" height="auto" radius="8px" fit="cover" />`
     if (insertAt !== null) {
       editorRef.value?.replaceRange(insertAt, insertAt, tag)
     } else {
       editorRef.value?.insertAtCursor(tag)
     }
-    const cleanup = window.requestIdleCallback || ((fn: () => void) => setTimeout(fn, 200))
-    cleanup(() => cleanupUnusedBase64())
+    await nextTick()
+    setTimeout(() => {
+      const tokensInUse = new Set(
+        (markdown.value.match(/idb:DBI_\d+_[a-z0-9]{6}/g) ?? []).map(t => t.slice(4)),
+      )
+      cleanupImages(tokensInUse)
+    }, 500)
+  } catch {
+    showToast('存储图片失败')
   }
-  reader.onerror = () => {
-    showToast('图片读取失败')
-  }
-  reader.readAsDataURL(finalFile)
 }
 
 function handlePasteImage(file: File) {
@@ -766,6 +832,7 @@ async function openAiDemo() {
 function loadDemo() {
   base64Store.clear()
   localStorage.removeItem(IMG_STORE_KEY)
+  cleanupImages(new Set())
   markdown.value = DEMO_CONTENT
   localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
   const now = new Date()
@@ -1143,11 +1210,21 @@ onBeforeUnmount(() => {
                 class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
                 :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
                 :disabled="!editorRef?.isAtLineStart"
-                title="本地插入图片"
+                title="临时存储本地图片"
                 @click="editorRef?.isAtLineStart && handleInsertImage()"
               >
                 <Image :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
-                <span>本地</span>
+                <span>临时</span>
+              </button>
+              <button
+                class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
+                :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                :disabled="!editorRef?.isAtLineStart"
+                title="长期存储本地图片"
+                @click="editorRef?.isAtLineStart && handleInsertImagePersist()"
+              >
+                <ImagePlus :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                <span>长期</span>
               </button>
               <button
                 class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
@@ -1277,6 +1354,13 @@ onBeforeUnmount(() => {
             accept="image/*"
             class="hidden"
             @change="onGithubImageSelected"
+          />
+          <input
+            ref="persistImageInputRef"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="onImagePersistSelected"
           />
           <TagPropsForm
             :visible="showTagDialog && !isMobile"
