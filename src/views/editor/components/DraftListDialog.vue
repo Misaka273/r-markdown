@@ -60,7 +60,7 @@ function formatTime(ts: number): string {
   <BaseDialog
     :visible="visible"
     title="草稿箱"
-    width="800px"
+    width="min(95vw, 1000px)"
     :show-footer="false"
     @close="emit('close')"
   >
@@ -69,7 +69,7 @@ function formatTime(ts: number): string {
         v-model="searchQuery"
         type="text"
         placeholder="搜索草稿..."
-        class="flex-1 h-7 px-2.5 rounded-[4px] border draft-search-input bg-[var(--bg-primary)] text-[12px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+        class="w-[200px] h-7 px-2.5 rounded-[4px] border draft-search-input bg-[var(--bg-primary)] text-[12px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
       />
     </template>
     <div class="flex flex-row flex-wrap gap-3">
@@ -82,7 +82,7 @@ function formatTime(ts: number): string {
       <div
         v-for="draft in filteredDrafts"
         :key="draft.id"
-        class="draft-item flex flex-col gap-1.5 px-3 py-2.5 rounded-[6px] w-[180px]"
+        class="draft-item flex flex-col gap-1.5 px-3 py-2.5 rounded-[6px] w-[calc((100%-48px)/5)]"
       >
         <div class="text-[12px] font-semibold truncate text-[var(--text-primary)] leading-snug" :title="draft.title">
           {{ draft.title }}

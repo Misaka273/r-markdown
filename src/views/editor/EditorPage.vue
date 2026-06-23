@@ -51,6 +51,7 @@ import SaveDraftDialog from './components/SaveDraftDialog.vue'
 import DraftListDialog from './components/DraftListDialog.vue'
 import FinalizeDialog from './components/FinalizeDialog.vue'
 import EditorSidebar from './components/EditorSidebar.vue'
+import ImageCacheDialog from './components/ImageCacheDialog.vue'
 import Toast from '@/components/Toast.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import pkg from '../../../package.json'
@@ -318,6 +319,7 @@ const previewRef = ref()
 const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
 const settingsVisible = ref(false)
+const showGallery = ref(false)
 const isTauri = import.meta.env.VITE_TAURI === 'true'
 
 // ── 自动更新 ──
@@ -475,14 +477,24 @@ async function onImagePersistSelected(e: Event) {
     return
   }
 
-  if (file.size > 5 * 1024 * 1024) {
+  const quality = (getSetting<number>('compressQuality') || 100) / 100
+  let finalFile = file
+  if (quality < 1.0) {
+    showToast('正在压缩图片...')
+    finalFile = await compressImage(file, 5000, quality)
+    if (finalFile.size > 5 * 1024 * 1024) {
+      showToast('图片压缩后仍超过 5MB')
+      input.value = ''
+      return
+    }
+  } else if (file.size > 5 * 1024 * 1024) {
     showToast('图片不能超过 5MB')
     input.value = ''
     return
   }
 
   try {
-    const token = await putImage(file)
+    const token = await putImage(finalFile)
     editorRef.value?.insertAtCursor(
       `<img src="idb:${token}" width="100%" height="auto" radius="8px" fit="cover" />`,
     )
@@ -520,6 +532,13 @@ async function processImageInsert(file: File, insertAt: number | null = null) {
     if (quality < 1.0) {
       showToast('正在压缩图片...')
       uploadFile = await compressImage(file, 5000, quality)
+      if (uploadFile.size > 5 * 1024 * 1024) {
+        showToast('图片压缩后仍超过 5MB')
+        return
+      }
+    } else if (file.size > 5 * 1024 * 1024) {
+      showToast('图片不能超过 5MB')
+      return
     }
     githubUploading.value = true
     githubUploadProgress.value = 0
@@ -548,12 +567,21 @@ async function processImageInsert(file: File, insertAt: number | null = null) {
   }
 
   // 本地模式 → IndexedDB 存储
-  try {
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('图片不能超过 5MB')
+  const quality = (getSetting<number>('compressQuality') || 100) / 100
+  let finalFile = file
+  if (quality < 1.0) {
+    showToast('正在压缩图片...')
+    finalFile = await compressImage(file, 5000, quality)
+    if (finalFile.size > 5 * 1024 * 1024) {
+      showToast('图片压缩后仍超过 5MB')
       return
     }
-    const token = await putImage(file)
+  } else if (file.size > 5 * 1024 * 1024) {
+    showToast('图片不能超过 5MB')
+    return
+  }
+  try {
+    const token = await putImage(finalFile)
     const tag = `<img src="idb:${token}" width="100%" height="auto" radius="8px" fit="cover" />`
     if (insertAt !== null) {
       editorRef.value?.replaceRange(insertAt, insertAt, tag)
@@ -605,7 +633,17 @@ async function onGithubImageSelected(e: Event) {
     return
   }
 
-  if (file.size > 5 * 1024 * 1024) {
+  const quality = (getSetting<number>('compressQuality') || 100) / 100
+  let finalFile = file
+  if (quality < 1.0) {
+    showToast('正在压缩图片...')
+    finalFile = await compressImage(file, 5000, quality)
+    if (finalFile.size > 5 * 1024 * 1024) {
+      showToast('图片压缩后仍超过 5MB')
+      input.value = ''
+      return
+    }
+  } else if (file.size > 5 * 1024 * 1024) {
     showToast('图片不能超过 5MB')
     input.value = ''
     return
@@ -625,7 +663,7 @@ async function onGithubImageSelected(e: Event) {
   githubUploadProgress.value = 0
   try {
     const result = await uploadToGitHub(
-      file,
+      finalFile,
       { repo, token, branch },
       (percent) => {
         githubUploadProgress.value = percent
@@ -1171,6 +1209,7 @@ onBeforeUnmount(() => {
           @select="onSidebarSelect"
           @toggle-dark-mode="onToggleDarkMode"
           @open-settings="settingsVisible = true"
+          @open-gallery="showGallery = true"
           @open-components="$router.push('/components')"
           @open-drafts="draftListVisible = true"
           @example-action="onExampleAction"
@@ -1413,6 +1452,12 @@ onBeforeUnmount(() => {
     @insert="(code: string) => editorRef?.insertAtCursor(code)"
   />
   <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
+  <ImageCacheDialog
+    :visible="showGallery"
+    mode="gallery"
+    @close="showGallery = false"
+    @insert="(token: string) => { showGallery = false; editorRef?.insertAtCursor(`<img src=&quot;idb:${token}&quot; width=&quot;100%&quot; height=&quot;auto&quot; radius=&quot;8px&quot; fit=&quot;cover&quot; />`) }"
+  />
   <ConfirmDialog
     :visible="confirmLoadVisible"
     title="加载示例"

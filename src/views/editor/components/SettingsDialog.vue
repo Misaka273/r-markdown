@@ -424,8 +424,8 @@ async function doDownloadUpdate() {
             </label>
           </div>
           <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
-            本地存储：图片以 base64 编码嵌入文档（单张 ≤ 5M），建议开启压缩以减少文档体积<br />
-            GitHub 图床：上传至仓库后使用 CDN 链接（单张 ≤5MB）
+            本地存储：图片以 base64 编码嵌入文档（压缩后单张 ≤ 5M），建议开启压缩以减少文档体积<br />
+            GitHub 图床：上传至仓库后使用 CDN 链接（压缩后单张 ≤5MB）
           </p>
         </div>
 

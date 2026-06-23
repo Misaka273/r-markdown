@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { getSetting, setSetting } from '@/config/settings'
 import {
-  Component, Paperclip, FilePlus, Download, Bot, Import,
+  Component, Paperclip, FilePlus, Download, Bot, Import, Images,
   Sun, Moon, Monitor, Bolt, ChevronDown, ChevronUp, SquareBottomDashedScissors
 } from 'lucide-vue-next'
 
@@ -20,6 +20,7 @@ const emit = defineEmits<{
   (e: 'openDrafts'): void
   (e: 'exampleAction', action: 'load' | 'download' | 'aiDemo'): void
   (e: 'openImport'): void
+  (e: 'openGallery'): void
 }>()
 
 const showExamples = ref(false)
@@ -117,6 +118,15 @@ function toggleCollapse() {
       >
         <Component :size="24" class="shrink-0" />
         <span class="text-[10px] leading-tight">组件</span>
+      </button>
+      <!-- 图库 button -->
+      <button
+        class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150"
+        title="图库"
+        @click="emit('openGallery')"
+      >
+        <Images :size="24" class="shrink-0" />
+        <span class="text-[10px] leading-tight">图库</span>
       </button>
       <!-- 示例 button with popover -->
       <div class="relative w-full">

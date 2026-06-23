@@ -86,7 +86,7 @@ export async function putImage(file: File): Promise<string> {
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
       const store = tx.objectStore(STORE_NAME)
-      const req = store.put({ buffer, mime: file.type || 'image/png', hash }, token)
+      const req = store.put({ buffer, mime: file.type || 'image/png', hash, createdAt: Date.now() }, token)
 
       tx.oncomplete = () => resolve()
       tx.onabort = () => reject(tx.error || new Error('transaction aborted'))
@@ -192,9 +192,9 @@ export async function cleanupImages(tokensInUse: Set<string>): Promise<void> {
   }
 }
 
-/** 获取所有已存储图片的缩略预览（token + data URL） */
-export async function getAllImagePreviews(): Promise<{ token: string; dataUrl: string }[]> {
-  const result: { token: string; dataUrl: string }[] = []
+/** 获取所有已存储图片的缩略预览（token + data URL + 原始大小 + 上传时间） */
+export async function getAllImagePreviews(): Promise<{ token: string; dataUrl: string; size: number; createdAt: number }[]> {
+  const result: { token: string; dataUrl: string; size: number; createdAt: number }[] = []
   try {
     const db = await openDB()
     const keys: string[] = await new Promise((resolve) => {
@@ -207,7 +207,19 @@ export async function getAllImagePreviews(): Promise<{ token: string; dataUrl: s
     for (const key of keys) {
       const dataUrl = await getDataURL(key as string)
       if (dataUrl) {
-        result.push({ token: key as string, dataUrl })
+        // 从 data URL 的 base64 部分估算原始文件大小
+        const base64Part = dataUrl.split(',')[1] || ''
+        const size = Math.round((base64Part.length * 3) / 4)
+        // 读取 createdAt 记录
+        const record: any = await new Promise((resolve) => {
+          const tx = db.transaction(STORE_NAME, 'readonly')
+          const store = tx.objectStore(STORE_NAME)
+          const req = store.get(key)
+          req.onsuccess = () => resolve(req.result)
+          req.onerror = () => resolve(undefined)
+        })
+        const createdAt = record?.createdAt || 0
+        result.push({ token: key as string, dataUrl, size, createdAt })
       }
     }
   } catch {
