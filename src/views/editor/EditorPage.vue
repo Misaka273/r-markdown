@@ -487,12 +487,6 @@ async function onImagePersistSelected(e: Event) {
       `<img src="idb:${token}" width="100%" height="auto" radius="8px" fit="cover" />`,
     )
     await nextTick()
-    setTimeout(() => {
-      const tokensInUse = new Set(
-        (markdown.value.match(/idb:DBI_\d+_[a-z0-9]{6}/g) ?? []).map(t => t.slice(4)),
-      )
-      cleanupImages(tokensInUse)
-    }, 500)
   } catch {
     showToast('存储图片失败')
   }
@@ -567,12 +561,6 @@ async function processImageInsert(file: File, insertAt: number | null = null) {
       editorRef.value?.insertAtCursor(tag)
     }
     await nextTick()
-    setTimeout(() => {
-      const tokensInUse = new Set(
-        (markdown.value.match(/idb:DBI_\d+_[a-z0-9]{6}/g) ?? []).map(t => t.slice(4)),
-      )
-      cleanupImages(tokensInUse)
-    }, 500)
   } catch {
     showToast('存储图片失败')
   }
