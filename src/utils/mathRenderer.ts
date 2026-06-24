@@ -72,12 +72,12 @@ export async function renderMath(formula: string, displayMode: boolean = false):
         /(<svg\b[^>]*style=")([^"]*)(")/i,
         (_m: string, before: string, styles: string, after: string) => {
           const cleaned = styles.replace(/display:\s*block\s*;?/gi, '')
-          return `${before}display:inline;${cleaned}${after}`
+          return `${before}display:inline;max-width:none!important;${cleaned}${after}`
         },
       )
       .replace(
         /<svg\b(?![^>]*style=")/i,
-        '<svg style="display:inline"',
+        '<svg style="display:inline;max-width:none!important"',
       )
   } catch {
     return ''

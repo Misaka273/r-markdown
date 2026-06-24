@@ -543,7 +543,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       const singleMatch = line.match(/^\$\$(.+?)\$\$/)
       if (singleMatch) {
         const formula = singleMatch[1].trim()
-        html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${resolveSvg(formula)}</section>`
+        html += `<section style="overflow-x:auto;margin:24px 0;color:#333"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
         i++
         continue
       }
@@ -556,7 +556,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       }
       if (i < lines.length) i++ // 跳过闭合的 $$
       const formula = formulaLines.join('\n').trim()
-      html += `<section style="text-align:center;margin:24px 0;overflow-x:auto;color:#333">${resolveSvg(formula)}</section>`
+      html += `<section style="overflow-x:auto;margin:24px 0;color:#333"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
       continue
     }
 
