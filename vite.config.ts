@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { existsSync, readdirSync } from 'fs'
@@ -16,13 +16,27 @@ const hasExtension = existsSync(extensionDir) && readdirSync(extensionDir).filte
 const privateHomeFile = `${__dirname}/src/views-private/home/HomePage.vue`
 const hasPrivateHome = existsSync(privateHomeFile)
 
+// 百度的两个不同跟踪 ID
+const BAIDU_CF_ID = '1e39ca5c4cef3fe3c3abdd64d9d567e1'
+const BAIDU_GH_ID = 'a5fcc93a9e4cafcc7bea63232dd8a85f'
+
+function baiduPlugin(): Plugin {
+  const baiduId = process.env.CF_PAGES ? BAIDU_CF_ID : isWebDeploy ? BAIDU_GH_ID : null
+  const scriptTag = baiduId
+    ? `<script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?${baiduId}";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s)})()</script>`
+    : ''
+
+  return {
+    name: 'baidu-analytics',
+    transformIndexHtml(html) {
+      return html.replace('</head>', `${scriptTag}</head>`)
+    },
+  }
+}
+
 export default defineConfig({
-  define: {
-    __IS_CLOUDFLARE__: JSON.stringify(!!process.env.CF_PAGES),
-    __IS_GITHUB_DEPLOY__: JSON.stringify(isWebDeploy),
-  },
   base: isWebDeploy ? '/r-markdown/' : isTauri ? './' : '/',
-  plugins: [vue(), tailwindcss()],
+  plugins: [vue(), tailwindcss(), baiduPlugin()],
   resolve: {
     alias: [
       ...(!hasExtension ? [{ find: '@/extension', replacement: '/src/extension-stubs' }] : []),
