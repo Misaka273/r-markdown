@@ -25,13 +25,6 @@ const router = createRouter({
       name: 'components',
       component: () => import('@/views/extension/ExtensionPage.vue'),
     },
-    {
-      path: '/pixi',
-      name: 'pixi',
-      component: __PRIVATE_HOMEPAGE__
-        ? () => import('../views-private/home/HomePage.vue')
-        : () => import('../views/home/HomePage.vue'),
-    },
   ],
   scrollBehavior() {
     return { top: 0 }
