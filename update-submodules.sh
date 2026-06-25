@@ -5,4 +5,5 @@ set -e
 ROOT="/Users/xuepingmao/miclaw/project/r-markdown"
 cd "$ROOT/src-tauri" && git fetch origin && git checkout origin/main
 cd "$ROOT/src/extension" && git fetch origin && git checkout origin/main
-echo "done — src-tauri + src/extension 已更新到远端最新"
+cd "$ROOT/src/views-private" && git fetch origin && git checkout origin/main
+echo "done — src-tauri + src/extension + src/views-private 已更新到远端最新"
