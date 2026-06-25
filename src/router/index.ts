@@ -12,7 +12,7 @@ const router = createRouter({
       component: isTauriClient
         ? () => import('../views/editor/EditorPage.vue')
         : __PRIVATE_HOMEPAGE__
-          ? () => import('../views-private/home/HomePagePixi.vue')
+          ? () => import('../views-private/home/HomePage.vue')
           : () => import('../views/home/HomePage.vue'),
     },
     {
@@ -29,7 +29,7 @@ const router = createRouter({
       path: '/pixi',
       name: 'pixi',
       component: __PRIVATE_HOMEPAGE__
-        ? () => import('../views-private/home/HomePagePixi.vue')
+        ? () => import('../views-private/home/HomePage.vue')
         : () => import('../views/home/HomePage.vue'),
     },
   ],

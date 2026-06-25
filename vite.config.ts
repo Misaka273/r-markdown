@@ -13,7 +13,7 @@ const extensionDir = `${__dirname}/src/extension`
 const hasExtension = existsSync(extensionDir) && readdirSync(extensionDir).filter(f => !f.startsWith('.')).length > 0
 
 // 私有 views 子模块：拉取失败时 fallback 到公开版首页
-const privateHomeFile = `${__dirname}/src/views-private/home/HomePagePixi.vue`
+const privateHomeFile = `${__dirname}/src/views-private/home/HomePage.vue`
 const hasPrivateHome = existsSync(privateHomeFile)
 
 export default defineConfig({
