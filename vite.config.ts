@@ -17,6 +17,10 @@ const privateHomeFile = `${__dirname}/src/views-private/home/HomePage.vue`
 const hasPrivateHome = existsSync(privateHomeFile)
 
 export default defineConfig({
+  define: {
+    __IS_CLOUDFLARE__: JSON.stringify(!!process.env.CF_PAGES),
+    __IS_GITHUB_DEPLOY__: JSON.stringify(isWebDeploy),
+  },
   base: isWebDeploy ? '/r-markdown/' : isTauri ? './' : '/',
   plugins: [vue(), tailwindcss()],
   resolve: {
