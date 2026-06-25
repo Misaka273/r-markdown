@@ -17,14 +17,12 @@ const privateHomeFile = `${__dirname}/src/views-private/home/HomePage.vue`
 const hasPrivateHome = existsSync(privateHomeFile)
 
 export default defineConfig({
-  define: {
-    __PRIVATE_HOMEPAGE__: JSON.stringify(hasPrivateHome),
-  },
   base: isWebDeploy ? '/r-markdown/' : isTauri ? './' : '/',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: [
       ...(!hasExtension ? [{ find: '@/extension', replacement: '/src/extension-stubs' }] : []),
+      ...(!hasPrivateHome ? [{ find: '@/views-private', replacement: '/src/views' }] : []),
       { find: '@', replacement: '/src' },
     ],
     // .ts 优先于 .js，避免旧的 .js 残留文件被优先加载
