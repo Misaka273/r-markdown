@@ -4,3 +4,6 @@
 [submodule "src/extension"]
 	path = src/extension
 	url = git@github.com:RobocopMao/r-markdown-extension.git
+[submodule "src/views-private"]
+	path = src/views-private
+	url = git@github.com:RobocopMao/r-markdown-views.git

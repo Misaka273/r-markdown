@@ -11,7 +11,9 @@ const router = createRouter({
       // Tauri 客户端默认打开编辑器，Web 版显示首页
       component: isTauriClient
         ? () => import('../views/editor/EditorPage.vue')
-        : () => import('../views/home/HomePage.vue'),
+        : __PRIVATE_HOMEPAGE__
+          ? () => import('../views-private/home/HomePagePixi.vue')
+          : () => import('../views/home/HomePage.vue'),
     },
     {
       path: '/editor',
@@ -22,6 +24,13 @@ const router = createRouter({
       path: '/components',
       name: 'components',
       component: () => import('@/views/extension/ExtensionPage.vue'),
+    },
+    {
+      path: '/pixi',
+      name: 'pixi',
+      component: __PRIVATE_HOMEPAGE__
+        ? () => import('../views-private/home/HomePagePixi.vue')
+        : () => import('../views/home/HomePage.vue'),
     },
   ],
   scrollBehavior() {
