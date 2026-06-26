@@ -24,6 +24,21 @@ const router = createRouter({
       name: 'components',
       component: () => import('@/views/extension/ExtensionPage.vue'),
     },
+    {
+      path: '/help',
+      name: 'help',
+      component: () => import('@/views-private/help/TutorialList.vue'),
+    },
+    {
+      path: '/help/:slug',
+      name: 'help-detail',
+      component: () => import('@/views-private/help/TutorialDetail.vue'),
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/views/404/NotFound.vue'),
+    },
   ],
   scrollBehavior() {
     return { top: 0 }

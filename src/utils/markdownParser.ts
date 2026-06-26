@@ -83,16 +83,19 @@ export function collectFormulas(md: string): Array<{ formula: string; display: b
   const seen = new Set<string>()
   const result: Array<{ formula: string; display: boolean }> = []
 
-  // 删除代码块（围栏 + 行内），避免其中的 $ / $$ 被误判为公式分隔符
+  // 先删围栏代码块（行首锚定），再删行内代码（支持多重反引号嵌套）
   const cleaned = md
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/`[^`]+`/g, '')
+    .replace(/^```[\s\S]*?\n```/gm, '')
+    .replace(/(`+)(.*?)\1/gs, '')
 
   // 行内公式 $...$
-  const inlineRe = /(?<!\$)(?<!\d)\$(?!\d)([^\$]+?)\$(?!\$|[\w])/g
+  const inlineRe = /(?<!\$)(?<!\d)\$([^\$]+?)\$(?!\$|[\w])/g
+  const pureNumberRe = /^\d+(\.\d+)?$/
   let m: RegExpExecArray | null
   while ((m = inlineRe.exec(cleaned)) !== null) {
     const f = m[1].trim()
+    // 过滤纯数字（如 $100），避免误匹配货币金额
+    if (pureNumberRe.test(f)) continue
     const key = `i:${f}`
     if (!seen.has(key)) {
       seen.add(key)
@@ -504,28 +507,28 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     // 标题 — Markdown 原生语法，不走 PTitle
     const h1m = line.match(/^#\s+(.+)/)
     if (h1m) {
-      html += `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h1m[1], t, formulaMap)}</h1>`
+      html += `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h1m[1], t, formulaMap)}</h1>`
       i++
       continue
     }
 
     const h2m = line.match(/^##\s+(.+)/)
     if (h2m) {
-      html += `<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:rgb(17,24,39);line-height:1.4">${inlineFormat(h2m[1], t, formulaMap)}</h2>`
+      html += `<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h2m[1], t, formulaMap)}</h2>`
       i++
       continue
     }
 
     const h3m = line.match(/^###\s+(.+)/)
     if (h3m) {
-      html += `<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:rgb(31,41,55);line-height:1.4">${inlineFormat(h3m[1], t, formulaMap)}</h3>`
+      html += `<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h3m[1], t, formulaMap)}</h3>`
       i++
       continue
     }
 
     const h4m = line.match(/^####\s+(.+)/)
     if (h4m) {
-      html += `<h4 style="margin:20px 0px 8px;font-size:15px;font-weight:700;color:rgb(55,65,81);line-height:1.4">${inlineFormat(h4m[1], t, formulaMap)}</h4>`
+      html += `<h4 style="margin:20px 0px 8px;font-size:15px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h4m[1], t, formulaMap)}</h4>`
       i++
       continue
     }
@@ -537,13 +540,13 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         const svg = formulaMap?.get(`b:${f}`)
         if (svg) return svg
         // 降级：显示公式原文，方便排查 formulaMap 缺失的情况
-        return `<code style="display:inline-block;background:#f3f4f6;padding:6px 12px;border-radius:6px;font-size:14px;font-family:SF Mono,Consolas,monospace;color:#e83e8c;max-width:100%;overflow-x:auto;white-space:nowrap">$${esc(f)}$$</code>`
+        return `<code style="display:inline-block;background:var(--hl-code-bg);padding:6px 12px;border-radius:6px;font-size:14px;font-family:SF Mono,Consolas,monospace;color:var(--hl-str);max-width:100%;overflow-x:auto;white-space:nowrap">$${esc(f)}$$</code>`
       }
       // 单行模式：$$formula$$
       const singleMatch = line.match(/^\$\$(.+?)\$\$/)
       if (singleMatch) {
         const formula = singleMatch[1].trim()
-        html += `<section style="overflow-x:auto;margin:24px 0;color:#333"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
+        html += `<section style="overflow-x:auto;margin:24px 0;color:var(--text-primary)"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
         i++
         continue
       }
@@ -556,7 +559,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       }
       if (i < lines.length) i++ // 跳过闭合的 $$
       const formula = formulaLines.join('\n').trim()
-      html += `<section style="overflow-x:auto;margin:24px 0;color:#333"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
+      html += `<section style="overflow-x:auto;margin:24px 0;color:var(--text-primary)"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
       continue
     }
 
@@ -688,15 +691,15 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     }
 
     // 普通段落
-    html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:rgb(51,65,85);line-height:1.85;text-align:justify;overflow-wrap:break-word;word-break:break-all">${inlineFormat(line, t, formulaMap)}</p></section>`
+    html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:var(--text-primary);line-height:1.85;text-align:justify;overflow-wrap:break-word;word-break:break-all">${inlineFormat(line, t, formulaMap)}</p></section>`
     i++
   }
 
   // 添加脚注参考资料
   if (footnotes.length > 0) {
     html += `<section style="margin:32px 0px 0px;padding-top:20px;border-top:1px solid ${t.border}">`
-    html += `<h2 style="margin:0px 0px 16px;font-size:18px;font-weight:700;color:rgb(17,24,39);line-height:1.4">参考资料</h2>`
-    html += `<section style="font-size:14px;color:rgb(100,116,139);line-height:1.8">`
+    html += `<h2 style="margin:0px 0px 16px;font-size:18px;font-weight:700;color:var(--text-primary);line-height:1.4">参考资料</h2>`
+    html += `<section style="font-size:14px;color:var(--text-secondary);line-height:1.8">`
     footnotes.forEach((fn, idx) => {
       html += `<p style="margin:6px 0px"><span style="color:${t.accent};font-weight:600">[${idx + 1}]</span> ${leaf(fn.desc)}：<a href="${esc(fn.url)}" style="color:${t.accent};word-break:break-all">${esc(fn.url)}</a></p>`
     })

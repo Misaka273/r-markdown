@@ -2,8 +2,11 @@
 import { ref, watch } from 'vue'
 import { toPng } from 'html-to-image'
 import type { ThemeColors } from '@/composables/useTheme'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import Toast from '@/components/Toast.vue'
+
+const { isDark } = useDarkMode()
 
 const props = defineProps<{
   markdown: string
@@ -12,10 +15,27 @@ const props = defineProps<{
 }>()
 
 const previewRef = ref<HTMLElement>()
+const scrollContainerRef = ref<HTMLElement>()
 const saving = ref(false)
 const toastVisible = ref(false)
 const toastMessage = ref('')
+const hintVisible = ref(false)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
+let hintTimer: ReturnType<typeof setTimeout> | null = null
+let scrollDebounce: ReturnType<typeof setTimeout> | null = null
+
+function onScroll() {
+  if (!isDark.value) return
+  hintVisible.value = false
+  if (scrollDebounce) clearTimeout(scrollDebounce)
+  scrollDebounce = setTimeout(() => {
+    hintVisible.value = true
+    if (hintTimer) clearTimeout(hintTimer)
+    hintTimer = setTimeout(() => {
+      hintVisible.value = false
+    }, 5000)
+  }, 300)
+}
 
 function showToast(msg: string) {
   toastMessage.value = msg
@@ -154,7 +174,9 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
 </script>
 
 <template>
+  <div style="position:relative;height:100%;">
   <div
+    ref="scrollContainerRef"
     class="preview-scroll"
     style="
       height: 100%;
@@ -163,6 +185,7 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
     "
+    @scroll="onScroll"
   >
     <div
       class="phone-frame"
@@ -190,12 +213,44 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
       ></div>
     </div>
   </div>
+  <Transition name="hint-fade">
+    <div
+      v-show="hintVisible"
+      :style="{
+        position: 'absolute',
+        top: isMobile ? '0' : undefined,
+        bottom: isMobile ? undefined : '0',
+        left: '0',
+        right: '0',
+        padding: '10px 16px',
+        background: 'var(--bg-primary)',
+        [isMobile ? 'borderBottom' : 'borderTop']: '1px solid var(--border-color)',
+        textAlign: 'center',
+        fontSize: '12px',
+        color: 'var(--text-muted)',
+        pointerEvents: 'none',
+      }"
+    >
+      深色模式下，请以微信实际预览结果为准
+    </div>
+  </Transition>
+  </div>
   <Toast :visible="toastVisible" :message="toastMessage" />
 </template>
 
 <style scoped>
 .preview-scroll::-webkit-scrollbar {
   display: none;
+}
+.hint-fade-enter-active {
+  transition: opacity 0.4s ease;
+}
+.hint-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+.hint-fade-enter-from,
+.hint-fade-leave-to {
+  opacity: 0;
 }
 @media (max-width: 767px) {
   .preview-scroll {

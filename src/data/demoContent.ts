@@ -1,7 +1,5 @@
 export const DEMO_CONTENT = `<title type="DA02" badge="GUIDE" subtitle="这是一份包含所有可用 Markdown 指令及扩展标签的完整演示稿。" chips="图片并排|窗口滚动|渐变文字">功能全集：排版组件指南</title>
 
-<reading-path></reading-path>
-
 <p-title num="01" title="图片增强特性" subtitle="IMAGES · 窗口化与并排" level="1"></p-title>
 
 这是本次更新的核心功能，解决了长图刷屏和多图堆叠的问题。
@@ -213,7 +211,7 @@ Lead 组件会生成一段带有左侧边框的引导文字，适合用来引入
 
 现在，[R-Markdown](https://robocopmao.github.io/r-markdown "R-Markdown是一款开源免费公众号扩展排版编辑器") 已在GitHub开源。
 
-<p-title num="07" title="写在最后" subtitle="CONCLUSION · 结尾互动" level="1"></p-title>
+<p-title num="08" title="写在最后" subtitle="CONCLUSION · 结尾互动" level="1"></p-title>
 
 所有组件都支持公众号无损复制，您可以根据需要自由组合。
 

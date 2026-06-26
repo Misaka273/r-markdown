@@ -1,10 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { getSetting, setSetting } from '@/config/settings'
 import {
   Component, Paperclip, FilePlus, Download, Bot, Import, Images,
-  Sun, Moon, Monitor, Bolt, ChevronDown, ChevronUp, SquareBottomDashedScissors
+  Sun, Moon, Monitor, Bolt, ChevronDown, ChevronUp, SquareBottomDashedScissors,
+  HelpCircle
 } from 'lucide-vue-next'
+
+const isTauri = import.meta.env.VITE_TAURI === 'true'
+const router = useRouter()
+const helpHref = computed(() => isTauri ? 'https://r-markdown.pages.dev/#/help' : undefined)
+
+function openHelp() {
+  if (isTauri) {
+    window.open('https://r-markdown.pages.dev/#/help', '_blank', 'noopener,noreferrer')
+  } else {
+    router.push('/help')
+  }
+}
 
 const props = defineProps<{
   activeTab?: string
@@ -169,6 +183,17 @@ function toggleCollapse() {
           </button>
         </div>
       </div>
+      <!-- 帮助 button -->
+      <a
+        :href="helpHref"
+        :target="isTauri ? '_blank' : undefined"
+        class="sidebar-top-btn flex flex-col items-center gap-0.5 w-full py-2 rounded-lg border-none cursor-pointer transition-colors duration-150 no-underline"
+        title="使用帮助"
+        @click.prevent="openHelp"
+      >
+        <HelpCircle :size="24" class="shrink-0" />
+        <span class="text-[10px] leading-tight">帮助</span>
+      </a>
     </div>
 
     <!-- Bottom buttons: dark mode / settings / collapse — always visible -->

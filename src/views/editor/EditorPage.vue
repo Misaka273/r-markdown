@@ -1141,7 +1141,7 @@ onBeforeUnmount(() => {
           @click="handleCopyRichText"
         >
           <Copy :size="14" />
-          复制富文本
+          复制到公众号
         </button>
         <!-- 移动端：下拉菜单 -->
         <MobileActionsMenu
@@ -1430,7 +1430,8 @@ onBeforeUnmount(() => {
           'mobile-near-bottom': nearBottom && isMobile,
           'rounded-xl': !isMobile,
         }"
-        :style="isMobile ? { background: '#fff' } : { width: previewWidth + 'px', background: '#fff' }"
+        data-theme="light"
+        :style="isMobile ? { background: 'var(--bg-primary)' } : { width: previewWidth + 'px', background: 'var(--bg-primary)' }"
       >
         <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" :is-mobile="isMobile" />
       </div>

@@ -50,14 +50,14 @@ export function inlineFormat(text: string, t: ThemeColors, formulaMap?: Map<stri
   )
   // $行内公式$ — 优先取 formulaMap 中的预渲染 SVG；无可用时显示公式原文
   text = text.replace(
-    /(?<!\$)(?<!\d)\$(?!\d)([^\$]+?)\$(?!\$|[\w])/g,
+    /(?<!\$)(?<!\d)\$([^\$]+?)\$(?!\$|[\w])/g,
     (_m, formula: string) => {
       if (formulaMap) {
         const svg = formulaMap.get(`i:${formula}`)
-        if (svg) return svg
+        if (svg) return `<span style="color:var(--text-primary)">${svg}</span>`
       }
       // 降级：显示公式原文
-      return `<code style="font-style:italic;background:#f3f4f6;padding:1px 4px;border-radius:3px">${esc(formula)}</code>`
+      return `<code style="font-style:italic;background:var(--hl-code-bg);padding:1px 4px;border-radius:3px">${esc(formula)}</code>`
     },
   )
   // ==渐变背景==

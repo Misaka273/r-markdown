@@ -119,10 +119,10 @@ onBeforeUnmount(() => {
           @click="handleAction(() => emit('copy-rich-text'))"
         >
           <Copy :size="14" />
-          复制富文本
+          复制到公众号
         </button>
         <div class="px-4 pb-1 text-[10px] opacity-40 leading-tight">
-          移动端复制富文本会丢失样式，推荐在PC端操作
+          移动端复制到公众号会丢失样式，推荐在PC端操作
         </div>
       </template>
     </div>

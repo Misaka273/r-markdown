@@ -50,7 +50,7 @@ export function preloadMathJax(): void {
 /**
  * 使用 MathJax 将 LaTeX 公式渲染为自包含 SVG。
  * - fontCache='none' 确保路径直接内联（无 <use> 引用）
- * - 替换 currentColor → #333（微信不兼容 CSS 关键字）
+ * - 保留 currentColor 让 SVG 继承父级文字颜色（亮色/暗色自适应）
  */
 export async function renderMath(formula: string, displayMode: boolean = false): Promise<string> {
   await loadMathJax()
@@ -64,7 +64,6 @@ export async function renderMath(formula: string, displayMode: boolean = false):
 
     return adaptor
       .outerHTML(node)
-      .replace(/currentColor/g, '#333')
       // 微信不兼容 xlink 命名空间，统一改为现代 SVG
       .replace(/xlink:href/g, 'href')
       // 强行设 display:inline（MathJax 可能通过样式表注入 display:block）
