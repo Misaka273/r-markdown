@@ -4,13 +4,14 @@
  * 将图片上传到乐塔图床，返回公开访问链接。
  * API 文档：https://www.ltimg.com/api/v2
  *
- * Dev 模式下通过 Vite proxy（/api/leta → https://www.ltimg.com）绕过 CORS，
- * 生产环境（Tauri）直连 API 域名。
+ * Tauri 桌面端直连 API（无 CORS 限制）。
+ * Web 端通过代理路径 /api/leta（Dev→Vite proxy / 生产→Cloudflare Pages Function）。
  */
 
-const UPLOAD_URL = import.meta.env.DEV
-  ? '/api/leta/v2/upload'
-  : 'https://www.ltimg.com/api/v2/upload'
+const isTauri = import.meta.env.VITE_TAURI === 'true'
+const UPLOAD_URL = isTauri
+  ? 'https://www.ltimg.com/api/v2/upload'
+  : '/api/leta/v2/upload'
 
 export interface LetaUploadConfig {
   token: string
