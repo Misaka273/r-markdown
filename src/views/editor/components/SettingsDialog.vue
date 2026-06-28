@@ -455,7 +455,7 @@ async function doDownloadUpdate() {
         <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
           本地存储：图片以 base64 编码嵌入文档（压缩后单张 ≤ 5M），建议开启压缩以减少文档体积<br />
           GitHub 图床：上传至仓库后使用 CDN 链接（压缩后单张 ≤ 5MB）<br />
-          乐塔图床：通过乐塔 API 上传，返回直链地址
+          乐塔图床：通过乐塔 API 上传，返回直链地址（压缩后单张 ≤ 10MB）
         </p>
 
         <!-- 默认图床（工具栏上传按钮使用） -->
@@ -502,10 +502,7 @@ async function doDownloadUpdate() {
             <span>高（高画质）</span>
           </div>
           <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
-            对应 JPEG 压缩质量，值越高图片越清晰，体积越大。
-          </p>
-          <p class="text-[10px] text-[#999] dark:text-[#666] mt-0.5">
-            压缩后图片将统一转为 JPEG 格式
+            对应 JPEG 压缩质量，值越高图片越清晰，体积越大。压缩比100%时，不会对图片做任何处理。压缩后图片将统一转为 JPEG 格式。
           </p>
         </div>
 
