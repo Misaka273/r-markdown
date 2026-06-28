@@ -181,7 +181,6 @@ jobs:
             | 平台 | 文件 |
             |------|------|
             | macOS | `.dmg` |
-            | Windows | `.msi` |
+            | Windows | `.msi` `.exe` |
 
-            安装后应用会自动检测更新。
           draft: true
