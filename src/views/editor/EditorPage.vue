@@ -664,6 +664,10 @@ function handleDropNonImage() {
 // ── 图床上传 ──
 const githubUploading = ref(false)
 const githubUploadProgress = ref(0)
+const uploadHostingLabel = computed(() => {
+  const hosting = getSetting<string>('defaultHosting') || 'github'
+  return hosting === 'leta' ? '乐塔图床' : 'GitHub 图床'
+})
 
 function handleUploadToGitHub() {
   githubImageInputRef.value?.click()
@@ -1423,7 +1427,7 @@ onBeforeUnmount(() => {
           class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-xl bg-[#111] text-white text-sm shadow-lg"
         >
           <div class="flex items-center gap-2 mb-1.5">
-            <span>正在上传到 GitHub...</span>
+            <span>正在上传到 {{ uploadHostingLabel }}...</span>
             <span class="font-medium text-[var(--accent)]">{{ githubUploadProgress }}%</span>
           </div>
           <div class="h-1 w-48 rounded-full bg-[#444] overflow-hidden">

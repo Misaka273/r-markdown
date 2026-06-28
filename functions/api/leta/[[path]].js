@@ -11,5 +11,30 @@ export async function onRequest(context) {
     body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
   })
 
-  return fetch(modifiedRequest)
+  // Handle CORS preflight
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': request.headers.get('Origin') || '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
+        'Access-Control-Max-Age': '86400',
+      },
+    })
+  }
+
+  const upstreamResponse = await fetch(modifiedRequest)
+
+  // Add CORS headers to upstream response
+  const corsHeaders = new Headers(upstreamResponse.headers)
+  corsHeaders.set('Access-Control-Allow-Origin', request.headers.get('Origin') || '*')
+  corsHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  corsHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+
+  return new Response(upstreamResponse.body, {
+    status: upstreamResponse.status,
+    statusText: upstreamResponse.statusText,
+    headers: corsHeaders,
+  })
 }
