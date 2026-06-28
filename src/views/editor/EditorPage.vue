@@ -578,13 +578,13 @@ async function processImageInsert(file: File, insertAt: number | null = null) {
     const quality = (getSetting<number>('compressQuality') || 100) / 100
     if (quality < 1.0) {
       showToast('正在压缩图片...')
-      uploadFile = await compressImage(file, 20000, quality)
-      if (uploadFile.size > 20 * 1024 * 1024) {
-        showToast('图片压缩后仍超过 20MB')
+      uploadFile = await compressImage(file, 10000, quality)
+      if (uploadFile.size > 10 * 1024 * 1024) {
+        showToast('图片压缩后仍超过 10MB')
         return
       }
-    } else if (file.size > 20 * 1024 * 1024) {
-      showToast('图片不能超过 20MB')
+    } else if (file.size > 10 * 1024 * 1024) {
+      showToast('图片不能超过 10MB')
       return
     }
     githubUploading.value = true
@@ -664,10 +664,7 @@ function handleDropNonImage() {
 // ── 图床上传 ──
 const githubUploading = ref(false)
 const githubUploadProgress = ref(0)
-const uploadHostingLabel = computed(() => {
-  const hosting = getSetting<string>('defaultHosting') || 'github'
-  return hosting === 'leta' ? '乐塔图床' : 'GitHub 图床'
-})
+const uploadHostingLabel = ref('图床')
 
 function handleUploadToGitHub() {
   githubImageInputRef.value?.click()
@@ -685,7 +682,8 @@ async function onGithubImageSelected(e: Event) {
   }
 
   const hosting = getSetting<string>('defaultHosting') || 'github'
-  const maxSize = hosting === 'leta' ? 20 : 5
+  uploadHostingLabel.value = hosting === 'leta' ? '乐塔图床' : 'GitHub 图床'
+  const maxSize = hosting === 'leta' ? 10 : 5
 
   const quality = (getSetting<number>('compressQuality') || 100) / 100
   let finalFile = file
