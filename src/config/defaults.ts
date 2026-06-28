@@ -25,8 +25,14 @@ export const DEFAULT_SETTINGS: Record<string, SettingDef> = {
   githubToken: { default: '' },
   /** GitHub 仓库分支 */
   githubBranch: { default: 'main' },
-  /** 粘贴/拖拽图片上传方式：'local' 本地 base64 | 'github' GitHub 图床 */
+  /** 乐塔图床 Token */
+  letaToken: { default: '' },
+  /** 乐塔图床存储 ID */
+  letaStorageId: { default: '1' },
+  /** 粘贴/拖拽图片上传方式：'local' 本地存储 | 'github' GitHub 图床 | 'leta' 乐塔图床 */
   pasteDropMode: { default: 'local' },
+  /** 工具栏图床上传默认使用哪个图床：'github' | 'leta' */
+  defaultHosting: { default: 'github' },
   /** 图片压缩质量 10-100，对应 JPEG quality 0.1-1.0 */
   compressQuality: { default: 100 },
 }

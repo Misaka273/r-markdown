@@ -9,6 +9,7 @@ import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettin
 import { testConnection } from '@/services/githubUploader'
 import { useTheme } from '@/composables/useTheme'
 import ImageCacheDialog from './ImageCacheDialog.vue'
+import { testConnection as testLetaConnection } from '@/services/letaUploader'
 
 defineProps<{
   visible: boolean
@@ -25,6 +26,8 @@ const { colors } = useTheme()
 
 // ── 设置 tab ──
 const settingsTab = ref(isTauri ? 'basic' : 'github')
+// 图床上传子 tab：upload | github | leta
+const hostingTab = ref('upload')
 
 // ── 图床配置 ──
 const githubRepo = ref(getSetting<string>('githubRepo'))
@@ -34,6 +37,13 @@ const githubBranch = ref(getSetting<string>('githubBranch'))
 const githubTesting = ref(false)
 const githubTestResult = ref<'ok' | 'fail' | ''>('')
 const githubTestError = ref('')
+
+const letaToken = ref(getSetting<string>('letaToken'))
+const letaStorageId = ref(getSetting<string>('letaStorageId'))
+
+const letaTesting = ref(false)
+const letaTestResult = ref<'ok' | 'fail' | ''>('')
+const letaTestError = ref('')
 
 function saveGitHubRepo(val: string) {
   githubRepo.value = val
@@ -56,12 +66,34 @@ function saveGitHubBranch(val: string) {
   githubTestError.value = ''
 }
 
+function saveLetuToken(val: string) {
+  letaToken.value = val
+  setSetting('letaToken', val)
+  letaTestResult.value = ''
+  letaTestError.value = ''
+}
+
+function saveLetuStorageId(val: string) {
+  letaStorageId.value = val
+  setSetting('letaStorageId', val)
+  letaTestResult.value = ''
+  letaTestError.value = ''
+}
+
 // ── 粘贴/拖拽上传方式 ──
 const pasteDropMode = ref(getSetting<string>('pasteDropMode'))
 
 function savePasteDropMode(val: string) {
   pasteDropMode.value = val
   setSetting('pasteDropMode', val)
+}
+
+// ── 默认图床（工具栏上传按钮使用）──
+const defaultHosting = ref(getSetting<string>('defaultHosting'))
+
+function saveDefaultHosting(val: string) {
+  defaultHosting.value = val
+  setSetting('defaultHosting', val)
 }
 
 // ── 压缩质量 ──
@@ -89,6 +121,24 @@ async function handleTestConnection() {
     githubTestError.value = e.message || '连接失败'
   }
   githubTesting.value = false
+}
+
+async function handleTestLetuConnection() {
+  if (!letaToken.value) return
+  letaTesting.value = true
+  letaTestResult.value = ''
+  letaTestError.value = ''
+  try {
+    await testLetaConnection({
+      token: letaToken.value,
+      storageId: letaStorageId.value || '1',
+    })
+    letaTestResult.value = 'ok'
+  } catch (e: any) {
+    letaTestResult.value = 'fail'
+    letaTestError.value = e.message || '连接失败'
+  }
+  letaTesting.value = false
 }
 
 const currentZoom = ref(getSetting<number>('pageZoom'))
@@ -345,92 +395,95 @@ async function doDownloadUpdate() {
 
     <!-- 图床设置 -->
     <template v-if="settingsTab === 'github'">
-      <section>
-        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+      <!-- 图床子 tab -->
+      <div class="flex gap-1.5 mb-4">
+        <button
+          class="cursor-pointer whitespace-nowrap rounded-full border px-3 py-[5px] text-xs transition-colors"
+          :class="hostingTab === 'upload'
+            ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)] font-medium'
+            : 'border-[#e5e5e5] bg-white text-[#999] hover:border-[#ccc] dark:border-[#444] dark:bg-[#2a2a2a] dark:hover:border-[#666]'"
+          @click="hostingTab = 'upload'"
+        >
+          上传设置
+        </button>
+        <button
+          class="cursor-pointer whitespace-nowrap rounded-full border px-3 py-[5px] text-xs transition-colors"
+          :class="hostingTab === 'github'
+            ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)] font-medium'
+            : 'border-[#e5e5e5] bg-white text-[#999] hover:border-[#ccc] dark:border-[#444] dark:bg-[#2a2a2a] dark:hover:border-[#666]'"
+          @click="hostingTab = 'github'"
+        >
           GitHub 图床
-        </h3>
-        <p class="text-[11px] text-[#999] dark:text-[#666] mb-3">
-          图片通过 GitHub API 上传后，使用 jsDelivr CDN 返回链接。
-          需要公共仓库 + Personal Access Token（repo 权限）。
-        </p>
-        <!-- 仓库 -->
-        <div class="mb-3">
-          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">仓库</label>
-          <input
-            :value="githubRepo"
-            placeholder="用户名/仓库名"
-            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
-            @input="saveGitHubRepo(($event.target as HTMLInputElement).value)"
-          />
-        </div>
-        <!-- Token -->
-        <div class="mb-3">
-          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">Personal Access Token</label>
-          <input
-            :value="githubToken"
-            type="password"
-            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
-            @input="saveGitHubToken(($event.target as HTMLInputElement).value)"
-          />
-        </div>
-        <!-- 分支 -->
-        <div class="mb-3">
-          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">分支</label>
-          <input
-            :value="githubBranch"
-            placeholder="main"
-            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
-            @input="saveGitHubBranch(($event.target as HTMLInputElement).value)"
-          />
-        </div>
-        <!-- 测试连接 -->
-        <div class="flex items-center gap-3">
-          <button
-            class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="!githubRepo || !githubToken || githubTesting"
-            @click="handleTestConnection"
-          >
-            {{ githubTesting ? '测试中…' : '测试连接' }}
-          </button>
-          <span
-            v-if="githubTestResult === 'ok'"
-            class="text-[12px]"
-            :style="{ color: colors.accent }"
-          >连接成功</span>
-          <span
-            v-if="githubTestResult === 'fail'"
-            class="text-[12px] text-[#e74c3c]"
-          >连接失败</span>
-        </div>
+        </button>
+        <button
+          class="cursor-pointer whitespace-nowrap rounded-full border px-3 py-[5px] text-xs transition-colors"
+          :class="hostingTab === 'leta'
+            ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)] font-medium'
+            : 'border-[#e5e5e5] bg-white text-[#999] hover:border-[#ccc] dark:border-[#444] dark:bg-[#2a2a2a] dark:hover:border-[#666]'"
+          @click="hostingTab = 'leta'"
+        >
+          乐塔图床
+        </button>
+      </div>
 
+      <section v-if="hostingTab === 'upload'">
         <!-- 上传方式 -->
-        <div class="mt-4 pt-3 border-t border-[#eee] dark:border-[#444]">
-          <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">{{ isTauri ? '粘贴上传方式' : '粘贴/拖拽上传方式' }}</h3>
+        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">{{ isTauri ? '粘贴上传方式' : '粘贴/拖拽上传方式' }}</h3>
+        <div class="flex gap-2">
+          <label
+            class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
+            :class="pasteDropMode === 'local' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
+          >
+            <input type="radio" class="sr-only" value="local" :checked="pasteDropMode === 'local'" @change="savePasteDropMode('local')" />
+            本地存储
+          </label>
+          <label
+            class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
+            :class="pasteDropMode === 'github' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
+          >
+            <input type="radio" class="sr-only" value="github" :checked="pasteDropMode === 'github'" @change="savePasteDropMode('github')" />
+            GitHub 图床
+          </label>
+          <label
+            class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
+            :class="pasteDropMode === 'leta' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
+          >
+            <input type="radio" class="sr-only" value="leta" :checked="pasteDropMode === 'leta'" @change="savePasteDropMode('leta')" />
+            乐塔图床
+          </label>
+        </div>
+        <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
+          本地存储：图片以 base64 编码嵌入文档（压缩后单张 ≤ 5M），建议开启压缩以减少文档体积<br />
+          GitHub 图床：上传至仓库后使用 CDN 链接（压缩后单张 ≤ 5MB）<br />
+          乐塔图床：通过乐塔 API 上传，返回直链地址
+        </p>
+
+        <!-- 默认图床（工具栏上传按钮使用） -->
+        <div class="mt-4">
+          <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">默认图床</h3>
+          <p class="text-[11px] text-[#999] dark:text-[#666] mb-3">
+            点击工具栏「图床」按钮上传时使用的图床服务，独立于粘贴/拖拽方式。
+          </p>
           <div class="flex gap-2">
             <label
               class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
-              :class="pasteDropMode === 'local' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
+              :class="defaultHosting === 'github' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
             >
-              <input type="radio" class="sr-only" value="local" :checked="pasteDropMode === 'local'" @change="savePasteDropMode('local')" />
-              本地存储
+              <input type="radio" class="sr-only" value="github" :checked="defaultHosting === 'github'" @change="saveDefaultHosting('github')" />
+              GitHub 图床
             </label>
             <label
               class="cursor-pointer rounded-lg border px-4 py-2 text-center text-[12px] transition-colors min-w-[110px]"
-              :class="pasteDropMode === 'github' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
+              :class="defaultHosting === 'leta' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[#e5e5e5] bg-white text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999]'"
             >
-              <input type="radio" class="sr-only" value="github" :checked="pasteDropMode === 'github'" @change="savePasteDropMode('github')" />
-              GitHub 图床
+              <input type="radio" class="sr-only" value="leta" :checked="defaultHosting === 'leta'" @change="saveDefaultHosting('leta')" />
+              乐塔图床
             </label>
           </div>
-          <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
-            本地存储：图片以 base64 编码嵌入文档（压缩后单张 ≤ 5M），建议开启压缩以减少文档体积<br />
-            GitHub 图床：上传至仓库后使用 CDN 链接（压缩后单张 ≤5MB）
-          </p>
         </div>
 
         <!-- 压缩质量 -->
-        <div class="mt-3">
+        <div class="mt-4">
           <div class="flex items-center justify-between mb-1">
             <label class="text-[12px] text-[#666] dark:text-[#999]">压缩质量</label>
             <span class="text-[12px] font-medium tabular-nums text-[var(--accent)]">{{ compressQuality }}%</span>
@@ -467,6 +520,97 @@ async function doDownloadUpdate() {
           <p class="text-[10px] text-[#999] dark:text-[#666] mt-1.5">
             查看并清理编辑器本地存储的图片缓存，释放磁盘空间。
           </p>
+        </div>
+      </section>
+
+      <section v-if="hostingTab === 'github'">
+        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+          GitHub 图床
+        </h3>
+        <p class="text-[11px] text-[#999] dark:text-[#666] mb-3">
+          图片通过 GitHub API 上传后，使用 jsDelivr CDN 返回链接。
+          需要公共仓库 + Personal Access Token（repo 权限）。
+        </p>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">仓库</label>
+          <input
+            :value="githubRepo"
+            placeholder="用户名/仓库名"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveGitHubRepo(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">Personal Access Token</label>
+          <input
+            :value="githubToken"
+            type="password"
+            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveGitHubToken(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">分支</label>
+          <input
+            :value="githubBranch"
+            placeholder="main"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveGitHubBranch(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="!githubRepo || !githubToken || githubTesting"
+            @click="handleTestConnection"
+          >
+            {{ githubTesting ? '测试中…' : '测试连接' }}
+          </button>
+          <span v-if="githubTestResult === 'ok'" class="text-[12px]" :style="{ color: colors.accent }">连接成功</span>
+          <span v-if="githubTestResult === 'fail'" class="text-[12px] text-[#e74c3c]">连接失败</span>
+        </div>
+      </section>
+
+      <section v-if="hostingTab === 'leta'">
+        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+          乐塔图床
+        </h3>
+        <p class="text-[11px] text-[#999] dark:text-[#666] mb-3">
+          通过乐塔图床 API 上传图片，返回直链地址。
+        </p>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">Token</label>
+          <input
+            :value="letaToken"
+            type="password"
+            placeholder="Token"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveLetuToken(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">存储 ID</label>
+          <input
+            :value="letaStorageId"
+            placeholder="1"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveLetuStorageId(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+          <p class="text-[11px] text-[#999] dark:text-[#666] mb-3">
+            登录乐塔图床，按F12打开控制台，切换到Network标签，上传一张图片，点击upload接口，点击Payload，找到storage_id的值。
+          </p>
+        <div class="flex items-center gap-3">
+          <button
+            class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="!letaToken || letaTesting"
+            @click="handleTestLetuConnection"
+          >
+            {{ letaTesting ? '测试中…' : '测试连接' }}
+          </button>
+          <span v-if="letaTestResult === 'ok'" class="text-[12px]" :style="{ color: colors.accent }">连接成功</span>
+          <span v-if="letaTestResult === 'fail'" class="text-[12px] text-[#e74c3c]">连接失败</span>
         </div>
       </section>
     </template>

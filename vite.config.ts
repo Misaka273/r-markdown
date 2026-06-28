@@ -37,6 +37,18 @@ function baiduPlugin(): Plugin {
 export default defineConfig({
   base: isWebDeploy ? '/r-markdown/' : isTauri ? './' : '/',
   plugins: [vue(), tailwindcss(), baiduPlugin()],
+  server: {
+    proxy: {
+      '/api/leta': {
+        target: 'https://www.ltimg.com',
+        changeOrigin: true,
+        rewrite: (path) => {
+          const rewritten = path.replace(/^\/api\/leta/, '/api')
+          return rewritten === '/api' ? '/' : rewritten
+        },
+      },
+    },
+  },
   resolve: {
     alias: [
       ...(!hasExtension ? [{ find: '@/extension', replacement: '/src/extension-stubs' }] : []),

@@ -7,6 +7,7 @@ import { getSetting } from '@/config/settings'
 import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { uploadToGitHub } from '@/services/githubUploader'
+import { uploadToLeta } from '@/services/letaUploader'
 import { DEMO_CONTENT } from '@/data/demoContent'
 import { DraftStorage, type Draft } from '@/services/DraftStorage'
 import { extractTitle, sanitizeFilename } from '@/utils/extractTitle'
@@ -566,6 +567,52 @@ async function processImageInsert(file: File, insertAt: number | null = null) {
     return
   }
 
+  if (mode === 'leta') {
+    const token = getSetting<string>('letaToken')
+    const storageId = getSetting<string>('letaStorageId') || '1'
+    if (!token) {
+      showToast('请先在设置中配置乐塔图床 Token')
+      return
+    }
+    let uploadFile = file
+    const quality = (getSetting<number>('compressQuality') || 100) / 100
+    if (quality < 1.0) {
+      showToast('正在压缩图片...')
+      uploadFile = await compressImage(file, 20000, quality)
+      if (uploadFile.size > 20 * 1024 * 1024) {
+        showToast('图片压缩后仍超过 20MB')
+        return
+      }
+    } else if (file.size > 20 * 1024 * 1024) {
+      showToast('图片不能超过 20MB')
+      return
+    }
+    githubUploading.value = true
+    githubUploadProgress.value = 0
+    uploadToLeta(
+      uploadFile,
+      { token, storageId },
+      (percent) => { githubUploadProgress.value = percent },
+    )
+      .then((result) => {
+        const tag = `<img src="${result.url}" width="100%" height="auto" radius="8px" fit="cover" />`
+        if (insertAt !== null) {
+          editorRef.value?.replaceRange(insertAt, insertAt, tag)
+        } else {
+          editorRef.value?.insertAtCursor(tag)
+        }
+        showToast('上传成功')
+      })
+      .catch((e: any) => {
+        showToast(e.message || '上传失败')
+      })
+      .finally(() => {
+        githubUploading.value = false
+        githubUploadProgress.value = 0
+      })
+    return
+  }
+
   // 本地模式 → IndexedDB 存储
   const quality = (getSetting<number>('compressQuality') || 100) / 100
   let finalFile = file
@@ -633,18 +680,50 @@ async function onGithubImageSelected(e: Event) {
     return
   }
 
+  const hosting = getSetting<string>('defaultHosting') || 'github'
+  const maxSize = hosting === 'leta' ? 20 : 5
+
   const quality = (getSetting<number>('compressQuality') || 100) / 100
   let finalFile = file
   if (quality < 1.0) {
     showToast('正在压缩图片...')
-    finalFile = await compressImage(file, 5000, quality)
-    if (finalFile.size > 5 * 1024 * 1024) {
-      showToast('图片压缩后仍超过 5MB')
+    finalFile = await compressImage(file, maxSize * 1000, quality)
+    if (finalFile.size > maxSize * 1024 * 1024) {
+      showToast(`图片压缩后仍超过 ${maxSize}MB`)
       input.value = ''
       return
     }
-  } else if (file.size > 5 * 1024 * 1024) {
-    showToast('图片不能超过 5MB')
+  } else if (file.size > maxSize * 1024 * 1024) {
+    showToast(`图片不能超过 ${maxSize}MB`)
+    input.value = ''
+    return
+  }
+
+  if (hosting === 'leta') {
+    const letaToken = getSetting<string>('letaToken')
+    const storageId = getSetting<string>('letaStorageId') || '1'
+    if (!letaToken) {
+      showToast('请先在设置中配置乐塔图床 Token')
+      input.value = ''
+      return
+    }
+    githubUploading.value = true
+    githubUploadProgress.value = 0
+    try {
+      const result = await uploadToLeta(
+        finalFile,
+        { token: letaToken, storageId },
+        (percent) => { githubUploadProgress.value = percent },
+      )
+      editorRef.value?.insertAtCursor(
+        `<img src="${result.url}" width="100%" height="auto" radius="8px" fit="cover" />`,
+      )
+      showToast('上传成功')
+    } catch (e: any) {
+      showToast(e.message || '上传失败')
+    }
+    githubUploading.value = false
+    githubUploadProgress.value = 0
     input.value = ''
     return
   }
