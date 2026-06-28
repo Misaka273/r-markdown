@@ -8,7 +8,6 @@
  * 生产环境（Tauri）直连 API 域名。
  */
 
-const API_BASE = import.meta.env.DEV ? '/api/leta' : 'https://www.ltimg.com'
 const UPLOAD_URL = import.meta.env.DEV
   ? '/api/leta/v2/upload'
   : 'https://www.ltimg.com/api/v2/upload'
@@ -83,22 +82,24 @@ export async function uploadToLeta(
 /**
  * 测试图床连接
  *
- * 向 API 基地址发起 GET 请求验证 Token 有效性（upload 端点仅支持 POST，故不能直接测上传接口）。
+ * 向上传接口发 POST 空请求验证 Token 有效性和网络可达。
+ * 服务器会返回 302/400 等非 200 响应，只要不是网络错误或 401 即视为可达。
  */
 export async function testConnection(config: LetaUploadConfig): Promise<boolean> {
-  const response = await fetch(`${API_BASE}`, {
-    method: 'GET',
+  const formData = new FormData()
+  formData.append('storage_id', config.storageId || '1')
+
+  const response = await fetch(UPLOAD_URL, {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${config.token}`,
       Accept: 'application/json',
     },
+    body: formData,
   })
 
-  if (!response.ok) {
-    if (response.status === 401) throw new Error('Token 无效或未授权')
-    if (response.status === 403) throw new Error('接口功能已关闭或无权限')
-    throw new Error(`连接失败 (${response.status})`)
-  }
-
+  // 401 明确表示 token 无效
+  if (response.status === 401) throw new Error('Token 无效或未授权')
+  // 服务器有响应（无论 302/400/500）即表示网络可达
   return true
 }
