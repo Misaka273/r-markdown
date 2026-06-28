@@ -11,7 +11,7 @@
 const isTauri = import.meta.env.VITE_TAURI === 'true'
 const UPLOAD_URL = isTauri
   ? 'https://www.ltimg.com/api/v2/upload'
-  : '/api/leta/v2/upload'
+  : 'https://r-markdown.pages.dev/api/leta/v2/upload'
 
 export interface LetaUploadConfig {
   token: string
