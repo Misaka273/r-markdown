@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import BaseDialog from '@/components/BaseDialog.vue'
+import { useTheme } from '@/composables/useTheme'
+
+const { colors } = useTheme()
 
 const props = defineProps<{
   visible: boolean
@@ -42,6 +45,7 @@ function handleSave() {
     :show-footer="true"
     confirm-text="保存"
     :confirm-disabled="!draftTitle.trim()"
+    :accent="colors.accent"
     @close="emit('close')"
     @confirm="handleSave"
   >
@@ -58,7 +62,7 @@ function handleSave() {
           @keyup.enter="handleSave"
         />
         <p v-if="errorMsg" class="text-[var(--danger)] text-[11px] mt-1">{{ errorMsg }}</p>
-        <p v-else class="text-[var(--text-tertiary,#aaa)] text-[11px] mt-1">标题默认从# 和 p-title标签获取</p>
+        <p v-else class="text-[var(--text-tertiary,#aaa)] text-[11px] mt-1">标题默认从#/p-title标签/breaking标签获取</p>
       </div>
     </div>
   </BaseDialog>

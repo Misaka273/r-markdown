@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import BaseDialog from '@/components/BaseDialog.vue'
+import { useTheme } from '@/composables/useTheme'
 import { sanitizeFilename } from '@/utils/extractTitle'
+
+const { colors } = useTheme()
 
 const props = defineProps<{
   visible: boolean
@@ -49,6 +52,7 @@ function handleFinalize() {
     :show-footer="true"
     confirm-text="保存"
     :confirm-disabled="!fileName.trim()"
+    :accent="colors.accent"
     @close="emit('close')"
     @confirm="handleFinalize"
   >
