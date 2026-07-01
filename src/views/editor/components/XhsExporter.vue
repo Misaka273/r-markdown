@@ -16,7 +16,10 @@ import {
 } from '@/utils/xhsCards'
 import PromptDialog from '@/components/PromptDialog.vue'
 import BaseDialog from '@/components/BaseDialog.vue'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { Bolt } from 'lucide-vue-next'
+
+const { isDark } = useDarkMode()
 
 // 图片加载失败时的占位（透明 1px），避免一张坏图把整次渲染拖崩
 const TRANSPARENT_PX =
@@ -162,7 +165,7 @@ async function renderSlices(
   const h = Math.round((w * base.h) / base.w) // 保持比例（3:4 / 1:1）
   const ratio = NATIVE_W / w // 缩放到 1080 宽输出
   // 正文与「保存图片」一致：白底 + 同样的左右/上边距 + 同样的基础字号/行距。
-  const bg = '#ffffff'
+  const bg = isDark.value ? '#1a1a1a' : '#ffffff'
   const padX = 16 // 对齐「保存图片」的左右边距
   const padTop = 20 // 对齐「保存图片」的上边距
   const footerBand = 44
@@ -278,7 +281,7 @@ async function generate() {
       id: 'cover',
       label: '首图（大字报）',
       kind: 'html',
-      html: buildCover(meta, aspect.value, props.colors),
+      html: buildCover(meta, aspect.value, props.colors, isDark.value),
     }
     const contentHtml = await parseMarkdownAsync(contentMd, props.colors)
     const slices = contentHtml.trim()
@@ -313,7 +316,7 @@ async function cardDataUrl(idx: number): Promise<string> {
     pixelRatio: PIXEL_RATIO,
     width: w,
     height: h,
-    backgroundColor: XHS.bg,
+    backgroundColor: isDark.value ? XHS.dark.bg : XHS.bg,
     skipFonts: true,
     imagePlaceholder: TRANSPARENT_PX,
     onImageErrorHandler: onImgError,
@@ -483,6 +486,8 @@ watch(
       >
         <Bolt :size="16" />
       </button>
+
+      <span v-if="isDark" class="text-xs text-[#a89a86] dark:text-[#888]">建议切换到亮色模式导出</span>
 
       <span class="hidden sm:inline flex-1 text-xs text-[#a89a86] dark:text-[#888] text-right">{{ status }}</span>
 

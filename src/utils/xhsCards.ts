@@ -20,6 +20,14 @@ export const XHS = {
   inkSoft: '#5C5346', // 暖灰（正文）
   inkFaint: '#A89A86', // 更浅（元信息）
   dash: '#D9C9AC', // 虚线边色
+  dark: {
+    bg: '#1F1A17', // 深棕底
+    card: '#2A2420', // 卡片深色
+    ink: '#F0EDE8', // 浅米白（标题）
+    inkSoft: '#C0B8A8', // 浅暖灰（正文）
+    inkFaint: '#8A8070', // 中暖灰（元信息）
+    dash: '#5C5346', // 深色虚线
+  },
 }
 
 export type XhsAspect = '3:4' | '1:1'
@@ -193,15 +201,15 @@ function star(size: number, accent: string): string {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${accent}" xmlns="http://www.w3.org/2000/svg" style="display:block"><path d="M12 0 C13 7 17 11 24 12 C17 13 13 17 12 24 C11 17 7 13 0 12 C7 11 11 7 12 0Z"/></svg>`
 }
 
-/** 标题里用 ==xx== 标记的部分渲染成主题色，其余暖黑。 */
-function titleHtml(title: string, accent: string): string {
+/** 标题里用 ==xx== 标记的部分渲染成主题色，其余用 inkColor。 */
+function titleHtml(title: string, accent: string, inkColor: string): string {
   const parts = title.split(/(==[^=]+==)/)
   let out = ''
   for (const p of parts) {
     if (!p) continue
     const m = p.match(/^==([^=]+)==$/)
     if (m) out += `<span style="color:${accent}">${esc(m[1])}</span>`
-    else out += `<span style="color:${XHS.ink}">${esc(p)}</span>`
+    else out += `<span style="color:${inkColor}">${esc(p)}</span>`
   }
   return out
 }
@@ -221,11 +229,12 @@ function chipsHtml(chips: string[], t: ThemeColors): string {
  * 结构：橙色徽章 → 大标题(==橙==+暖黑) + 波浪线 → 摘要(撑满、末尾渐隐) →
  * 可选黑色高亮条 → 话题标签 → 页脚(字数·分钟 + 品牌)。右上 / 左下点缀星点。
  */
-export function buildCover(meta: XhsMeta, aspect: XhsAspect, t: ThemeColors): string {
+export function buildCover(meta: XhsMeta, aspect: XhsAspect, t: ThemeColors, isDark = false): string {
   const { w, h } = ASPECTS[aspect]
   const contentW = w - PAD_X * 2
+  const c = isDark ? XHS.dark : XHS
 
-  let html = `<section style="position:relative;box-sizing:border-box;width:${w}px;height:${h}px;background:${XHS.bg};padding:${PAD_TOP}px ${PAD_X}px ${PAD_BOTTOM}px;overflow:hidden;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif">`
+  let html = `<section style="position:relative;box-sizing:border-box;width:${w}px;height:${h}px;background:${c.bg};padding:${PAD_TOP}px ${PAD_X}px ${PAD_BOTTOM}px;overflow:hidden;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif">`
 
   // 角标星点
   html += `<section style="position:absolute;top:20px;right:24px">${star(22, t.accent)}</section>`
@@ -237,21 +246,21 @@ export function buildCover(meta: XhsMeta, aspect: XhsAspect, t: ThemeColors): st
   }
 
   // 标题 + 波浪线
-  html += `<h1 style="flex-shrink:0;margin:0px;font-size:34px;line-height:1.18;font-weight:900;letter-spacing:-0.5px;word-break:break-word">${titleHtml(meta.title, t.accent)}</h1>`
+  html += `<h1 style="flex-shrink:0;margin:0px;font-size:34px;line-height:1.18;font-weight:900;letter-spacing:-0.5px;word-break:break-word">${titleHtml(meta.title, t.accent, c.ink)}</h1>`
   html += `<section style="flex-shrink:0;margin:8px 0px 14px">${swoosh(Math.min(contentW, 220), t.accent)}</section>`
 
   // 摘要：占满中间剩余空间，超出部分用底部渐变淡出（到最后消失）
   const teaser = meta.teaser || meta.summary
   if (teaser) {
     html += `<section style="position:relative;flex:1 1 auto;min-height:0;overflow:hidden;margin:0px 0px 14px">`
-    html += `<p style="margin:0px;font-size:15.5px;line-height:1.75;color:${XHS.inkSoft};font-weight:500">${esc(teaser)}</p>`
-    html += `<section style="position:absolute;left:0px;right:0px;bottom:0px;height:56px;background:linear-gradient(to bottom,rgba(247,242,232,0),${XHS.bg})"></section>`
+    html += `<p style="margin:0px;font-size:15.5px;line-height:1.75;color:${c.inkSoft};font-weight:500">${esc(teaser)}</p>`
+    html += `<section style="position:absolute;left:0px;right:0px;bottom:0px;height:56px;background:linear-gradient(to bottom,${c.bg}00,${c.bg})"></section>`
     html += `</section>`
   }
 
   // 黑色高亮条（可选 hook）
   if (meta.hook) {
-    html += `<section style="flex-shrink:0;margin:0px 0px 12px"><span style="display:inline-block;padding:8px 16px;border-radius:12px;background:${XHS.ink};color:#fff;font-size:15px;font-weight:800;line-height:1.45">${esc(meta.hook)}</span></section>`
+    html += `<section style="flex-shrink:0;margin:0px 0px 12px"><span style="display:inline-block;padding:8px 16px;border-radius:12px;background:${c.ink};color:${isDark ? c.bg : '#fff'};font-size:15px;font-weight:800;line-height:1.45">${esc(meta.hook)}</span></section>`
   }
 
   // 话题标签
@@ -260,8 +269,8 @@ export function buildCover(meta: XhsMeta, aspect: XhsAspect, t: ThemeColors): st
   }
 
   // 页脚：字数 / 阅读时长 + 品牌
-  html += `<section style="flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;border-top:1.5px dashed ${XHS.dash};padding-top:12px">`
-  html += `<span style="font-size:12px;color:${XHS.inkFaint};font-weight:700;letter-spacing:0.3px">${esc('共 ' + meta.charCount + ' 字 · 约 ' + meta.readMin + ' 分钟')}</span>`
+  html += `<section style="flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;border-top:1.5px dashed ${c.dash};padding-top:12px">`
+  html += `<span style="font-size:12px;color:${c.inkFaint};font-weight:700;letter-spacing:0.3px">${esc('共 ' + meta.charCount + ' 字 · 约 ' + meta.readMin + ' 分钟')}</span>`
   html += `<span style="font-size:13px;color:${t.dark};font-weight:800">${esc('@' + meta.brand)}</span>`
   html += `</section>`
 
