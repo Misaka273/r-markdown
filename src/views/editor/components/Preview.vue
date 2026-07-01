@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { toPng } from 'html-to-image'
 import type { ThemeColors } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
+import { useMermaid } from '@/composables/useMermaid'
 import Toast from '@/components/Toast.vue'
 
 const { isDark } = useDarkMode()
+const { renderAll } = useMermaid()
 
 const props = defineProps<{
   markdown: string
@@ -23,6 +25,7 @@ const hintVisible = ref(false)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 let hintTimer: ReturnType<typeof setTimeout> | null = null
 let scrollDebounce: ReturnType<typeof setTimeout> | null = null
+let mermaidTimer: ReturnType<typeof setTimeout> | null = null
 
 function onScroll() {
   if (!isDark.value) return
@@ -50,6 +53,11 @@ async function updateContent() {
   const el = previewRef.value
   if (!el) return
   el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors)
+  await nextTick()
+  if (mermaidTimer) clearTimeout(mermaidTimer)
+  mermaidTimer = setTimeout(async () => {
+    await renderAll(el)
+  }, 300)
 }
 
 watch(

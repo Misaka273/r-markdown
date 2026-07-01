@@ -27,6 +27,7 @@ import { Timeline_DA01 } from '@/extension/Timeline_DA01'
 import { Slider_DA01 } from '@/extension/Slider_DA01'
 import { Img_DA01 } from '@/extension/Img_DA01'
 import { Chart_DA01 } from '@/extension/Chart_DA01'
+import { Mermaid_DA01 } from '@/extension/Mermaid_DA01'
 
 // 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
 // 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
@@ -545,6 +546,40 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     // 代码块：用微信自带的 code-snippet 结构（外层 <section> + <pre class="…code-snippet_nowrap">
     // + 每行一个 block <code>）。微信 code-snippet 会合并 <code> 内所有 <span>，因此 highlight
     // token 改用 <section> 标签（微信不合并 section），同时设 display:inline 保持同行排列。
+
+    // <mermaid> 标签语法（支持自定义宽高对齐，优先于代码块语法）
+    if (/^<mermaid\b/.test(line)) {
+      const openMatch = line.match(/^<mermaid\b([^>]*)>(.*)$/)
+      const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+
+      // 单行模式：<mermaid ...>code</mermaid>
+      if (openMatch && openMatch[2]) {
+        const closeIdx = openMatch[2].indexOf('</mermaid>')
+        if (closeIdx >= 0) {
+          const body = openMatch[2].slice(0, closeIdx)
+          html += Mermaid_DA01.render(attrs, body)
+          i++
+          continue
+        }
+      }
+
+      // 多行模式：收集行直到 </mermaid>
+      i++
+      const bodyLines: string[] = []
+      while (i < lines.length) {
+        const ci = lines[i].indexOf('</mermaid>')
+        if (ci >= 0) {
+          bodyLines.push(lines[i].slice(0, ci))
+          i++
+          break
+        }
+        bodyLines.push(lines[i])
+        i++
+      }
+      html += Mermaid_DA01.render(attrs, bodyLines.join('\n'))
+      continue
+    }
+
     if (/^```/.test(line)) {
       const lang = line.replace(/^`+/, '').trim() || 'text'
       i++
@@ -554,6 +589,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++ // 跳过结尾的 ```
+
       let codeInner = ''
       for (const ln of codeLines) {
         const lead = (ln.match(/^[ \t]*/) || [''])[0]

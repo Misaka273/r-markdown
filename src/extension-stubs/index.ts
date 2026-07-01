@@ -32,6 +32,7 @@ import { Engage_DA01 } from './Engage_DA01'
 import { Engage_DA02 } from './Engage_DA02'
 import { Img_DA01 } from './Img_DA01'
 import { Lead_DA01 } from './Lead_DA01'
+import { Mermaid_DA01 } from './Mermaid_DA01'
 import { PTitle_DA01 } from './PTitle_DA01'
 import { ReadingPath_DA01 } from './ReadingPath_DA01'
 import { Slider_DA01 } from './Slider_DA01'
@@ -67,6 +68,7 @@ export const components: ComponentDef[] = [
   { id: 'Slider_DA01', name: '轮播图', tag: 'slider', render: Slider_DA01.render },
   { id: 'Img_DA01', name: '图片', tag: 'img', render: Img_DA01.render },
   { id: 'Chart_DA01', name: '图表', tag: 'chart', render: Chart_DA01.render },
+  { id: 'Mermaid_DA01', name: 'Mermaid 图表', tag: 'mermaid', render: Mermaid_DA01.render },
 ]
 
 export const componentMap = Object.fromEntries(components.map((c) => [c.id, c]))
@@ -76,4 +78,4 @@ export const tagMap = Object.fromEntries(components.map((c) => [c.tag, c]))
 export { Title_DA01, Title_DA02, ReadingPath_DA01, Breaking_DA01 }
 export { Steps_DA01, Steps_DA02, CaseFlow_DA01, Compare_DA01, Compare_DA02 }
 export { Badges_DA01, Statement_DA01, Lead_DA01, Engage_DA01, Engage_DA02 }
-export { Timeline_DA01, Slider_DA01, Img_DA01, Chart_DA01 }
+export { Timeline_DA01, Slider_DA01, Img_DA01, Chart_DA01, Mermaid_DA01 }
