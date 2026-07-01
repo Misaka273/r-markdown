@@ -1435,7 +1435,7 @@ onBeforeUnmount(() => {
             />
           </div>
         </div>
-        <div class="flex flex-1 overflow-hidden">
+        <div class="flex flex-1 overflow-hidden relative">
           <Editor
             ref="editorRef"
             class="flex-1"

@@ -145,7 +145,7 @@ const selectChevronStyle = {
 <template>
   <div
     v-if="visible"
-    class="w-[300px] min-w-[300px] flex flex-col border-l border-[var(--border-color,#e5e7eb)] bg-[var(--bg-primary,#fff)] overflow-hidden"
+    class="absolute right-0 top-0 bottom-0 w-[300px] flex flex-col border-l border-[var(--border-color,#e5e7eb)] bg-[var(--bg-primary,#fff)] overflow-hidden z-10 shadow-lg"
   >
     <div
       class="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-color,#e5e7eb)] shrink-0"
