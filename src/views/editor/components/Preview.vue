@@ -151,8 +151,39 @@ async function saveAsImage() {
       },
     })
 
-    const link = document.createElement('a')
     const dateStr = new Date().toISOString().slice(0, 10)
+
+    // 桌面端（Tauri）：使用原生 save dialog 让用户选择保存路径
+    if ('__TAURI_INTERNALS__' in window) {
+      try {
+        const [{ save }, { writeFile }] = await Promise.all([
+          import('@tauri-apps/plugin-dialog'),
+          import('@tauri-apps/plugin-fs'),
+        ])
+        const filePath = await save({
+          defaultPath: `公众号预览_${dateStr}.png`,
+          filters: [{ name: 'PNG图片', extensions: ['png'] }],
+        })
+        if (!filePath) {
+          saving.value = false
+          return
+        }
+        const base64 = dataUrl.replace(/^data:image\/png;base64,/, '')
+        const binary = atob(base64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i)
+        }
+        await writeFile(filePath, bytes)
+        showToast('已保存')
+        return
+      } catch {
+        // 降级为浏览器 a.click()
+      }
+    }
+
+    // 浏览器端：a.click()
+    const link = document.createElement('a')
     link.download = `公众号预览_${dateStr}.png`
     link.href = dataUrl
     link.click()

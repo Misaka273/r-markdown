@@ -326,19 +326,46 @@ function fileName(idx: number): string {
   return `xhs_${date}_${tag}.png`
 }
 
-function triggerDownload(dataUrl: string, name: string) {
+async function triggerDownload(dataUrl: string, name: string): Promise<boolean> {
+  // 桌面端（Tauri）：使用原生 save dialog
+  if ('__TAURI_INTERNALS__' in window) {
+    try {
+      const [{ save }, { writeFile }] = await Promise.all([
+        import('@tauri-apps/plugin-dialog'),
+        import('@tauri-apps/plugin-fs'),
+      ])
+      const filePath = await save({
+        defaultPath: name,
+        filters: [{ name: 'PNG图片', extensions: ['png'] }],
+      })
+      if (!filePath) return false
+      const base64 = dataUrl.replace(/^data:image\/png;base64,/, '')
+      const binary = atob(base64)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i)
+      }
+      await writeFile(filePath, bytes)
+      return true
+    } catch {
+      // 降级为浏览器 a.click()
+    }
+  }
+
+  // 浏览器端
   const a = document.createElement('a')
   a.download = name
   a.href = dataUrl
   a.click()
+  return true
 }
 
 async function downloadOne(idx: number) {
   if (busy.value) return
   busy.value = true
   try {
-    triggerDownload(await cardDataUrl(idx), fileName(idx))
-    emit('toast', '已保存')
+    const ok = await triggerDownload(await cardDataUrl(idx), fileName(idx))
+    if (ok) emit('toast', '已保存')
   } catch (e) {
     status.value = '导出失败：' + errText(e)
   } finally {
@@ -350,12 +377,46 @@ async function downloadAll() {
   if (busy.value || !cards.value.length) return
   busy.value = true
   try {
+    // 桌面端（Tauri）：JSZip 打包 → 单次原生 save dialog
+    if ('__TAURI_INTERNALS__' in window) {
+      const JSZip = (await import('jszip')).default
+      const zip = new JSZip()
+      for (let i = 0; i < cards.value.length; i++) {
+        status.value = `打包中 ${i + 1}/${cards.value.length}…`
+        const dataUrl = await cardDataUrl(i)
+        const base64 = dataUrl.replace(/^data:image\/png;base64,/, '')
+        zip.file(fileName(i), base64, { base64: true })
+      }
+      const blob = await zip.generateAsync({ type: 'blob' })
+      const [{ save }, { writeFile }] = await Promise.all([
+        import('@tauri-apps/plugin-dialog'),
+        import('@tauri-apps/plugin-fs'),
+      ])
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+      const filePath = await save({
+        defaultPath: `小红书图片_${dateStr}.zip`,
+        filters: [{ name: 'ZIP压缩包', extensions: ['zip'] }],
+      })
+      if (!filePath) {
+        status.value = '已取消'
+        return
+      }
+      const arrayBuffer = await blob.arrayBuffer()
+      const bytes = new Uint8Array(arrayBuffer)
+      await writeFile(filePath, bytes)
+      status.value = `已导出 ${cards.value.length} 张 → ZIP`
+      return
+    }
+
+    // 浏览器端：逐张 a.click() 下载
+    let done = 0
     for (let i = 0; i < cards.value.length; i++) {
       status.value = `导出中 ${i + 1}/${cards.value.length}…`
-      triggerDownload(await cardDataUrl(i), fileName(i))
+      const ok = await triggerDownload(await cardDataUrl(i), fileName(i))
+      if (ok) done++
       await new Promise((r) => setTimeout(r, 180))
     }
-    status.value = `已导出 ${cards.value.length} 张`
+    if (done > 0) status.value = `已导出 ${done} 张`
   } catch (e) {
     status.value = '导出失败：' + errText(e)
   } finally {
