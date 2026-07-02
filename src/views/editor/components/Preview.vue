@@ -55,16 +55,20 @@ async function updateContent() {
   const el = previewRef.value
   if (!el) return
 
-  // 1. 保存已渲染的 mermaid 块 DOM（按 mermaid 源码为 key）
+  // 1. 保存已渲染的 mermaid 块 DOM（按 mermaid 源码 + 渲染属性为复合 key）
   const renderedCache = new Map<string, string>()
   const oldBlocks = el.querySelectorAll('.mermaid-block')
   oldBlocks.forEach((block) => {
     const b = block as HTMLElement
     const code = b.dataset.mermaidCode || ''
+    if (!code.trim()) return
     const container = b.querySelector('.mermaid-svg-container') as HTMLElement | null
-    if (code.trim() && container && container.querySelector('img')) {
-      renderedCache.set(code, container.innerHTML)
-    }
+    if (!container || !container.querySelector('img')) return
+    // 复合 key：代码正文 + render-width + theme，属性变化时 key 不同，不会被缓存误导
+    const rw = b.dataset.mermaidRenderWidth || ''
+    const theme = b.dataset.mermaidTheme || ''
+    const key = `${code}|rw=${rw}|theme=${theme}`
+    renderedCache.set(key, container.innerHTML)
   })
 
   // 2. 更新预览内容（此操作会销毁旧 DOM）
@@ -83,7 +87,11 @@ async function updateContent() {
     newBlocks.forEach((block) => {
       const b = block as HTMLElement
       const code = b.dataset.mermaidCode || ''
-      const cached = renderedCache.get(code)
+      if (!code.trim()) return
+      const rw = b.dataset.mermaidRenderWidth || ''
+      const theme = b.dataset.mermaidTheme || ''
+      const key = `${code}|rw=${rw}|theme=${theme}`
+      const cached = renderedCache.get(key)
       if (cached) {
         const container = b.querySelector('.mermaid-svg-container') as HTMLElement | null
         if (container) container.innerHTML = cached
