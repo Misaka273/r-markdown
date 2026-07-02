@@ -35,4 +35,12 @@ export const DEFAULT_SETTINGS: Record<string, SettingDef> = {
   defaultHosting: { default: 'github' },
   /** 图片压缩质量 10-100，对应 JPEG quality 0.1-1.0 */
   compressQuality: { default: 100 },
+  /** 普通段落字号（px） */
+  paraFontSize: { default: 16 },
+  /** 普通段落行高 */
+  paraLineHeight: { default: 1.85 },
+  /** 普通段落字重 */
+  paraFontWeight: { default: '400' },
+  /** 普通段落间距（下方 margin，px） */
+  paraMargin: { default: 24 },
 }

@@ -3,7 +3,9 @@ import { ref, watch, nextTick } from 'vue'
 import { toPng } from 'html-to-image'
 import type { ThemeColors } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
-import { parseMarkdownAsync } from '@/utils/markdownParser'
+import { parseMarkdownAsync, type ParagraphStyle } from '@/utils/markdownParser'
+import { getSetting } from '@/config/settings'
+import { paraFontSize, paraLineHeight, paraFontWeight, paraMargin } from '@/composables/useParagraphSettings'
 import { useMermaid } from '@/composables/useMermaid'
 import Toast from '@/components/Toast.vue'
 
@@ -66,7 +68,13 @@ async function updateContent() {
   })
 
   // 2. 更新预览内容（此操作会销毁旧 DOM）
-  el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors)
+  const ps: ParagraphStyle = {
+    fontSize: paraFontSize.value,
+    lineHeight: paraLineHeight.value,
+    fontWeight: paraFontWeight.value,
+    margin: paraMargin.value,
+  }
+  el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors, ps)
   await nextTick()
 
   // 3. 恢复未变化的已渲染 mermaid 块，避免闪烁
@@ -100,6 +108,7 @@ watch(
   { deep: true },
 )
 watch(previewRef, () => updateContent())
+watch([paraFontSize, paraLineHeight, paraFontWeight, paraMargin], () => updateContent())
 
 function copyRichText() {
   const el = previewRef.value

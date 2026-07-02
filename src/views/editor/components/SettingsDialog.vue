@@ -6,6 +6,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { getSetting, setSetting } from '@/config/settings'
 import { autoUpdateEnabled, autoUpdatePending, autoUpdateRid, checkForUpdates, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
+import { paraFontSize, paraLineHeight, paraFontWeight, paraMargin } from '@/composables/useParagraphSettings'
 import { testConnection } from '@/services/githubUploader'
 import { useTheme } from '@/composables/useTheme'
 import ImageCacheDialog from './ImageCacheDialog.vue'
@@ -102,6 +103,19 @@ const compressQuality = ref(getSetting<number>('compressQuality'))
 function saveCompressQuality(val: number) {
   compressQuality.value = val
   setSetting('compressQuality', val)
+}
+
+// ── 普通段落设置（使用共享 ref，变更时预览自动响应）──
+function saveParaFontSize(val: number) { paraFontSize.value = val }
+function saveParaLineHeight(val: number) { paraLineHeight.value = val }
+function saveParaFontWeight(val: string) { paraFontWeight.value = val }
+function saveParaMargin(val: number) { paraMargin.value = val }
+
+function resetParaDefaults() {
+  saveParaFontSize(16)
+  saveParaLineHeight(1.85)
+  saveParaFontWeight('400')
+  saveParaMargin(24)
 }
 
 async function handleTestConnection() {
@@ -245,7 +259,6 @@ async function doDownloadUpdate() {
     <template #header>
       <div class="flex gap-1">
         <button
-          v-if="isTauri"
           class="cursor-pointer whitespace-nowrap rounded-full border-0 px-3 py-[5px] text-xs transition-colors"
           :class="settingsTab === 'basic'
             ? 'bg-[var(--accent)] text-white'
@@ -263,36 +276,117 @@ async function doDownloadUpdate() {
         >
           图片设置
         </button>
+        <button
+          v-if="isTauri"
+          class="cursor-pointer whitespace-nowrap rounded-full border-0 px-3 py-[5px] text-xs transition-colors"
+          :class="settingsTab === 'other'
+            ? 'bg-[var(--accent)] text-white'
+            : 'bg-transparent text-[#999] hover:text-[#333] dark:hover:text-[#ccc]'"
+          @click="settingsTab = 'other'"
+        >
+          其他设置
+        </button>
       </div>
     </template>
 
     <!-- 基础设置 -->
     <template v-if="settingsTab === 'basic'">
-      <!-- 页面缩放（仅桌面端） -->
-      <section v-if="isTauri">
-        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
-          页面缩放
-        </h3>
-        <div class="flex flex-nowrap gap-2">
+      <!-- 普通段落 -->
+      <section class="mb-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5]">
+            普通段落
+          </h3>
           <button
-            v-for="p in ZOOM_PRESETS"
-            :key="p"
-            class="cursor-pointer rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-all duration-150 shrink-0"
-            :class="currentZoom === p
-              ? 'border-[var(--accent)] bg-[var(--accent-light)] text-[var(--accent)]'
-              : 'border-[#e5e5e5] bg-white text-[#666] hover:border-[#ccc] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666]'"
-            @click="applyZoom(p)"
+            class="cursor-pointer rounded-full border border-[#e5e5e5] bg-white px-3 py-[4px] text-[11px] text-[#999] transition-colors hover:border-[#ccc] hover:text-[#666] dark:border-[#444] dark:bg-[#2a2a2a] dark:hover:border-[#666] dark:hover:text-[#ccc]"
+            @click="resetParaDefaults"
           >
-            {{ p }}%
+            恢复默认
           </button>
         </div>
-        <p class="text-[11px] text-[#999] dark:text-[#666] mt-2.5">
-          当前缩放：{{ currentZoom }}%（设置会自动保存）
-        </p>
+
+        <!-- 字体大小 -->
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-[12px] text-[#666] dark:text-[#999]">字体大小</label>
+            <span class="text-[12px] font-medium tabular-nums text-[var(--accent)]">{{ paraFontSize }}px</span>
+          </div>
+          <input
+            type="range"
+            min="12"
+            max="24"
+            step="1"
+            :value="paraFontSize"
+            class="compress-slider w-full cursor-pointer"
+            @input="saveParaFontSize(Number(($event.target as HTMLInputElement).value))"
+          />
+          <div class="flex justify-between text-[10px] text-[#999] dark:text-[#666] mt-0.5">
+            <span>12px</span>
+            <span>24px</span>
+          </div>
+        </div>
+
+        <!-- 行高 -->
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-[12px] text-[#666] dark:text-[#999]">行高</label>
+            <span class="text-[12px] font-medium tabular-nums text-[var(--accent)]">{{ paraLineHeight }}</span>
+          </div>
+          <input
+            type="range"
+            min="1.2"
+            max="3.0"
+            step="0.05"
+            :value="paraLineHeight"
+            class="compress-slider w-full cursor-pointer"
+            @input="saveParaLineHeight(Number(($event.target as HTMLInputElement).value))"
+          />
+          <div class="flex justify-between text-[10px] text-[#999] dark:text-[#666] mt-0.5">
+            <span>1.2</span>
+            <span>3.0</span>
+          </div>
+        </div>
+
+        <!-- 字重 -->
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">字重</label>
+          <select
+            :value="paraFontWeight"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors cursor-pointer focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5]"
+            @change="saveParaFontWeight(($event.target as HTMLSelectElement).value)"
+          >
+            <option value="300">300（更细）</option>
+            <option value="400">400（常规）</option>
+            <option value="500">500（中等）</option>
+            <option value="600">600（半粗）</option>
+            <option value="700">700（粗体）</option>
+          </select>
+        </div>
+
+        <!-- 间距 -->
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-[12px] text-[#666] dark:text-[#999]">段落间距</label>
+            <span class="text-[12px] font-medium tabular-nums text-[var(--accent)]">{{ paraMargin }}px</span>
+          </div>
+          <input
+            type="range"
+            min="8"
+            max="48"
+            step="1"
+            :value="paraMargin"
+            class="compress-slider w-full cursor-pointer"
+            @input="saveParaMargin(Number(($event.target as HTMLInputElement).value))"
+          />
+          <div class="flex justify-between text-[10px] text-[#999] dark:text-[#666] mt-0.5">
+            <span>8px</span>
+            <span>48px</span>
+          </div>
+        </div>
       </section>
 
       <!-- 自动保存（仅桌面端） -->
-      <section v-if="isTauri" class="mt-6 pt-6 border-t border-[#f0f0f0] dark:border-[#333]">
+      <section v-if="isTauri">
         <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
           自动保存
         </h3>
@@ -338,57 +432,6 @@ async function doDownloadUpdate() {
           <p class="text-[11px] text-[#999] dark:text-[#666] mt-2.5">
             当前间隔：{{ autoSaveInterval }}s（停止输入后触发保存）
           </p>
-        </div>
-      </section>
-
-      <!-- 检查更新（仅桌面端） -->
-      <section v-if="isTauri" class="mt-6 pt-6 border-t border-[#f0f0f0] dark:border-[#333]">
-        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
-          版本更新
-        </h3>
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-[12px] text-[#666] dark:text-[#999]">启动时自动检查更新</span>
-          <button
-            class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors"
-            :class="autoUpdateEnabled ? 'bg-[var(--accent)]' : 'bg-[#ccc] dark:bg-[#555]'"
-            @click="autoUpdateEnabled = !autoUpdateEnabled"
-            role="switch"
-            :aria-checked="autoUpdateEnabled"
-          >
-            <span
-              class="inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
-              :class="autoUpdateEnabled ? 'translate-x-[18px]' : 'translate-x-[2px]'"
-            />
-          </button>
-        </div>
-        <div class="flex items-center gap-3 flex-wrap">
-          <button
-            class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="updateChecking || downloading"
-            @click="manualCheckUpdate"
-          >
-            {{ updateChecking ? '检查中…' : downloading ? '下载中…' : '检查更新' }}
-          </button>
-          <span
-            v-if="updateMessage"
-            class="text-[12px]"
-            :class="updateError ? 'text-[#e74c3c]' : 'text-[var(--accent-green)]'"
-          >
-            {{ updateMessage }}
-          </span>
-        </div>
-        <!-- 下载进度 -->
-        <div v-if="downloading" class="mt-3">
-          <div class="flex items-center gap-2 mb-1.5">
-            <span class="text-[12px] text-[#666] dark:text-[#999]">正在下载更新...</span>
-            <span class="text-[12px] font-medium text-[var(--accent)]">{{ downloadProgress }}%</span>
-          </div>
-          <div class="h-1.5 w-full rounded-full bg-[#eee] dark:bg-[#444] overflow-hidden">
-            <div
-              class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
-              :style="{ width: downloadProgress + '%' }"
-            />
-          </div>
         </div>
       </section>
     </template>
@@ -608,6 +651,83 @@ async function doDownloadUpdate() {
           </button>
           <span v-if="letaTestResult === 'ok'" class="text-[12px]" :style="{ color: colors.accent }">连接成功</span>
           <span v-if="letaTestResult === 'fail'" class="text-[12px] text-[#e74c3c]">连接失败</span>
+        </div>
+      </section>
+    </template>
+
+    <!-- 其他设置（仅桌面端） -->
+    <template v-if="settingsTab === 'other'">
+      <!-- 页面缩放 -->
+      <section>
+        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+          页面缩放
+        </h3>
+        <div class="flex flex-nowrap gap-2">
+          <button
+            v-for="p in ZOOM_PRESETS"
+            :key="p"
+            class="cursor-pointer rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-all duration-150 shrink-0"
+            :class="currentZoom === p
+              ? 'border-[var(--accent)] bg-[var(--accent-light)] text-[var(--accent)]'
+              : 'border-[#e5e5e5] bg-white text-[#666] hover:border-[#ccc] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666]'"
+            @click="applyZoom(p)"
+          >
+            {{ p }}%
+          </button>
+        </div>
+        <p class="text-[11px] text-[#999] dark:text-[#666] mt-2.5">
+          当前缩放：{{ currentZoom }}%（设置会自动保存）
+        </p>
+      </section>
+
+      <!-- 版本更新 -->
+      <section class="mt-6 pt-6 border-t border-[#f0f0f0] dark:border-[#333]">
+        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+          版本更新
+        </h3>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[12px] text-[#666] dark:text-[#999]">启动时自动检查更新</span>
+          <button
+            class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors"
+            :class="autoUpdateEnabled ? 'bg-[var(--accent)]' : 'bg-[#ccc] dark:bg-[#555]'"
+            @click="autoUpdateEnabled = !autoUpdateEnabled"
+            role="switch"
+            :aria-checked="autoUpdateEnabled"
+          >
+            <span
+              class="inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
+              :class="autoUpdateEnabled ? 'translate-x-[18px]' : 'translate-x-[2px]'"
+            />
+          </button>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <button
+            class="cursor-pointer rounded-lg border border-[#e5e5e5] bg-white px-4 py-1.5 text-[12px] font-medium text-[#666] transition-colors hover:border-[#ccc] hover:bg-[#f5f5f5] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#999] dark:hover:border-[#666] dark:hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="updateChecking || downloading"
+            @click="manualCheckUpdate"
+          >
+            {{ updateChecking ? '检查中…' : downloading ? '下载中…' : '检查更新' }}
+          </button>
+          <span
+            v-if="updateMessage"
+            class="text-[12px]"
+            :class="updateError ? 'text-[#e74c3c]' : 'text-[var(--accent-green)]'"
+          >
+            {{ updateMessage }}
+          </span>
+        </div>
+        <!-- 下载进度 -->
+        <div v-if="downloading" class="mt-3">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[12px] text-[#666] dark:text-[#999]">正在下载更新...</span>
+            <span class="text-[12px] font-medium text-[var(--accent)]">{{ downloadProgress }}%</span>
+          </div>
+          <div class="h-1.5 w-full rounded-full bg-[#eee] dark:bg-[#444] overflow-hidden">
+            <div
+              class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+              :style="{ width: downloadProgress + '%' }"
+            />
+          </div>
         </div>
       </section>
     </template>

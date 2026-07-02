@@ -142,17 +142,24 @@ export async function preRenderFormulas(
   return map
 }
 
+export interface ParagraphStyle {
+  fontSize: number
+  lineHeight: number
+  fontWeight: string
+  margin: number
+}
+
 /**
  * 一步完成：收集公式 → 预渲染 → 解析。
  * 推荐所有 caller 使用这个入口。
  */
-export async function parseMarkdownAsync(md: string, t: ThemeColors): Promise<string> {
+export async function parseMarkdownAsync(md: string, t: ThemeColors, paragraphStyle?: ParagraphStyle): Promise<string> {
   const formulas = collectFormulas(md)
   const formulaMap = formulas.length > 0 ? await preRenderFormulas(formulas) : undefined
-  return parseMarkdown(md, t, formulaMap)
+  return parseMarkdown(md, t, formulaMap, paragraphStyle)
 }
 
-export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<string, string>): string {
+export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<string, string>, paragraphStyle?: ParagraphStyle): string {
   // 收集脚注：[text](url "desc") 带引号标题的链接 → 脚注
   const footnotes: { label: string; url: string; desc: string }[] = []
   const footnoteRegex = /\[([^\]]+)\]\(([^)\s]+)\s+"([^"]+)"\)/g
@@ -706,7 +713,8 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     }
 
     // 普通段落
-    html += `<section style="margin:0px 0px 24px"><p style="margin:0px;font-size:16px;color:var(--text-primary);line-height:1.85;text-align:justify;overflow-wrap:break-word;word-break:break-all">${inlineFormat(line, t, formulaMap)}</p></section>`
+    const ps = paragraphStyle ?? { fontSize: 16, lineHeight: 1.85, fontWeight: '400', margin: 24 }
+    html += `<section style="margin:0px 0px ${ps.margin}px"><p style="margin:0px;font-size:${ps.fontSize}px;color:var(--text-primary);line-height:${ps.lineHeight};font-weight:${ps.fontWeight};text-align:justify;overflow-wrap:break-word;word-break:break-all">${inlineFormat(line, t, formulaMap)}</p></section>`
     i++
   }
 
