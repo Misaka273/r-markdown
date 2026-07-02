@@ -52,8 +52,38 @@ function showToast(msg: string) {
 async function updateContent() {
   const el = previewRef.value
   if (!el) return
+
+  // 1. 保存已渲染的 mermaid 块 DOM（按 mermaid 源码为 key）
+  const renderedCache = new Map<string, string>()
+  const oldBlocks = el.querySelectorAll('.mermaid-block')
+  oldBlocks.forEach((block) => {
+    const b = block as HTMLElement
+    const code = b.dataset.mermaidCode || ''
+    const container = b.querySelector('.mermaid-svg-container') as HTMLElement | null
+    if (code.trim() && container && container.querySelector('img')) {
+      renderedCache.set(code, container.innerHTML)
+    }
+  })
+
+  // 2. 更新预览内容（此操作会销毁旧 DOM）
   el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors)
   await nextTick()
+
+  // 3. 恢复未变化的已渲染 mermaid 块，避免闪烁
+  if (renderedCache.size > 0) {
+    const newBlocks = el.querySelectorAll('.mermaid-block')
+    newBlocks.forEach((block) => {
+      const b = block as HTMLElement
+      const code = b.dataset.mermaidCode || ''
+      const cached = renderedCache.get(code)
+      if (cached) {
+        const container = b.querySelector('.mermaid-svg-container') as HTMLElement | null
+        if (container) container.innerHTML = cached
+      }
+    })
+  }
+
+  // 4. 延迟渲染新增/变化的 mermaid 块
   if (mermaidTimer) clearTimeout(mermaidTimer)
   mermaidTimer = setTimeout(async () => {
     await renderAll(el)
