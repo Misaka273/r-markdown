@@ -6,7 +6,6 @@ export interface ThemeColors {
   light: string
   border: string
   rgb: string
-  mode: 'dark' | 'light'
 }
 
 const THEMES = [
@@ -69,21 +68,12 @@ const accent = ref(init.accent)
 const accentDark = ref(init.dark)
 const customColor = ref(isCustom ? init.accent : '#6c5ce7')
 
-const darkMode = ref(window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false)
-
-if (typeof window !== 'undefined') {
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    darkMode.value = e.matches
-  })
-}
-
 const colors = computed<ThemeColors>(() => ({
   accent: accent.value,
   dark: accentDark.value,
   light: accent.value + '26',
   border: accent.value + '33',
   rgb: hexToRgb(accent.value),
-  mode: darkMode.value ? 'dark' : 'light',
 }))
 
 export function useTheme() {
