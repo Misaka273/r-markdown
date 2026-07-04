@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { useSlots } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -26,6 +26,9 @@ const emit = defineEmits<{
   (e: 'cancel'): void
 }>()
 
+const slots = useSlots()
+const hasSlot = () => !!slots.default?.()
+
 function onConfirm() {
   emit('confirm')
   emit('update:visible', false)
@@ -40,7 +43,7 @@ function onCancel() {
 <template>
   <div
     v-if="visible"
-    class="fixed inset-0 z-[300] flex items-center justify-center bg-black/60"
+    class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60"
     @click.self="onCancel"
   >
     <div class="confirm-dialog bg-white rounded-xl p-6 w-80 shadow-[0_16px_48px_rgba(0,0,0,0.2)]">
@@ -48,17 +51,24 @@ function onCancel() {
       <p v-if="message" class="confirm-dialog-message m-0 mb-4 text-[13px] text-[#8a8175]">
         {{ message }}
       </p>
-      <slot />
-      <div class="flex gap-2 mt-4 justify-end">
+      <div
+        class="flex gap-2 mt-4"
+        :class="hasSlot() ? 'flex-col' : 'justify-end'"
+      >
+        <slot />
         <button
-          class="confirm-dialog-cancel-btn px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none bg-[#f3f0ea] text-[#8a8175] transition-colors hover:bg-[#e8e3da]"
+          class="confirm-dialog-cancel-btn px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none bg-[#f3f0ea] text-[#8a8175] transition-colors hover:bg-[#e8e3da] whitespace-nowrap"
+          :class="{ 'w-full': hasSlot() }"
           @click="onCancel"
         >
           {{ cancelText }}
         </button>
         <button
-          class="px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none text-white transition-colors"
-          :class="confirmType === 'danger' ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : 'bg-[var(--accent)] hover:bg-[var(--accent-dark)]'"
+          class="px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none text-white transition-colors whitespace-nowrap"
+          :class="[
+            confirmType === 'danger' ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : 'bg-[var(--accent)] hover:bg-[var(--accent-dark)]',
+            { 'w-full': hasSlot() }
+          ]"
           @click="onConfirm"
         >
           {{ confirmText }}

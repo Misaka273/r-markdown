@@ -207,4 +207,19 @@ export const DraftStorage = {
         (excludeId === undefined || d.id !== excludeId),
     )
   },
+
+  getCurrentDraftId(): number | null {
+    const val = localStorage.getItem('rmd-currentDraftId')
+    if (val === null) return null
+    const id = parseInt(val, 10)
+    return isNaN(id) ? null : id
+  },
+
+  setCurrentDraftId(id: number | null): void {
+    if (id === null) {
+      localStorage.removeItem('rmd-currentDraftId')
+    } else {
+      localStorage.setItem('rmd-currentDraftId', String(id))
+    }
+  },
 }

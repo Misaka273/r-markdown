@@ -383,10 +383,26 @@ const saveDraftVisible = ref(false)
 const finalizeVisible = ref(false)
 const finalizeDeleteConfirmVisible = ref(false)
 const drafts = ref<Draft[]>([])
-const currentDraftId = ref<number | null>(null)
+const currentDraftId = ref<number | null>(DraftStorage.getCurrentDraftId())
 
 const extractedTitle = computed(() => extractTitle(markdown.value) || '')
 const draftCount = computed(() => drafts.value.length)
+
+// 持久化 currentDraftId 到 localStorage
+watch(currentDraftId, (val) => {
+  DraftStorage.setCurrentDraftId(val)
+})
+
+// 当前关联草稿的标题，用于工具栏显示
+const currentDraftTitle = ref('')
+watch(currentDraftId, async (id) => {
+  if (id !== null) {
+    const draft = await DraftStorage.getById(id)
+    currentDraftTitle.value = draft?.title ?? ''
+  } else {
+    currentDraftTitle.value = ''
+  }
+}, { immediate: true })
 
 async function refreshDrafts() {
   drafts.value = await DraftStorage.list()
@@ -889,6 +905,7 @@ async function onImportClick() {
         markdown.value = await readTextFile(fp)
       }
       localStorage.setItem(STORAGE_KEY, markdown.value)
+      currentDraftId.value = null
       showToast('导入成功')
     } catch (e: any) {
       showToast(e?.toString() || '导入失败')
@@ -914,6 +931,7 @@ async function onImportClick() {
         markdown.value = await file.text()
       }
       localStorage.setItem(STORAGE_KEY, markdown.value)
+      currentDraftId.value = null
       showToast('导入成功')
     } catch (e: any) {
       showToast(e?.toString() || '导入失败')
@@ -940,6 +958,7 @@ function loadDemo() {
   base64Store.clear()
   localStorage.removeItem(IMG_STORE_KEY)
   cleanupImages(new Set())
+  currentDraftId.value = null
   markdown.value = DEMO_CONTENT
   localStorage.setItem(STORAGE_KEY, DEMO_CONTENT)
   const now = new Date()
@@ -995,6 +1014,10 @@ function handleOpenSaveDraft() {
   saveDraftVisible.value = true
 }
 
+// 标题变更确认弹窗状态
+const confirmOverwriteVisible = ref(false)
+const pendingDraftTitle = ref('')
+
 async function handleSaveDraft(_draftId: number, title: string) {
   const isDup = await DraftStorage.isDuplicate(title, markdown.value, currentDraftId.value ?? undefined)
   if (isDup) {
@@ -1002,25 +1025,44 @@ async function handleSaveDraft(_draftId: number, title: string) {
     return
   }
 
-  // 如果正在编辑已有草稿但标题变了，按新建处理，保留原草稿
-  let targetId: number | undefined
+  // 如果正在编辑已有草稿但标题变了，弹选项
   if (currentDraftId.value) {
     const existing = await DraftStorage.getById(currentDraftId.value)
-    if (existing && existing.title === title) {
-      targetId = currentDraftId.value
+    if (existing && existing.title !== title) {
+      pendingDraftTitle.value = title
+      confirmOverwriteVisible.value = true
+      return
     }
   }
 
+  await doSaveDraft(title, currentDraftId.value ?? undefined)
+}
+
+async function doSaveDraft(title: string, targetId?: number) {
   if (targetId !== undefined) {
     await DraftStorage.save(title, markdown.value, targetId)
   } else {
     const id = await DraftStorage.save(title, markdown.value)
     currentDraftId.value = id
   }
-
   saveDraftVisible.value = false
+  confirmOverwriteVisible.value = false
   showToast('草稿已保存')
   await refreshDrafts()
+}
+
+function handleOverwrite() {
+  doSaveDraft(pendingDraftTitle.value, currentDraftId.value!)
+}
+
+function handleSaveAsNew() {
+  confirmOverwriteVisible.value = false
+  doSaveDraft(pendingDraftTitle.value)
+}
+
+function handleCancelOverwrite() {
+  confirmOverwriteVisible.value = false
+  pendingDraftTitle.value = ''
 }
 
 async function handleLoadDraft(id: number) {
@@ -1381,6 +1423,14 @@ onBeforeUnmount(() => {
                 <component :is="formatIcons[opt.syntax]" :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
               </button>
             </span>
+            <!-- 草稿关联提示 -->
+            <button
+              v-if="currentDraftId"
+              class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn cursor-pointer"
+              :title="'已关联草稿：' + currentDraftTitle"
+            >
+              <span style="font-size:13px;font-weight:700;color:#f59e0b">!</span>
+            </button>
             <!-- 帮助提示 -->
             <span class="relative inline-flex items-center group">
               <CircleQuestionMark :size="14" />
@@ -1608,6 +1658,25 @@ onBeforeUnmount(() => {
     @close="finalizeVisible = false"
     @finalize="handleFinalize"
   />
+
+  <!-- 标题变更确认弹窗 -->
+  <ConfirmDialog
+    :visible="confirmOverwriteVisible"
+    title="标题已变更"
+    :message="'原标题与草稿「' + currentDraftTitle + '」不一致，请选择操作：'"
+    confirm-text="覆盖现有草稿"
+    cancel-text="取消"
+    @confirm="handleOverwrite"
+    @cancel="handleCancelOverwrite"
+    @update:visible="confirmOverwriteVisible = $event"
+  >
+    <button
+      class="px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none bg-[#f3f0ea] text-[#8a8175] transition-colors hover:bg-[#e8e3da]"
+      @click="handleSaveAsNew"
+    >
+      另存为新草稿
+    </button>
+  </ConfirmDialog>
 </template>
 
 <style scoped>
