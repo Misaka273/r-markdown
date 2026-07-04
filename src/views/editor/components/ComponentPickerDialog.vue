@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { components } from '@/extension'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
+import { useMermaid } from '@/composables/useMermaid'
 import BaseDialog from '@/components/BaseDialog.vue'
 
 const props = defineProps<{
@@ -15,6 +16,9 @@ const emit = defineEmits<{
 }>()
 
 const { colors } = useTheme()
+const { renderAll } = useMermaid()
+
+const contentRef = ref<HTMLElement | null>(null)
 
 const categories = [
   { key: 'title', label: '标题' },
@@ -40,6 +44,7 @@ const componentCategoryMap: Record<string, string> = {
   Engage_DA01: 'interactive', Engage_DA02: 'interactive',
   Slider_DA01: 'image', Img_DA01: 'image',
   Badges_DA01: 'other',
+  Mermaid_DA01: 'other',
 }
 
 const activeCategory = ref('title')
@@ -73,13 +78,28 @@ async function refreshRendered() {
   const items = await Promise.all(
     components
       .filter((comp) => comp.id !== 'ReadingPath_DA01' && comp.example)
-      .map(async (comp) => ({
-        id: comp.id,
-        name: comp.name,
-        idSuffix: comp.id.split('_').slice(1).join('_'),
-        example: comp.example || '',
-        rendered: comp.example ? await parseMarkdownAsync(comp.example, c) : '',
-      })),
+      .map(async (comp) => {
+        let rendered = comp.example ? await parseMarkdownAsync(comp.example, c) : ''
+        // 对 mermaid 组件，用临时容器触发 JS 渲染，再取回渲染后的 HTML
+        if (comp.id === 'Mermaid_DA01' && rendered) {
+          const tmp = document.createElement('div')
+          tmp.style.position = 'absolute'
+          tmp.style.visibility = 'hidden'
+          tmp.style.pointerEvents = 'none'
+          tmp.innerHTML = rendered
+          document.body.appendChild(tmp)
+          await renderAll(tmp)
+          rendered = tmp.innerHTML
+          document.body.removeChild(tmp)
+        }
+        return {
+          id: comp.id,
+          name: comp.name,
+          idSuffix: comp.id.split('_').slice(1).join('_'),
+          example: comp.example || '',
+          rendered,
+        }
+      }),
   )
   compItems.value = items
 }
@@ -132,7 +152,7 @@ function handleClose() {
       </div>
     </template>
 
-    <div class="flex flex-col gap-3">
+    <div ref="contentRef" class="flex flex-col gap-3">
       <div
         v-for="comp in filteredComponents"
         :key="comp.id"
