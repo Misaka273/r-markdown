@@ -4,6 +4,7 @@ import { SquarePen, Home } from 'lucide-vue-next'
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { useMermaid } from '@/composables/useMermaid'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import SiteLogo from '@/components/SiteLogo.vue'
 import NavCapsule from '@/components/NavCapsule.vue'
@@ -14,6 +15,7 @@ import { components } from '@/extension'
 
 const { mode: darkMode, setMode: setDarkMode } = useDarkMode()
 const { colors } = useTheme()
+const { renderAll } = useMermaid()
 const visible = ref(false)
 
 // 分类定义
@@ -50,6 +52,7 @@ const componentCategoryMap: Record<string, string> = {
   Engage_DA01: 'interactive',
   Engage_DA02: 'interactive',
   Img_DA01: 'image',
+  Mermaid_DA01: 'other',
 }
 
 const filteredComponents = computed(() => {
@@ -101,7 +104,7 @@ onMounted(async () => {
         name: comp.name,
         description: comp.description || '',
         example: comp.example || '',
-        rendered: comp.example ? await parseMarkdownAsync(comp.example, colorsVal) : '',
+        rendered: await renderMermaidIfNeeded(comp, colorsVal),
         idSuffix: comp.id.split('_').slice(1).join('_'),
         attrs: (comp as any).attrs || [],
       })),
@@ -114,7 +117,7 @@ watch(colors, async (c) => {
   const newExamples = await Promise.all(
     componentExamples.value.map(async (comp) => ({
       ...comp,
-      rendered: comp.example ? await parseMarkdownAsync(comp.example, c) : comp.rendered,
+      rendered: await renderMermaidIfNeeded(comp, c),
     })),
   )
   componentExamples.value = newExamples
@@ -122,6 +125,22 @@ watch(colors, async (c) => {
 
 const showToast = ref(false)
 const toastText = ref('')
+
+async function renderMermaidIfNeeded(comp: any, colorsVal: any) {
+  let rendered = comp.example ? await parseMarkdownAsync(comp.example, colorsVal) : ''
+  if (comp.id === 'Mermaid_DA01' && rendered) {
+    const tmp = document.createElement('div')
+    tmp.style.position = 'absolute'
+    tmp.style.visibility = 'hidden'
+    tmp.style.pointerEvents = 'none'
+    tmp.innerHTML = rendered
+    document.body.appendChild(tmp)
+    await renderAll(tmp)
+    rendered = tmp.innerHTML
+    document.body.removeChild(tmp)
+  }
+  return rendered
+}
 
 function copySyntax(code: string) {
   navigator.clipboard.writeText(code)
