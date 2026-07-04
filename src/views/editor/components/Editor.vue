@@ -45,6 +45,8 @@ const emit = defineEmits<{
   ]
   pasteImage: [file: File]
   pasteMultipleImages: []
+  pasteText: []
+  undoRedo: []
   dropImage: [file: File, from: number]
   dropMultipleImages: []
   dropNonImage: []
@@ -412,6 +414,13 @@ onMounted(async () => {
   const updateListener = EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       emit('update:modelValue', update.state.doc.toString())
+      // 检测撤销/重做
+      const isUndoRedo = update.transactions.some(
+        (tr) => tr.isUserEvent('undo') || tr.isUserEvent('redo'),
+      )
+      if (isUndoRedo) {
+        emit('undoRedo')
+      }
     }
     if (update.selectionSet || update.docChanged) {
       // 先更新行首状态，再让 checkTagSelection 覆盖（组件标签选中时置 false）
@@ -469,18 +478,27 @@ onMounted(async () => {
     if (!items) return
     let imageFile: File | null = null
     let imageCount = 0
+    let hasText = false
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.startsWith('image/')) {
         imageCount++
         imageFile = items[i].getAsFile()
+      } else if (items[i].type === 'text/plain') {
+        hasText = true
       }
     }
-    if (imageCount === 0) return
-    e.preventDefault()
-    if (imageCount > 1) {
-      emit('pasteMultipleImages')
-    } else if (imageFile) {
-      emit('pasteImage', imageFile)
+    if (imageCount > 0) {
+      e.preventDefault()
+      if (imageCount > 1) {
+        emit('pasteMultipleImages')
+      } else if (imageFile) {
+        emit('pasteImage', imageFile)
+      }
+      return
+    }
+    // 纯文本粘贴：让 CodeMirror 默认处理，异步通知父组件匹配草稿
+    if (hasText) {
+      setTimeout(() => emit('pasteText'), 0)
     }
   })
 

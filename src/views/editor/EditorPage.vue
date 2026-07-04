@@ -21,7 +21,7 @@ import {
   Save, SquareBottomDashedScissors, CheckCircle,
   Download, Copy, FileText, CircleCheck,
   Smartphone, SquarePen, CircleQuestionMark,
-  ImagePlus
+  ImagePlus, Link
 } from 'lucide-vue-next'
 import { putImage, getDataURL, cleanupImages } from '@/utils/imageDB'
 
@@ -215,6 +215,8 @@ function onEditorScrollAll(ratio: number) {
 
 onMounted(() => {
   refreshDrafts()
+  // 异步匹配草稿：根据当前标题查找已有同名草稿
+  setTimeout(() => matchExistingDraft(), 300)
   window.addEventListener('resize', onResize)
   // 恢复页面缩放
   if (import.meta.env.VITE_TAURI === 'true') {
@@ -406,6 +408,29 @@ watch(currentDraftId, async (id) => {
 
 async function refreshDrafts() {
   drafts.value = await DraftStorage.list()
+}
+
+// 异步匹配草稿：标题优先，标题为空时降级为内容匹配
+function matchExistingDraft() {
+  if (currentDraftId.value !== null) return
+  const title = extractedTitle.value
+
+  let match: Draft | undefined
+  if (title) {
+    match = drafts.value
+      .filter((d) => d.title === title)
+      .sort((a, b) => b.updatedAt - a.updatedAt)[0]
+  }
+
+  // 标题匹配失败或标题为空时，尝试内容匹配
+  if (!match) {
+    const content = markdown.value
+    match = drafts.value.find((d) => d.content === content)
+  }
+
+  if (match) {
+    currentDraftId.value = match.id!
+  }
 }
 
 // ── 插入图片 ──
@@ -665,6 +690,18 @@ function handlePasteMultipleImages() {
   showToast('一次只能粘贴一张图片')
 }
 
+function onPasteText() {
+  // 粘贴通常替换全部内容，需要清空旧关联后重新匹配
+  currentDraftId.value = null
+  setTimeout(() => matchExistingDraft(), 300)
+}
+
+function onUndoRedo() {
+  // 撤销/重做后内容可能大幅变化，清空旧关联后重新匹配
+  currentDraftId.value = null
+  setTimeout(() => matchExistingDraft(), 300)
+}
+
 function handleDropImage(file: File, from: number) {
   processImageInsert(file, from)
 }
@@ -906,6 +943,8 @@ async function onImportClick() {
       }
       localStorage.setItem(STORAGE_KEY, markdown.value)
       currentDraftId.value = null
+      // 导入后异步匹配草稿
+      setTimeout(() => matchExistingDraft(), 300)
       showToast('导入成功')
     } catch (e: any) {
       showToast(e?.toString() || '导入失败')
@@ -932,6 +971,8 @@ async function onImportClick() {
       }
       localStorage.setItem(STORAGE_KEY, markdown.value)
       currentDraftId.value = null
+      // 导入后异步匹配草稿
+      setTimeout(() => matchExistingDraft(), 300)
       showToast('导入成功')
     } catch (e: any) {
       showToast(e?.toString() || '导入失败')
@@ -977,6 +1018,7 @@ function loadDemo() {
   localStorage.setItem(SAVE_TIME_KEY, timeStr)
   saveMode.value = '自动'
   saveHint.value = '自动保存于 ' + formatTime(timeStr)
+  setTimeout(() => matchExistingDraft(), 300)
 }
 
 function downloadDemo() {
@@ -1016,7 +1058,9 @@ function handleOpenSaveDraft() {
 
 // 标题变更确认弹窗状态
 const confirmOverwriteVisible = ref(false)
+const confirmOverwriteMode = ref<'title-changed' | 'same-title-draft'>('title-changed')
 const pendingDraftTitle = ref('')
+const pendingOverwriteDraftId = ref<number | null>(null)
 
 async function handleSaveDraft(_draftId: number, title: string) {
   const isDup = await DraftStorage.isDuplicate(title, markdown.value, currentDraftId.value ?? undefined)
@@ -1030,6 +1074,18 @@ async function handleSaveDraft(_draftId: number, title: string) {
     const existing = await DraftStorage.getById(currentDraftId.value)
     if (existing && existing.title !== title) {
       pendingDraftTitle.value = title
+      confirmOverwriteMode.value = 'title-changed'
+      confirmOverwriteVisible.value = true
+      return
+    }
+  } else {
+    // 无关联草稿时，检查是否存在同名草稿
+    const allDrafts = await DraftStorage.list()
+    const sameNameDraft = allDrafts.find((d) => d.title === title)
+    if (sameNameDraft) {
+      pendingDraftTitle.value = title
+      pendingOverwriteDraftId.value = sameNameDraft.id!
+      confirmOverwriteMode.value = 'same-title-draft'
       confirmOverwriteVisible.value = true
       return
     }
@@ -1041,6 +1097,7 @@ async function handleSaveDraft(_draftId: number, title: string) {
 async function doSaveDraft(title: string, targetId?: number) {
   if (targetId !== undefined) {
     await DraftStorage.save(title, markdown.value, targetId)
+    currentDraftId.value = targetId
   } else {
     const id = await DraftStorage.save(title, markdown.value)
     currentDraftId.value = id
@@ -1052,7 +1109,10 @@ async function doSaveDraft(title: string, targetId?: number) {
 }
 
 function handleOverwrite() {
-  doSaveDraft(pendingDraftTitle.value, currentDraftId.value!)
+  const targetId = confirmOverwriteMode.value === 'same-title-draft'
+    ? pendingOverwriteDraftId.value!
+    : currentDraftId.value!
+  doSaveDraft(pendingDraftTitle.value, targetId)
 }
 
 function handleSaveAsNew() {
@@ -1082,6 +1142,8 @@ async function handleDeleteDraft(id: number) {
   }
   showToast('草稿已删除')
   await refreshDrafts()
+  // 删除后重新匹配草稿
+  setTimeout(() => matchExistingDraft(), 300)
 }
 
 function handleOpenFinalize() {
@@ -1236,12 +1298,24 @@ onBeforeUnmount(() => {
             <span class="opacity-60">for 公众号</span>
             <span class="opacity-50">v{{ pkg.version }}</span>
           </span>
-          <span class="hidden sm:inline text-[11px] opacity-50 ml-1.5 shrink-0">{{ saveHint }}</span>
-          <CircleCheck v-if="saveMode" :size="14" color="var(--accent)" class="hidden sm:inline shrink-0 ml-1" />
           <span class="sm:hidden">R-Markdown</span>
         </router-link>
+        <span class="hidden sm:inline text-[11px] opacity-50 ml-1.5 shrink-0">{{ saveHint }}</span>
+        <CircleCheck v-if="saveMode" :size="14" color="var(--accent)" class="hidden sm:inline shrink-0 ml-1" />
+        <span v-if="currentDraftId" class="relative hidden sm:inline-flex items-center group ml-1">
+          <Link :size="14" class="w-3.5 h-3.5 shrink-0" :style="{ color: colors.accent }" />
+          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none whitespace-nowrap">
+            已关联草稿：{{ currentDraftTitle }}
+          </span>
+        </span>
         <span class="sm:hidden text-[11px] opacity-50 ml-2 shrink-0">{{ saveHint }}</span>
         <CircleCheck v-if="saveMode" :size="14" color="var(--accent)" class="sm:hidden shrink-0 ml-1" />
+        <span v-if="currentDraftId" class="relative sm:hidden inline-flex items-center group ml-1">
+          <Link :size="14" class="w-3.5 h-3.5 shrink-0" :style="{ color: colors.accent }" />
+          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none whitespace-nowrap">
+            已关联草稿：{{ currentDraftTitle }}
+          </span>
+        </span>
       </div>
       <div class="flex items-center gap-1.5">
         <!-- 桌面端：显示所有按钮 -->
@@ -1423,21 +1497,10 @@ onBeforeUnmount(() => {
                 <component :is="formatIcons[opt.syntax]" :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
               </button>
             </span>
-            <!-- 草稿关联提示 -->
-            <span v-if="currentDraftId" class="relative inline-flex items-center group">
-              <button
-                class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn cursor-pointer"
-              >
-                <span style="font-size:13px;font-weight:700;color:#f59e0b">!</span>
-              </button>
-              <span class="absolute top-full right-0 mt-1.5 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none whitespace-nowrap">
-                已关联草稿：{{ currentDraftTitle }}
-              </span>
-            </span>
             <!-- 帮助提示 -->
             <span class="relative inline-flex items-center group">
               <CircleQuestionMark :size="14" />
-              <span class="absolute top-full right-0 mt-1.5 w-45 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
+              <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-45 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
                 选中非标签内文字后可加样式<br>本地/图床/组件：仅空行可点击<br>解析：选中组件标签后可点击。
               </span>
             </span>
@@ -1498,6 +1561,8 @@ onBeforeUnmount(() => {
             @tag-selected="onTagSelected"
             @paste-image="handlePasteImage"
             @paste-multiple-images="handlePasteMultipleImages"
+            @paste-text="onPasteText"
+            @undo-redo="onUndoRedo"
             @drop-image="handleDropImage"
             @drop-multiple-images="handleDropMultipleImages"
             @drop-non-image="handleDropNonImage"
@@ -1665,8 +1730,10 @@ onBeforeUnmount(() => {
   <!-- 标题变更确认弹窗 -->
   <ConfirmDialog
     :visible="confirmOverwriteVisible"
-    title="标题已变更"
-    :message="'原标题与草稿「' + currentDraftTitle + '」不一致，请选择操作：'"
+    :title="confirmOverwriteMode === 'same-title-draft' ? '存在同名草稿' : '标题已变更'"
+    :message="confirmOverwriteMode === 'same-title-draft'
+      ? '已存在同名草稿「' + pendingDraftTitle + '」，请选择操作：'
+      : '原标题与草稿「' + currentDraftTitle + '」不一致，请选择操作：'"
     confirm-text="覆盖现有草稿"
     cancel-text="取消"
     @confirm="handleOverwrite"

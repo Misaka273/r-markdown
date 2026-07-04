@@ -209,7 +209,7 @@ export const DraftStorage = {
   },
 
   getCurrentDraftId(): number | null {
-    const val = localStorage.getItem('rmd-currentDraftId')
+    const val = localStorage.getItem('r-markdown-currentDraftId')
     if (val === null) return null
     const id = parseInt(val, 10)
     return isNaN(id) ? null : id
@@ -217,9 +217,9 @@ export const DraftStorage = {
 
   setCurrentDraftId(id: number | null): void {
     if (id === null) {
-      localStorage.removeItem('rmd-currentDraftId')
+      localStorage.removeItem('r-markdown-currentDraftId')
     } else {
-      localStorage.setItem('rmd-currentDraftId', String(id))
+      localStorage.setItem('r-markdown-currentDraftId', String(id))
     }
   },
 }
