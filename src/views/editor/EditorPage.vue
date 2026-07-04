@@ -1424,13 +1424,16 @@ onBeforeUnmount(() => {
               </button>
             </span>
             <!-- 草稿关联提示 -->
-            <button
-              v-if="currentDraftId"
-              class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn cursor-pointer"
-              :title="'已关联草稿：' + currentDraftTitle"
-            >
-              <span style="font-size:13px;font-weight:700;color:#f59e0b">!</span>
-            </button>
+            <span v-if="currentDraftId" class="relative inline-flex items-center group">
+              <button
+                class="inline-flex items-center justify-center w-7 h-7 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn cursor-pointer"
+              >
+                <span style="font-size:13px;font-weight:700;color:#f59e0b">!</span>
+              </button>
+              <span class="absolute top-full right-0 mt-1.5 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none whitespace-nowrap">
+                已关联草稿：{{ currentDraftTitle }}
+              </span>
+            </span>
             <!-- 帮助提示 -->
             <span class="relative inline-flex items-center group">
               <CircleQuestionMark :size="14" />
