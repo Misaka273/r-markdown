@@ -1,11 +1,21 @@
-import mermaid from 'mermaid'
+let mermaidModule: typeof import('mermaid').default | null = null
+let mermaidInitialized = false
 
-// 初始化 mermaid 配置
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'default',
-  securityLevel: 'loose',
-})
+async function getMermaid() {
+  if (!mermaidModule) {
+    const mod = await import('mermaid')
+    mermaidModule = mod.default
+  }
+  if (!mermaidInitialized) {
+    mermaidModule.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+    })
+    mermaidInitialized = true
+  }
+  return mermaidModule
+}
 
 function decodeHtmlEntities(encoded: string): string {
   return encoded
@@ -64,6 +74,7 @@ export function useMermaid() {
     const theme = el.dataset.mermaidTheme || 'default'
     if (!code.trim()) return false
     try {
+      const mermaid = await getMermaid()
       mermaid.initialize({ startOnLoad: false, theme: theme as any })
       await mermaid.parse(code)
       const { svg } = await mermaid.render('mermaid-' + Math.random().toString(36).slice(2, 8), code)
