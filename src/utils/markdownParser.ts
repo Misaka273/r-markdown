@@ -696,11 +696,12 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // 有序列表
     if (/^\d+\.\s/.test(line)) {
-      let idx = 1
+      const numMatch = lines[i].match(/^(\d+)\.\s/)
+      let idx = numMatch ? parseInt(numMatch[1], 10) : 1
       html += `<section style="margin:10px 0px;padding-left:24px">`
       while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
         const content = lines[i].replace(/^\d+\.\s/, '')
-        html += `<section style="margin:5px 0px"><span style="color:rgb(148,163,184);font-weight:700;margin-right:6px">${idx}.</span>${inlineFormat(content, t, formulaMap)}</section>`
+        html += `<section style="margin:5px 0px;display:flex;align-items:flex-start;gap:6px"><span style="color:rgb(148,163,184);font-weight:700;flex-shrink:0;min-width:20px">${idx}.</span><span style="word-break:break-word;overflow-wrap:break-word;min-width:0">${inlineFormat(content, t, formulaMap)}</span></section>`
         idx++
         i++
       }

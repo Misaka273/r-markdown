@@ -44,7 +44,7 @@ export function inlineFormat(text: string, t: ThemeColors, formulaMap?: Map<stri
     /`([^`]+)`/g,
     (_m, p1: string) => {
       const idx = codeStore.length
-      codeStore.push(`<code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c">${esc(p1)}</code>`)
+      codeStore.push(`<code style="background:#f0f0f5;padding:2px 6px;border-radius:4px;font-size:13px;font-family:SF Mono,Consolas,monospace;color:#e83e8c;word-break:break-all">${esc(p1)}</code>`)
       return `\x00CODE_${idx}\x00`
     },
   )
