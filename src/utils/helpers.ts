@@ -71,6 +71,52 @@ export function withAlpha(color: string, alpha = 0.06): string {
   return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
 }
 
+/**
+ * 解析 Markdown 表格 body 字符串，返回表头与数据行。
+ * 解析逻辑与 markdownParser.ts 中表格解析一致：
+ *   去首尾管道符、按 | split、trim 每个单元格。
+ *
+ * @param body  表格字符串，如 "| A | B |\n| --- | --- |\n| 1 | 2 |"
+ */
+export type Alignment = 'left' | 'center' | 'right'
+
+export function parseAlignment(sep: string): Alignment {
+  const s = sep.trim()
+  const leftColon = s.startsWith(':')
+  const rightColon = s.endsWith(':')
+  if (leftColon && rightColon) return 'center'
+  if (rightColon) return 'right'
+  return 'left'
+}
+
+export function parseMarkdownTable(body: string): { headers: string[]; rows: string[][]; alignments: Alignment[] } {
+  const lines = body.split('\n').map((l) => l.trim()).filter(Boolean)
+  if (lines.length < 2) return { headers: [], rows: [], alignments: [] }
+
+  // 解析表头行
+  let headerLine = lines[0]
+  if (headerLine.startsWith('|')) headerLine = headerLine.slice(1)
+  if (headerLine.endsWith('|')) headerLine = headerLine.slice(0, -1)
+  const headers = headerLine.split('|').map((s) => s.trim())
+
+  // 解析分隔行 → 提取对齐方式
+  let sepLine = lines[1]
+  if (sepLine.startsWith('|')) sepLine = sepLine.slice(1)
+  if (sepLine.endsWith('|')) sepLine = sepLine.slice(0, -1)
+  const alignments: Alignment[] = sepLine.split('|').map(parseAlignment)
+
+  // 第三行开始是数据行
+  const rows: string[][] = []
+  for (let ri = 2; ri < lines.length; ri++) {
+    let cellLine = lines[ri]
+    if (cellLine.startsWith('|')) cellLine = cellLine.slice(1)
+    if (cellLine.endsWith('|')) cellLine = cellLine.slice(0, -1)
+    rows.push(cellLine.split('|').map((s) => s.trim()))
+  }
+
+  return { headers, rows, alignments }
+}
+
 export function parseAttrs(s: string): Record<string, string> {
   const attrs: Record<string, string> = {}
   // 匹配 key="value"、key=value（无引号）和无值布尔属性（如 round）

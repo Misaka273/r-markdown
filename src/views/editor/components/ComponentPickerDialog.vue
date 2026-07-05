@@ -38,6 +38,7 @@ const componentCategoryMap: Record<string, string> = {
   Steps_DA01: 'layout', Steps_DA02: 'layout',
   CaseFlow_DA01: 'layout',
   Compare_DA01: 'layout', Compare_DA02: 'layout',
+  Table_DA01: 'layout',
   Timeline_DA01: 'layout',
   Chart_DA01: 'other',
   CTA_DA01: 'interactive',
