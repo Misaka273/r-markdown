@@ -21,7 +21,7 @@ import {
   Save, SquareBottomDashedScissors, CheckCircle,
   Download, Copy, FileText, CircleCheck,
   Smartphone, SquarePen, CircleQuestionMark,
-  ImagePlus, Link
+  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table
 } from 'lucide-vue-next'
 import { putImage, getDataURL, cleanupImages } from '@/utils/imageDB'
 
@@ -40,6 +40,50 @@ const formatIcons: Record<string, any> = {
   'sub': Subscript,
   'u': Underline,
 }
+
+const markdownInsertOptions = [
+  { label: '有序列表', display: '1. 2. 3.', syntax: '1. \n2. \n3. \n', icon: ListOrdered },
+  { label: '无序列表', display: '-  -  -', syntax: '- \n- \n- ', icon: List },
+  { label: '引用', display: '> 引用文字', syntax: '> ', icon: Quote },
+  { label: '链接', display: '[文字](url)', syntax: '[链接文字](url)', icon: Link },
+  { label: '脚注', display: '[文字](url "标题")', syntax: '[脚注文字](url "脚注描述")', icon: StickyNote },
+  { label: '任务列表', display: '☑ 任务1  ☐ 任务2', syntax: '- [x] 任务1\n- [ ] 任务2', icon: ListChecks },
+  { label: '行内代码', display: '`code`', syntax: '``', icon: Code2 },
+  { label: '代码块', display: '``` ... ```', syntax: '```\n\n```', icon: Code2 },
+  { label: '脚注', display: '[文字](url "标题")', syntax: '[脚注文字](url "脚注描述")', icon: StickyNote },
+  { label: '限高图', display: '![图](url)[w h]', syntax: '![图片描述](https://robocopmao.github.io/r-markdown/empty.webp)[100% 100%]', icon: Crop },
+  { label: '横向多图', display: '<图1, 图2>', syntax: '<![图1描述](https://robocopmao.github.io/r-markdown/empty.webp),![图2描述](https://robocopmao.github.io/r-markdown/empty.webp)>', icon: Images },
+  { label: '表格', display: '', syntax: '', icon: Table, table: true },
+]
+
+const MAX_GRID_COLS = 10
+const MAX_GRID_ROWS = 10
+const tableGridHovered = ref({ rows: 0, cols: 0 })
+
+function insertTable(rows: number, cols: number) {
+  if (!editorRef.value || rows < 1 || cols < 1) return
+  const header = '| ' + Array(cols).fill('表头').join(' | ') + ' |'
+  const sep = '| ' + Array(cols).fill('---').join(' | ') + ' |'
+  const row = '| ' + Array(cols).fill('单元格').join(' | ') + ' |'
+  const body = Array(rows).fill(row).join('\n')
+  editorRef.value.insertAtCursor('\n' + header + '\n' + sep + '\n' + body + '\n')
+}
+
+function getGridCellClass(i: number) {
+  const rows = Math.ceil(i / MAX_GRID_COLS)
+  const cols = (i - 1) % MAX_GRID_COLS + 1
+  const active = rows <= tableGridHovered.value.rows && cols <= tableGridHovered.value.cols
+  return {
+    'border-[#d0d0d0] dark:border-white/15 bg-transparent': !active,
+  }
+}
+
+function isGridCellActive(i: number) {
+  const rows = Math.ceil(i / MAX_GRID_COLS)
+  const cols = (i - 1) % MAX_GRID_COLS + 1
+  return rows <= tableGridHovered.value.rows && cols <= tableGridHovered.value.cols
+}
+
 import Preview from './components/Preview.vue'
 import ThemePicker from './components/ThemePicker.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
@@ -1430,6 +1474,70 @@ onBeforeUnmount(() => {
           <span class="flex flex-wrap items-center gap-3">
             <!-- 操作按钮组：图标+文字 -->
             <span class="flex items-center gap-1">
+              <!-- 基础语法 -->
+              <span class="relative inline-flex items-center group">
+                <button
+                  class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
+                  :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                  :disabled="!editorRef?.isAtLineStart"
+                >
+                  <component :is="markdownInsertOptions[1].icon" :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                  <span>基础语法</span>
+                </button>
+                <span
+                  class="absolute top-full left-0 mt-0.5 py-1 min-w-[120px] rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-[#e5e5e5] dark:border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50"
+                  :class="!editorRef?.isAtLineStart ? 'pointer-events-none' : ''"
+                >
+                  <template v-for="opt in markdownInsertOptions" :key="opt.label">
+                    <div
+                      v-if="opt.table"
+                      class="relative"
+                      :class="editorRef?.isAtLineStart ? 'group/table' : 'cursor-not-allowed opacity-40'"
+                    >
+                      <div class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none">
+                        <component :is="opt.icon" :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                        <span class="text-[#333] dark:text-white font-medium">表格</span>
+                        <span class="text-[#999] dark:text-white/40 ml-auto">{{ opt.label }}</span>
+                      </div>
+                      <div
+                        class="absolute left-full top-0 ml-1 p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-[#e5e5e5] dark:border-white/10 opacity-0 invisible group-hover/table:opacity-100 group-hover/table:visible transition-all duration-150 z-50"
+                        :class="!editorRef?.isAtLineStart ? 'pointer-events-none' : ''"
+                      >
+                        <div
+                          class="grid gap-0.5"
+                          :style="{ gridTemplateColumns: `repeat(${MAX_GRID_COLS}, 22px)` }"
+                        >
+                          <button
+                            v-for="i in MAX_GRID_ROWS * MAX_GRID_COLS"
+                            :key="i"
+                            class="w-[22px] h-[22px] rounded-[3px] border cursor-pointer transition-colors duration-75"
+                            :class="getGridCellClass(i)"
+                            :style="isGridCellActive(i) ? { borderColor: colors.accent, backgroundColor: colors.accent + '20' } : {}"
+                            :disabled="!editorRef?.isAtLineStart"
+                            @mousemove="editorRef?.isAtLineStart && (tableGridHovered = { rows: Math.ceil(i / MAX_GRID_COLS), cols: (i - 1) % MAX_GRID_COLS + 1 })"
+                            @click="editorRef?.isAtLineStart && insertTable(tableGridHovered.rows, tableGridHovered.cols)"
+                          />
+                        </div>
+                        <div class="text-center text-[11px] text-[#666] dark:text-white/50 mt-1.5 leading-none">
+                          {{ tableGridHovered.rows }} 行 × {{ tableGridHovered.cols }} 列
+
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      v-else
+                      class="flex items-center gap-2 w-full px-3 py-1.5 text-[11px] leading-none text-left whitespace-nowrap border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-100 cursor-pointer"
+                      :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
+                      :disabled="!editorRef?.isAtLineStart"
+                      @click="editorRef?.isAtLineStart && editorRef?.insertAtCursor(opt.syntax)"
+                    >
+                      <component :is="opt.icon" :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                      <span class="text-[#333] dark:text-white font-medium">{{ opt.display }}</span>
+                      <span class="text-[#999] dark:text-white/40 ml-auto">{{ opt.label }}</span>
+                    </button>
+                  </template>
+                </span>
+              </span>
               <button
                 class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
                 :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"

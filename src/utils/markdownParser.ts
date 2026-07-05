@@ -1,6 +1,6 @@
 import type { ThemeColors } from '@/composables/useTheme'
 import hljs from 'highlight.js/lib/common'
-import { leaf, esc, parseAttrs } from './helpers'
+import { leaf, esc, parseAttrs, parseAlignment, type Alignment } from './helpers'
 import { inlineFormat } from './inlineFormat'
 import { renderMath, preloadMathJax } from './mathRenderer'
 import {
@@ -28,6 +28,7 @@ import { Slider_DA01 } from '@/extension/Slider_DA01'
 import { Img_DA01 } from '@/extension/Img_DA01'
 import { Chart_DA01 } from '@/extension/Chart_DA01'
 import { Mermaid_DA01 } from '@/extension/Mermaid_DA01'
+import { Table_DA01 } from '@/extension/Table_DA01'
 
 // 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
 // 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
@@ -610,6 +611,22 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       continue
     }
 
+    // <table> 扩展标签（优先于原生表格解析）
+    if (/^<table\b/.test(line)) {
+      const openMatch = line.match(/^<table\b([^>]*)>/)
+      const attrs = parseAttrs(openMatch ? openMatch[1] : '')
+      i++
+      // 收集 body 直到 </table>
+      let body = ''
+      while (i < lines.length && !/^<\/table>/.test(lines[i])) {
+        body += lines[i] + '\n'
+        i++
+      }
+      i++ // 跳过 </table>
+      html += Table_DA01.render(attrs, body.trim(), t)
+      continue
+    }
+
     // 表格
     if (line.indexOf('|') >= 0 && i + 1 < lines.length && /\|[\s-:]+\|/.test(lines[i + 1])) {
       // 先掐掉首尾装饰性管道再 split，这样中间的空格会原样保留为 ''
@@ -617,6 +634,13 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       if (headerLine.startsWith('|')) headerLine = headerLine.slice(1)
       if (headerLine.endsWith('|')) headerLine = headerLine.slice(0, -1)
       let headers = headerLine.split('|').map((s) => s.trim())
+
+      // 解析分隔行 → 提取列对齐
+      let sepLine = lines[i + 1].trim()
+      if (sepLine.startsWith('|')) sepLine = sepLine.slice(1)
+      if (sepLine.endsWith('|')) sepLine = sepLine.slice(0, -1)
+      const alignments: Alignment[] = sepLine.split('|').map(parseAlignment)
+
       i += 2
       const rows: string[][] = []
       while (i < lines.length && lines[i].indexOf('|') >= 0 && lines[i].trim() !== '') {
@@ -627,15 +651,17 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         rows.push(cells)
         i++
       }
-      html += `<section style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:28px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
-      headers.forEach((h) => {
-        html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;font-weight:700;color:rgb(51,65,85)">${inlineFormat(h, t, formulaMap)}</td>`
+      html += `<section style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:20px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
+      headers.forEach((h, hi) => {
+        const al: Alignment = alignments[hi] || 'left'
+        html += `<td valign="top" align="${al === 'center' ? 'center' : al === 'right' ? 'right' : 'left'}" style="vertical-align:top;border:0px;padding:0px;text-align:${al};font-size:13px;font-weight:700;color:rgb(51,65,85)">${inlineFormat(h, t, formulaMap)}</td>`
       })
       html += `</tr></thead><tbody>`
       rows.forEach((r) => {
         html += `<tr>`
-        r.forEach((c) => {
-          html += `<td valign="top" align="left" style="vertical-align:top;border:0px;padding:0px;text-align:left;font-size:13px;color:rgb(51,65,85)">${inlineFormat(c, t, formulaMap)}</td>`
+        r.forEach((c, ci) => {
+          const al: Alignment = alignments[ci] || 'left'
+          html += `<td valign="top" align="${al === 'center' ? 'center' : al === 'right' ? 'right' : 'left'}" style="vertical-align:top;border:0px;padding:0px;text-align:${al};font-size:13px;color:rgb(51,65,85)">${inlineFormat(c, t, formulaMap)}</td>`
         })
         html += `</tr>`
       })
