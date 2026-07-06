@@ -55,24 +55,41 @@ function onCancel() {
         class="flex gap-2 mt-4"
         :class="hasSlot() ? 'flex-col' : 'justify-end'"
       >
-        <button
-          class="px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none text-white transition-colors whitespace-nowrap"
-          :class="[
-            confirmType === 'danger' ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : 'bg-[var(--accent)] hover:bg-[var(--accent-dark)]',
-            { 'w-full': hasSlot() }
-          ]"
-          @click="onConfirm"
-        >
-          {{ confirmText }}
-        </button>
-        <slot />
-        <button
-          class="confirm-dialog-cancel-btn px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none bg-[#f3f0ea] text-[#8a8175] transition-colors hover:bg-[#e8e3da] whitespace-nowrap"
-          :class="{ 'w-full': hasSlot() }"
-          @click="onCancel"
-        >
-          {{ cancelText }}
-        </button>
+        <template v-if="hasSlot()">
+          <button
+            class="px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none text-white transition-colors whitespace-nowrap"
+            :class="[
+              confirmType === 'danger' ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : 'bg-[var(--accent)] hover:bg-[var(--accent-dark)]',
+              { 'w-full': hasSlot() }
+            ]"
+            @click="onConfirm"
+          >
+            {{ confirmText }}
+          </button>
+          <slot />
+          <button
+            class="confirm-dialog-cancel-btn px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none bg-[#f3f0ea] text-[#8a8175] transition-colors hover:bg-[#e8e3da] whitespace-nowrap"
+            :class="{ 'w-full': hasSlot() }"
+            @click="onCancel"
+          >
+            {{ cancelText }}
+          </button>
+        </template>
+        <template v-else>
+          <button
+            class="confirm-dialog-cancel-btn px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none bg-[#f3f0ea] text-[#8a8175] transition-colors hover:bg-[#e8e3da] whitespace-nowrap"
+            @click="onCancel"
+          >
+            {{ cancelText }}
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer border-none text-white transition-colors whitespace-nowrap"
+            :class="confirmType === 'danger' ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : 'bg-[var(--accent)] hover:bg-[var(--accent-dark)]'"
+            @click="onConfirm"
+          >
+            {{ confirmText }}
+          </button>
+        </template>
       </div>
     </div>
   </div>
