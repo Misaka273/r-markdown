@@ -134,7 +134,7 @@ function getMeta(key: string): AttrMeta {
   )
 }
 function isColorField(key: string): boolean {
-  return /color/i.test(key) && !getMeta(key).options
+  return /(color|bg)$/i.test(key) && !getMeta(key).options
 }
 
 const selectChevronStyle = {
