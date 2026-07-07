@@ -21,7 +21,7 @@ import {
   Save, SquareBottomDashedScissors, CheckCircle,
   Download, Copy, FileText, CircleCheck,
   Smartphone, SquarePen, CircleQuestionMark,
-  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table
+  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send
 } from 'lucide-vue-next'
 import { putImage, getDataURL, cleanupImages } from '@/utils/imageDB'
 
@@ -97,6 +97,7 @@ import DraftListDialog from './components/DraftListDialog.vue'
 import FinalizeDialog from './components/FinalizeDialog.vue'
 import EditorSidebar from './components/EditorSidebar.vue'
 import ImageCacheDialog from './components/ImageCacheDialog.vue'
+import PublishToWechatDialog from '@/components/PublishToWechatDialog.vue'
 import Toast from '@/components/Toast.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import pkg from '../../../package.json'
@@ -366,6 +367,8 @@ const previewRef = ref()
 const editorRef = ref<InstanceType<typeof Editor>>()
 const xhsVisible = ref(false)
 const settingsVisible = ref(false)
+const settingsInitialTab = ref('')
+const wechatPublishVisible = ref(false)
 const showGallery = ref(false)
 const isTauri = import.meta.env.VITE_TAURI === 'true'
 
@@ -1087,6 +1090,45 @@ function handleCopyRichText() {
   previewRef.value?.copyRichText()
 }
 
+async function handlePublishToWechat() {
+  const appid = getSetting<string>('wechatAppId')
+  const appsecret = getSetting<string>('wechatAppSecret')
+  if (!appid || !appsecret) {
+    showToast('请先在设置中配置公众号 AppID 和 AppSecret')
+    settingsInitialTab.value = 'wechat'
+    settingsVisible.value = true
+    return
+  }
+  if (!currentDraftId.value) {
+    showToast('请先保存本地草稿后再推送到公众号')
+    return
+  }
+  await loadWechatMediaId()
+  wechatPublishVisible.value = true
+}
+
+const wechatMediaId = ref('')
+const wechatCoverMediaId = ref('')
+
+async function loadWechatMediaId() {
+  if (currentDraftId.value) {
+    const draft = await DraftStorage.getById(currentDraftId.value)
+    wechatMediaId.value = draft?.wechatMediaId || ''
+    wechatCoverMediaId.value = draft?.wechatCoverMediaId || ''
+  } else {
+    wechatMediaId.value = ''
+    wechatCoverMediaId.value = ''
+  }
+}
+
+async function handleWechatSaved(mediaId: string, coverMediaId: string) {
+  showToast('草稿已保存，请前往公众号查看')
+  if (currentDraftId.value) {
+    if (mediaId) await DraftStorage.updateWechatMediaId(currentDraftId.value, mediaId)
+    if (coverMediaId) await DraftStorage.updateWechatCoverMediaId(currentDraftId.value, coverMediaId)
+  }
+}
+
 function handleCopyHTML() {
   previewRef.value?.copyHTML()
 }
@@ -1383,6 +1425,14 @@ onBeforeUnmount(() => {
         >
           <Copy :size="14" />
           复制到公众号
+        </button>
+        <button
+          v-if="isTauri"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
+          @click="handlePublishToWechat"
+        >
+          <Send :size="14" />
+          存到公众号
         </button>
         <!-- 移动端：下拉菜单 -->
         <MobileActionsMenu
@@ -1759,7 +1809,16 @@ onBeforeUnmount(() => {
     @close="componentDialogVisible = false"
     @insert="(code: string) => editorRef?.insertAtCursor(code)"
   />
-  <SettingsDialog :visible="settingsVisible" @close="settingsVisible = false" />
+  <SettingsDialog :visible="settingsVisible" :initialTab="settingsInitialTab" @close="settingsVisible = false" />
+  <PublishToWechatDialog
+    :visible="wechatPublishVisible"
+    :title="extractedTitle"
+    :content="markdown"
+    :updateMediaId="wechatMediaId"
+    :initialCoverMediaId="wechatCoverMediaId"
+    @close="wechatPublishVisible = false"
+    @saved="handleWechatSaved"
+  />
   <ImageCacheDialog
     :visible="showGallery"
     mode="gallery"

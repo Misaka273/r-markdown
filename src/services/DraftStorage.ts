@@ -4,6 +4,8 @@ export interface Draft {
   content: string
   createdAt: number
   updatedAt: number
+  wechatMediaId?: string
+  wechatCoverMediaId?: string
 }
 
 const DB_NAME = 'RMarkdownDrafts'
@@ -152,6 +154,52 @@ export const DraftStorage = {
         resolve(request.result ?? null)
       }
       request.onerror = () => reject(request.error)
+    })
+  },
+
+  async updateWechatMediaId(id: number, mediaId: string): Promise<void> {
+    const db = await this.initDB()
+
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      const getReq = store.get(id)
+
+      getReq.onsuccess = () => {
+        const draft = getReq.result as Draft | undefined
+        if (!draft) {
+          resolve()
+          return
+        }
+        draft.wechatMediaId = mediaId
+        const putReq = store.put(draft)
+        putReq.onsuccess = () => resolve()
+        putReq.onerror = () => reject(putReq.error)
+      }
+      getReq.onerror = () => reject(getReq.error)
+    })
+  },
+
+  async updateWechatCoverMediaId(id: number, coverMediaId: string): Promise<void> {
+    const db = await this.initDB()
+
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      const getReq = store.get(id)
+
+      getReq.onsuccess = () => {
+        const draft = getReq.result as Draft | undefined
+        if (!draft) {
+          resolve()
+          return
+        }
+        draft.wechatCoverMediaId = coverMediaId
+        const putReq = store.put(draft)
+        putReq.onsuccess = () => resolve()
+        putReq.onerror = () => reject(putReq.error)
+      }
+      getReq.onerror = () => reject(getReq.error)
     })
   },
 

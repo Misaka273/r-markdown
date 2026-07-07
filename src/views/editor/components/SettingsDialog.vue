@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import BaseDialog from '@/components/BaseDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -12,8 +12,9 @@ import { useTheme } from '@/composables/useTheme'
 import ImageCacheDialog from './ImageCacheDialog.vue'
 import { testConnection as testLetaConnection } from '@/services/letaUploader'
 
-defineProps<{
+const props = defineProps<{
   visible: boolean
+  initialTab?: string
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +28,13 @@ const { colors } = useTheme()
 
 // ── 设置 tab ──
 const settingsTab = ref(isTauri ? 'basic' : 'github')
+
+// 当对话框打开时，若指定了 initialTab 则自动切换
+watch(() => props.visible, (isVisible) => {
+  if (isVisible && props.initialTab) {
+    settingsTab.value = props.initialTab
+  }
+})
 // 图床上传子 tab：upload | github | leta
 const hostingTab = ref('upload')
 
@@ -170,6 +178,15 @@ const downloadProgress = ref(0)
 
 const showImageCache = ref(false)
 
+// ── 公众号配置 ──
+const wechatAppId = ref(getSetting<string>('wechatAppId'))
+const wechatAppSecret = ref(getSetting<string>('wechatAppSecret'))
+const wechatDefaultAuthor = ref(getSetting<string>('wechatDefaultAuthor'))
+
+function saveWechatAppId(val: string) { wechatAppId.value = val; setSetting('wechatAppId', val) }
+function saveWechatAppSecret(val: string) { wechatAppSecret.value = val; setSetting('wechatAppSecret', val) }
+function saveWechatDefaultAuthor(val: string) { wechatDefaultAuthor.value = val; setSetting('wechatDefaultAuthor', val) }
+
 async function applyZoom(scale: number) {
   currentZoom.value = scale
   setSetting('pageZoom', scale)
@@ -275,6 +292,16 @@ async function doDownloadUpdate() {
           @click="settingsTab = 'github'"
         >
           图片设置
+        </button>
+        <button
+          v-if="isTauri"
+          class="cursor-pointer whitespace-nowrap rounded-full border-0 px-3 py-[5px] text-xs transition-colors"
+          :class="settingsTab === 'wechat'
+            ? 'bg-[var(--accent)] text-white'
+            : 'bg-transparent text-[#999] hover:text-[#333] dark:hover:text-[#ccc]'"
+          @click="settingsTab = 'wechat'"
+        >
+          公众号
         </button>
         <button
           v-if="isTauri"
@@ -651,6 +678,46 @@ async function doDownloadUpdate() {
           </button>
           <span v-if="letaTestResult === 'ok'" class="text-[12px]" :style="{ color: colors.accent }">连接成功</span>
           <span v-if="letaTestResult === 'fail'" class="text-[12px] text-[#e74c3c]">连接失败</span>
+        </div>
+      </section>
+    </template>
+
+    <!-- 公众号设置（仅桌面端） -->
+    <template v-if="settingsTab === 'wechat'">
+      <section>
+        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+          微信公众号配置
+        </h3>
+        <p class="text-[11px] text-[#999] dark:text-[#666] mb-3">
+          用于将文章直接发布到微信公众号草稿箱。需要公众号的开发者 ID 和密钥。
+        </p>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">AppID</label>
+          <input
+            :value="wechatAppId"
+            placeholder="wx0000000000000000"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveWechatAppId(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">AppSecret</label>
+          <input
+            :value="wechatAppSecret"
+            type="password"
+            placeholder="请输入 AppSecret"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveWechatAppSecret(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="text-[12px] text-[#666] dark:text-[#999] mb-1.5 block">默认作者名</label>
+          <input
+            :value="wechatDefaultAuthor"
+            placeholder="用于草稿 author 字段的默认值"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#ccc] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#555]"
+            @input="saveWechatDefaultAuthor(($event.target as HTMLInputElement).value)"
+          />
         </div>
       </section>
     </template>
