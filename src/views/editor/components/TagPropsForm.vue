@@ -206,7 +206,7 @@ const selectChevronStyle = {
             type="text"
           />
           <label
-            class="w-6 h-6 rounded-[3px] border border-[var(--border-color,#d1d5db)] cursor-pointer shrink-0"
+            class="relative w-6 h-6 rounded-[3px] border border-[var(--border-color,#d1d5db)] cursor-pointer shrink-0"
             :style="{ backgroundColor: editedAttrs[key] || '#ccc' }"
           >
             <input
