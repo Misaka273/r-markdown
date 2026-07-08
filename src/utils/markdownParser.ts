@@ -29,6 +29,10 @@ import { Img_DA01 } from '@/extension/Img_DA01'
 import { Chart_DA01 } from '@/extension/Chart_DA01'
 import { Mermaid_DA01 } from '@/extension/Mermaid_DA01'
 import { Table_DA01 } from '@/extension/Table_DA01'
+import { Row_DA01 } from '@/extension/Row_DA01'
+import { Column_DA01 } from '@/extension/Column_DA01'
+import { Container_DA01 } from '@/extension/Container_DA01'
+import { Text_DA01 } from '@/extension/Text_DA01'
 
 // 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
 // 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
@@ -160,7 +164,7 @@ export async function parseMarkdownAsync(md: string, t: ThemeColors, paragraphSt
   return parseMarkdown(md, t, formulaMap, paragraphStyle)
 }
 
-export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<string, string>, paragraphStyle?: ParagraphStyle): string {
+export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<string, string>, paragraphStyle?: ParagraphStyle, depth = 0): string {
   // 收集脚注：[text](url "desc") 带引号标题的链接 → 脚注
   const footnotes: { label: string; url: string; desc: string }[] = []
   const footnoteRegex = /\[([^\]]+)\]\(([^)\s]+)\s+"([^"]+)"\)/g
@@ -200,6 +204,146 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     }
   }
 
+  /**
+   * 递归解析 <row> 标签及其内部的 <column> 子标签。
+   * Column 的 body 通过递归调用 parseMarkdown 支持完整 Markdown 及嵌套 <row>。
+   */
+  function parseRowTag(startIdx: number): { html: string; next: number } {
+    const openMatch = lines[startIdx].match(/^<row\b([^>]*)>/)
+    const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+
+    let j = startIdx + 1
+    // 收集 row body 行直到匹配的 </row>（追踪嵌套深度）
+    const bodyLines: string[] = []
+    let rowDepth = 1
+    while (j < lines.length && rowDepth > 0) {
+      if (/^<row\b/.test(lines[j])) {
+        rowDepth++
+      }
+      if (/^<\/row>/.test(lines[j])) {
+        rowDepth--
+        if (rowDepth > 0) {
+          bodyLines.push(lines[j])
+        }
+        j++
+        continue
+      }
+      bodyLines.push(lines[j])
+      j++
+    }
+
+    // body 通过 parseMarkdown 递归解析，自动处理纯文本、<column>、嵌套 <row> 等
+    const bodyText = bodyLines.join('\n').trim()
+    const innerHtml = bodyText
+      ? parseMarkdown(bodyText, t, formulaMap, paragraphStyle, depth + 1)
+      : ''
+
+    return { html: Row_DA01.render(attrs, innerHtml, t), next: j }
+  }
+
+  /**
+   * 递归解析 <column> 标签及其内部的 <row> 子标签。
+   * Body 通过递归调用 parseMarkdown 支持完整 Markdown 及嵌套 <row>/<column>。
+   */
+  function parseColumnTag(startIdx: number): { html: string; next: number } {
+    const openMatch = lines[startIdx].match(/^<column\b([^>]*)>(.*)$/)
+    const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+
+    // 单行 column：<column ...>content</column>
+    if (openMatch && openMatch[2] && /<\/column>\s*$/.test(openMatch[2])) {
+      const bodyText = openMatch[2].replace(/<\/column>\s*$/, '').trim()
+      const bodyHtml = bodyText
+        ? parseMarkdown(bodyText, t, formulaMap, paragraphStyle, depth + 1)
+        : ''
+      return { html: Column_DA01.render(attrs, bodyHtml, t), next: startIdx + 1 }
+    }
+
+    // 多行 column：收集直到匹配的 </column>（追踪嵌套深度）
+    let j = startIdx + 1
+    let bodyText = openMatch && openMatch[2] ? openMatch[2] + '\n' : ''
+    let colDepth = 1
+    while (j < lines.length && colDepth > 0) {
+      if (/^<column\b/.test(lines[j])) {
+        colDepth++
+        bodyText += lines[j] + '\n'
+        j++
+      } else if (/^<\/column>/.test(lines[j])) {
+        colDepth--
+        if (colDepth > 0) {
+          bodyText += lines[j] + '\n'
+        }
+        j++
+      } else {
+        bodyText += lines[j] + '\n'
+        j++
+      }
+    }
+    const trimmed = bodyText.trim()
+    const bodyHtml = trimmed
+      ? parseMarkdown(trimmed, t, formulaMap, paragraphStyle, depth + 1)
+      : ''
+    return { html: Column_DA01.render(attrs, bodyHtml, t), next: j }
+  }
+
+  /**
+   * 递归解析 <container> 标签，不含深度限制。
+   */
+  function parseContainerTag(startIdx: number): { html: string; next: number } {
+    const openMatch = lines[startIdx].match(/^<container\b([^>]*)>(.*)$/)
+    const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
+
+    // 单行 container：<container ...>content</container>
+    if (openMatch && openMatch[2] && /<\/container>\s*$/.test(openMatch[2])) {
+      const bodyText = openMatch[2].replace(/<\/container>\s*$/, '').trim()
+      const bodyHtml = bodyText
+        ? parseMarkdown(bodyText, t, formulaMap, paragraphStyle, depth)
+        : ''
+      return { html: Container_DA01.render(attrs, bodyHtml, t), next: startIdx + 1 }
+    }
+
+    // 多行 container：收集直到匹配的 </container>（追踪嵌套深度）
+    let j = startIdx + 1
+    let bodyText = (openMatch && openMatch[2] ? openMatch[2] + '\n' : '')
+    let conDepth = 1
+    while (j < lines.length && conDepth > 0) {
+      if (/^<container\b/.test(lines[j])) {
+        conDepth++
+        bodyText += lines[j] + '\n'
+        j++
+      } else if (/^<\/container>/.test(lines[j])) {
+        conDepth--
+        if (conDepth > 0) {
+          bodyText += lines[j] + '\n'
+        }
+        j++
+      } else {
+        bodyText += lines[j] + '\n'
+        j++
+      }
+    }
+    const trimmed = bodyText.trim()
+    const bodyHtml = trimmed
+      ? parseMarkdown(trimmed, t, formulaMap, paragraphStyle, depth)
+      : ''
+    return { html: Container_DA01.render(attrs, bodyHtml, t), next: j }
+  }
+
+  /**
+   * 解析 <text> 行内标签（单行）。
+   */
+  function parseTextTag(startIdx: number): { html: string; next: number } {
+    const line = lines[startIdx]
+    const re = /<text\b([^>]*)>([\s\S]*?)<\/text>/g
+    let html = line
+    let m
+    while ((m = re.exec(line)) !== null) {
+      const attrs = parseAttrs(m[1])
+      const body = m[2]
+      html = html.replace(m[0], Text_DA01.render(attrs, body, t))
+    }
+    return { html, next: startIdx + 1 }
+  }
+
   while (i < lines.length) {
     const line = lines[i]
 
@@ -210,6 +354,38 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     if (/^---+\s*$/.test(line.trim())) {
       html += `<section style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>`
       i++
+      continue
+    }
+
+    // <container> — 通用容器（不含深度限制）
+    if (/^<container\b/.test(line)) {
+      const r = parseContainerTag(i)
+      html += r.html
+      i = r.next
+      continue
+    }
+
+    // <text> — 行内文本样式（仅独立行，内联使用由 inlineFormat 处理）
+    if (/^<text\b/.test(line)) {
+      const r = parseTextTag(i)
+      html += r.html
+      i = r.next
+      continue
+    }
+
+    // <row> — 行布局容器（递归解析，支持嵌套，最多四层）
+    if (depth < 4 && /^<row\b/.test(line)) {
+      const r = parseRowTag(i)
+      html += r.html
+      i = r.next
+      continue
+    }
+
+    // <column> — 列布局容器（递归解析，支持嵌套 <row>，最多四层）
+    if (depth < 4 && /^<column\b/.test(line)) {
+      const r = parseColumnTag(i)
+      html += r.html
+      i = r.next
       continue
     }
 
