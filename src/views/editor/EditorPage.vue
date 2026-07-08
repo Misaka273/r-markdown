@@ -97,7 +97,7 @@ import DraftListDialog from './components/DraftListDialog.vue'
 import FinalizeDialog from './components/FinalizeDialog.vue'
 import EditorSidebar from './components/EditorSidebar.vue'
 import ImageCacheDialog from './components/ImageCacheDialog.vue'
-import PublishToWechatDialog from '@/components/PublishToWechatDialog.vue'
+import PublishToWechatDialog from '@/views/editor/components/PublishToWechatDialog.vue'
 import Toast from '@/components/Toast.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import pkg from '../../../package.json'
@@ -1122,7 +1122,7 @@ async function loadWechatMediaId() {
 }
 
 async function handleWechatSaved(mediaId: string, coverMediaId: string) {
-  showToast('草稿已保存，请前往公众号查看')
+  showToast('草稿已保存，请前往公众号后台查看')
   if (currentDraftId.value) {
     if (mediaId) await DraftStorage.updateWechatMediaId(currentDraftId.value, mediaId)
     if (coverMediaId) await DraftStorage.updateWechatCoverMediaId(currentDraftId.value, coverMediaId)

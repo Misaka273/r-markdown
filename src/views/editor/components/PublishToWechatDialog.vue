@@ -8,6 +8,7 @@ import { getCoverMediaId, setCoverMediaId, clearMediaId } from '@/services/cover
 import { parseMarkdownAsync } from '@/utils/markdownParser'
 import { getDataURL } from '@/utils/imageDB'
 import { useTheme } from '@/composables/useTheme'
+import { useMermaid } from '@/composables/useMermaid'
 
 const { colors } = useTheme()
 
@@ -260,6 +261,18 @@ async function handleSave() {
     error.value = '请输入标题'
     return
   }
+  if (!coverMediaId.value) {
+    error.value = '请选择封面图'
+    return
+  }
+  if (!digest.value) {
+    error.value = '摘要不能为空'
+    return
+  }
+  if (!author.value) {
+    error.value = '作者不能为空'
+    return
+  }
   saving.value = true
   error.value = ''
   const thumbMediaId = coverMediaId.value
@@ -267,6 +280,16 @@ async function handleSave() {
     const step1 = resolveLocalBase64(props.content)
     const step2 = await resolveIdbImages(step1)
     const renderedHtml = await parseMarkdownAsync(step2, colors.value)
+
+    // 在隐藏 DOM 中渲染 mermaid 图表（renderAll 需要真实 DOM）
+    const mermaidContainer = document.createElement('div')
+    mermaidContainer.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;visibility:hidden'
+    mermaidContainer.innerHTML = renderedHtml
+    document.body.appendChild(mermaidContainer)
+    await useMermaid().renderAll(mermaidContainer)
+    const finalHtml = mermaidContainer.innerHTML
+    document.body.removeChild(mermaidContainer)
+
     const appid = getSetting<string>('wechatAppId')
     const appsecret = getSetting<string>('wechatAppSecret')
     const resp = await saveDraft(
@@ -274,7 +297,7 @@ async function handleSave() {
       appsecret,
       {
         title: draftTitle.value,
-        content: renderedHtml,
+        content: finalHtml,
         author: author.value,
         digest: digest.value,
         thumb_media_id: thumbMediaId,
