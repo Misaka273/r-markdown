@@ -21,7 +21,7 @@ import {
   Save, SquareBottomDashedScissors, CheckCircle,
   Download, Copy, FileText, CircleCheck,
   Smartphone, SquarePen, CircleQuestionMark,
-  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send, Layout, Columns2, Rows2, Box, Type
+  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send, Package, Columns2, Rows2, Box, Type
 } from 'lucide-vue-next'
 import { putImage, getDataURL, cleanupImages } from '@/utils/imageDB'
 
@@ -102,6 +102,14 @@ function insertColumnLayout(cols: number) {
   const colBlocks = Array.from({ length: cols }, () => '<column flex="1">\n内容\n</column>').join('\n')
   const template = `<row gap="16px">\n${colBlocks}\n</row>`
   editorRef.value.insertAtCursor('\n' + template + '\n')
+}
+
+function insertColumnStack(cols: number) {
+  if (!editorRef.value || cols < 1 || cols > MAX_COLS) return
+  const colBlocks = Array.from({ length: cols }, (_, i) =>
+    `<column flex="1">\n第 ${i + 1} 列内容\n</column>`
+  ).join('\n')
+  editorRef.value.insertAtCursor('\n' + colBlocks + '\n')
 }
 
 function insertRowStack(rows: number) {
@@ -1678,6 +1686,37 @@ onBeforeUnmount(() => {
                       </div>
                     </div>
                   </div>
+                  <!-- 列（独立，无 Row 包裹） -->
+                  <div
+                    class="relative"
+                    :class="editorRef?.isAtLineStart ? 'group/colstack' : 'cursor-not-allowed opacity-40'"
+                  >
+                    <div class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap">
+                      <Columns2 :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                      <span class="text-[#333] dark:text-white font-medium">列堆叠</span>
+                      <span class="text-[#999] dark:text-white/40 ml-auto">独立排列</span>
+                    </div>
+                    <div
+                      class="absolute left-full top-0 ml-1 p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-[#e5e5e5] dark:border-white/10 opacity-0 invisible group-hover/colstack:opacity-100 group-hover/colstack:visible transition-all duration-150 z-50"
+                      :class="!editorRef?.isAtLineStart ? 'pointer-events-none' : ''"
+                    >
+                      <div class="flex gap-0.5">
+                        <button
+                          v-for="i in MAX_COLS"
+                          :key="i"
+                          class="w-[28px] h-[28px] rounded-[3px] border cursor-pointer transition-colors duration-75"
+                          :class="isColCellActive(i) ? '' : 'border-[#d0d0d0] dark:border-white/15 bg-transparent'"
+                          :style="isColCellActive(i) ? { borderColor: colors.accent, backgroundColor: colors.accent + '20' } : {}"
+                          :disabled="!editorRef?.isAtLineStart"
+                          @mousemove="editorRef?.isAtLineStart && (colGridHovered = i)"
+                          @click="editorRef?.isAtLineStart && insertColumnStack(colGridHovered)"
+                        />
+                      </div>
+                      <div class="text-center text-[11px] text-[#666] dark:text-white/50 mt-1.5 leading-none">
+                        {{ colGridHovered }} 列独立
+                      </div>
+                    </div>
+                  </div>
                   <!-- 行 -->
                   <div
                     class="relative"
@@ -1715,7 +1754,7 @@ onBeforeUnmount(() => {
                     :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
                     @click="editorRef?.isAtLineStart && insertContainer()"
                   >
-                    <Layout :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                    <Package :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
                     <span class="text-[#333] dark:text-white font-medium">容器</span>
                     <span class="text-[#999] dark:text-white/40 ml-auto">通用包裹</span>
                   </div>

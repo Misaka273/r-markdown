@@ -18,6 +18,7 @@ interface AttrMeta {
   options?: string[]
   hint?: string
   description?: string
+  inputType?: string
 }
 
 const props = defineProps<{
@@ -57,6 +58,7 @@ function buildTagSchema(): Record<string, AttrMeta[]> {
           required: attr.required,
           options: attr.options ? [...attr.options] : undefined,
           description: attr.description,
+          inputType: attr.inputType,
         })
       }
     }
@@ -217,6 +219,12 @@ const selectChevronStyle = {
             />
           </label>
         </div>
+        <textarea
+          v-else-if="getMeta(key).inputType === 'textarea'"
+          v-model="editedAttrs[key]"
+          class="w-full py-[5px] px-2 text-xs border border-[var(--border-color,#d1d5db)] rounded-[5px] bg-[var(--bg-primary,#fff)] text-[var(--text-primary,#111)] outline-none box-border resize-vertical focus:border-[var(--accent,#6c5ce7)] focus:shadow-[0_0_0_2px_rgba(108,92,231,0.1)]"
+          rows="3"
+        ></textarea>
         <input
           v-else
           v-model="editedAttrs[key]"
