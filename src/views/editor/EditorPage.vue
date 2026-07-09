@@ -258,6 +258,10 @@ function onEditorScrollAll(ratio: number) {
   }
 }
 
+function onPreviewClickLine(lineNo: number) {
+  editorRef.value?.scrollToLineAndHighlight(lineNo)
+}
+
 onMounted(() => {
   refreshDrafts()
   // 异步匹配草稿：根据当前标题查找已有同名草稿
@@ -1790,7 +1794,7 @@ onBeforeUnmount(() => {
         data-theme="light"
         :style="isMobile ? { background: 'var(--bg-primary)' } : { width: previewWidth + 'px', background: 'var(--bg-primary)' }"
       >
-        <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" :is-mobile="isMobile" />
+        <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" :is-mobile="isMobile" @click-line="onPreviewClickLine" />
       </div>
       </div>
     </div>

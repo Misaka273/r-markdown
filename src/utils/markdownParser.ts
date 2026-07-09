@@ -160,6 +160,14 @@ export async function parseMarkdownAsync(md: string, t: ThemeColors, paragraphSt
   return parseMarkdown(md, t, formulaMap, paragraphStyle)
 }
 
+function withSourceLine(lineNo: number, html: string): string {
+  // trimStart 后再匹配：render 返回的 HTML 往往以 \n 或缩进开头（模板字符串的格式空白），
+  // 这些前导空白会让 /^<(\w+)/ 静默失败。分离 → 替换 → 拼回，确保 data-source-line 注入到第一个 HTML 标签。
+  const trimmed = html.trimStart()
+  const leadingWs = html.slice(0, html.length - trimmed.length)
+  return leadingWs + trimmed.replace(/^<(\w+)/, `<$1 data-source-line="${lineNo + 1}"`)
+}
+
 export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<string, string>, paragraphStyle?: ParagraphStyle): string {
   // 收集脚注：[text](url "desc") 带引号标题的链接 → 脚注
   const footnotes: { label: string; url: string; desc: string }[] = []
@@ -208,13 +216,14 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       continue
     }
     if (/^---+\s*$/.test(line.trim())) {
-      html += `<section style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>`
+      html += withSourceLine(i, `<section style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgb(221,221,221),transparent);margin:24px 0px"></section>`)
       i++
       continue
     }
 
     // <steps>
     if (/^<steps\b/.test(line)) {
+      const stepsStartLine = i
       const openMatch = line.match(/^<steps\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       i++
@@ -225,17 +234,18 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       }
       i++ // skip </steps>
       const stepsRenderer = attrs.type === 'DA02' ? Steps_DA02 : Steps_DA01
-      html += stepsRenderer.render(attrs, body.trim(), t)
+      html += withSourceLine(stepsStartLine, stepsRenderer.render(attrs, body.trim(), t))
       continue
     }
     // <statement> ... </statement>
     if (/^<statement\b/.test(line)) {
+      const statementStartLine = i
       const openMatch = line.match(/^<statement\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       // 单行模式
       if (openMatch && openMatch[2] && /<\/statement>\s*$/.test(openMatch[2])) {
         const text = openMatch[2].replace(/<\/statement>\s*$/, '').trim()
-        html += Statement_DA01.render(attrs, text, t)
+        html += withSourceLine(statementStartLine, Statement_DA01.render(attrs, text, t))
         i++
         continue
       }
@@ -247,17 +257,18 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++
-      html += Statement_DA01.render(attrs, text.trim(), t)
+      html += withSourceLine(statementStartLine, Statement_DA01.render(attrs, text.trim(), t))
       continue
     }
     // <badges> ... </badges> (支持单行和多行)
     if (/^<badges\b/.test(line)) {
+      const badgesStartLine = i
       const openMatch = line.match(/^<badges\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       // 单行模式：<badges ...>content</badges>
       if (openMatch && openMatch[2] && /<\/badges>\s*$/.test(openMatch[2])) {
         const body = openMatch[2].replace(/<\/badges>\s*$/, '').trim()
-        html += Badges_DA01.render(attrs, body, t)
+        html += withSourceLine(badgesStartLine, Badges_DA01.render(attrs, body, t))
         i++
         continue
       }
@@ -269,17 +280,18 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++ // skip </badges>
-      html += Badges_DA01.render(attrs, body.trim(), t)
+      html += withSourceLine(badgesStartLine, Badges_DA01.render(attrs, body.trim(), t))
       continue
     }
     // <lead> ... </lead>
     if (/^<lead\b/.test(line)) {
+      const leadStartLine = i
       const openMatch = line.match(/^<lead\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       // 单行模式
       if (openMatch && openMatch[2] && /<\/lead>\s*$/.test(openMatch[2])) {
         const text = openMatch[2].replace(/<\/lead>\s*$/, '').trim()
-        html += Lead_DA01.render(attrs, text, t)
+        html += withSourceLine(leadStartLine, Lead_DA01.render(attrs, text, t))
         i++
         continue
       }
@@ -291,11 +303,12 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++
-      html += Lead_DA01.render(attrs, text.trim(), t)
+      html += withSourceLine(leadStartLine, Lead_DA01.render(attrs, text.trim(), t))
       continue
     }
     // <breaking>
     if (/^<breaking\b/.test(line)) {
+      const breakingStartLine = i
       const openMatch = line.match(/^<breaking\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       i++
@@ -305,15 +318,16 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++ // skip </breaking>
-      html += Breaking_DA01.render(attrs, body.trim(), t)
+      html += withSourceLine(breakingStartLine, Breaking_DA01.render(attrs, body.trim(), t))
       continue
     }
     // <cta>
     if (/^<cta\b/.test(line)) {
+      const ctaStartLine = i
       if (/\/>\s*$/.test(line)) {
         // 自闭合行内形式：<cta .../>
         const r = parseCtaInline(lines, i, t)
-        html += r.html
+        html += withSourceLine(ctaStartLine, r.html)
         i = r.next
       } else {
         // 前窥后续是否存在 </cta> 关闭标签，有则走标签形式，否则按行内处理
@@ -326,11 +340,11 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         }
         if (hasClosingCta) {
           const r = parseCtaTag(lines, i, t)
-          html += r.html
+          html += withSourceLine(ctaStartLine, r.html)
           i = r.next
         } else {
           const r = parseCtaInline(lines, i, t)
-          html += r.html
+          html += withSourceLine(ctaStartLine, r.html)
           i = r.next
         }
       }
@@ -338,8 +352,9 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     }
     // <compare>
     if (/^<compare\b/.test(line)) {
+      const compareStartLine = i
       const r = parseCompare(lines, i, t)
-      html += r.html
+      html += withSourceLine(compareStartLine, r.html)
       i = r.next
       continue
     }
@@ -348,7 +363,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       const attrsStr = line.match(/^<reading-path\b([^>]*)>?/)?.[1] || ''
       const attrs = parseAttrs(attrsStr)
       const rendered = ReadingPath_DA01.render(attrs, pTitleLevel1List, t)
-      html += rendered
+      html += withSourceLine(i, rendered)
       // 跳过闭合标签（如果有）
       if (
         /^<reading-path>/.test(line) &&
@@ -369,9 +384,9 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         const body = titleMatch[2].trim()
         const type = (attrs.type || 'DA01').toUpperCase()
         if (type === 'DA02') {
-          html += Title_DA02.render(attrs, body, t, md)
+          html += withSourceLine(i, Title_DA02.render(attrs, body, t, md))
         } else {
-          html += Title_DA01.render(attrs, body, t, md)
+          html += withSourceLine(i, Title_DA01.render(attrs, body, t, md))
         }
       }
       i++
@@ -385,7 +400,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         const attrs = parseAttrs(ptMatch[1])
         const body = ptMatch[2].trim()
         // 给根节点打个标记（不影响样式），分页时用它避免小节标题落在页底跟正文分家
-        html += PTitle.render(attrs, body, t).replace('<section', '<section data-block="ptitle"')
+        html += withSourceLine(i, PTitle.render(attrs, body, t).replace('<section', '<section data-block="ptitle"'))
       }
       i++
       continue
@@ -393,26 +408,29 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // < ![
     if (/^<\s*!\[/.test(line)) {
+      const galleryStartLine = i
       const r = parseGallery(lines, i)
-      html += r.html
+      html += withSourceLine(galleryStartLine, r.html)
       i = r.next
       continue
     }
     // > [TIP] etc
     if (/^>\s*\[(TIP|NOTE|WARNING|CAUTION|IMPORTANT)\]/.test(line)) {
+      const calloutStartLine = i
       const r = parseCallout(lines, i, t)
-      html += r.html
+      html += withSourceLine(calloutStartLine, r.html)
       i = r.next
       continue
     }
     // > quote
     if (/^>\s/.test(line)) {
+      const quoteStartLine = i
       const ql: string[] = []
       while (i < lines.length && /^>\s/.test(lines[i])) {
         ql.push(lines[i].replace(/^>\s?/, ''))
         i++
       }
-      html += `<section style="margin:14px 0px;padding:12px 16px;background:rgb(247,248,252);border-left:3px solid ${t.accent};border-radius:0px 6px 6px 0px;color:rgb(85,85,85);font-size:14px">`
+      html += withSourceLine(quoteStartLine, `<section style="margin:14px 0px;padding:12px 16px;background:rgb(247,248,252);border-left:3px solid ${t.accent};border-radius:0px 6px 6px 0px;color:rgb(85,85,85);font-size:14px">`)
       ql.forEach((l) => {
         html += `<section><p style="margin:4px 0px">${inlineFormat(l, t, formulaMap)}</p></section>`
       })
@@ -421,6 +439,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     }
     // <case-flow> 标签
     if (/^<case-flow\b/.test(line)) {
+      const caseFlowStartLine = i
       const openMatch = line.match(/^<case-flow\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       i++
@@ -430,21 +449,23 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++ // skip </case-flow>
-      html += CaseFlow_DA01.render(attrs, body.trim(), t)
+      html += withSourceLine(caseFlowStartLine, CaseFlow_DA01.render(attrs, body.trim(), t))
       continue
     }
     // 案例流（行内语法，无标签包裹时）
     if (/^-\s*\[案例\s*\d+\]/.test(line)) {
+      const caseFlowInlineStartLine = i
       const caseLines: string[] = []
       while (i < lines.length && /^-\s*\[案例\s*\d+\]/.test(lines[i])) {
         caseLines.push(lines[i])
         i++
       }
-      html += CaseFlow_DA01.render({}, caseLines.join('\n'), t)
+      html += withSourceLine(caseFlowInlineStartLine, CaseFlow_DA01.render({}, caseLines.join('\n'), t))
       continue
     }
     // <timeline> 标签
     if (/^<timeline\b/.test(line)) {
+      const timelineStartLine = i
       const openMatch = line.match(/^<timeline\b([^>]*)>/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       i++
@@ -454,17 +475,18 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++ // skip </timeline>
-      html += Timeline_DA01.render(attrs, body.trim(), t)
+      html += withSourceLine(timelineStartLine, Timeline_DA01.render(attrs, body.trim(), t))
       continue
     }
     // <slider> 标签
     if (/^<slider\b/.test(line)) {
+      const sliderStartLine = i
       const openMatch = line.match(/^<slider\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
       // 单行模式：<slider ...>content</slider>
       if (openMatch && openMatch[2] && /<\/slider>\s*$/.test(openMatch[2])) {
         const body = openMatch[2].replace(/<\/slider>\s*$/, '').trim()
-        html += Slider_DA01.render(attrs, body, t)
+        html += withSourceLine(sliderStartLine, Slider_DA01.render(attrs, body, t))
         i++
         continue
       }
@@ -476,17 +498,18 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++ // skip </slider>
-      html += Slider_DA01.render(attrs, body.trim(), t)
+      html += withSourceLine(sliderStartLine, Slider_DA01.render(attrs, body.trim(), t))
       continue
     }
     // <engage>
     if (/^<engage\b/.test(line)) {
+      const engageStartLine = i
       const attrs = parseAttrs(line)
       // type="DA02" 使用彩色图标版，否则默认 DA01
       if (attrs.type && attrs.type.toUpperCase() === 'DA02') {
-        html += Engage_DA02.render(attrs, '', t)
+        html += withSourceLine(engageStartLine, Engage_DA02.render(attrs, '', t))
       } else {
-        html += Engage_DA01.render(attrs, '', t)
+        html += withSourceLine(engageStartLine, Engage_DA01.render(attrs, '', t))
       }
       i++
       continue
@@ -495,28 +518,28 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     // 标题 — Markdown 原生语法，不走 PTitle
     const h1m = line.match(/^#\s+(.+)/)
     if (h1m) {
-      html += `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h1m[1], t, formulaMap)}</h1>`
+      html += withSourceLine(i, `<h1 style="margin:0px 0px 16px;font-size:24px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h1m[1], t, formulaMap)}</h1>`)
       i++
       continue
     }
 
     const h2m = line.match(/^##\s+(.+)/)
     if (h2m) {
-      html += `<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h2m[1], t, formulaMap)}</h2>`
+      html += withSourceLine(i, `<h2 style="margin:28px 0px 12px;font-size:20px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h2m[1], t, formulaMap)}</h2>`)
       i++
       continue
     }
 
     const h3m = line.match(/^###\s+(.+)/)
     if (h3m) {
-      html += `<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h3m[1], t, formulaMap)}</h3>`
+      html += withSourceLine(i, `<h3 style="margin:24px 0px 10px;font-size:17px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h3m[1], t, formulaMap)}</h3>`)
       i++
       continue
     }
 
     const h4m = line.match(/^####\s+(.+)/)
     if (h4m) {
-      html += `<h4 style="margin:20px 0px 8px;font-size:15px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h4m[1], t, formulaMap)}</h4>`
+      html += withSourceLine(i, `<h4 style="margin:20px 0px 8px;font-size:15px;font-weight:700;color:var(--text-primary);line-height:1.4">${inlineFormat(h4m[1], t, formulaMap)}</h4>`)
       i++
       continue
     }
@@ -534,11 +557,12 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       const singleMatch = line.match(/^\$\$(.+?)\$\$/)
       if (singleMatch) {
         const formula = singleMatch[1].trim()
-        html += `<section style="overflow-x:auto;margin:24px 0;color:var(--text-primary)"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
+        html += withSourceLine(i, `<section style="overflow-x:auto;margin:24px 0;color:var(--text-primary)"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`)
         i++
         continue
       }
       // 多行模式：$$ 独占一行开头 → 收集行直到闭合 $$
+      const formulaStartLine = i
       i++
       const formulaLines: string[] = []
       while (i < lines.length && !/^\$\$/.test(lines[i])) {
@@ -547,7 +571,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       }
       if (i < lines.length) i++ // 跳过闭合的 $$
       const formula = formulaLines.join('\n').trim()
-      html += `<section style="overflow-x:auto;margin:24px 0;color:var(--text-primary)"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`
+      html += withSourceLine(formulaStartLine, `<section style="overflow-x:auto;margin:24px 0;color:var(--text-primary)"><section style="display:inline-block;white-space:nowrap;text-align:center;max-width:none!important">${resolveSvg(formula)}</section></section>`)
       continue
     }
 
@@ -557,6 +581,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // <mermaid> 标签语法（支持自定义宽高对齐，优先于代码块语法）
     if (/^<mermaid\b/.test(line)) {
+      const mermaidStartLine = i
       const openMatch = line.match(/^<mermaid\b([^>]*)>(.*)$/)
       const attrs = openMatch && openMatch[1] ? parseAttrs(openMatch[1]) : {}
 
@@ -565,7 +590,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         const closeIdx = openMatch[2].indexOf('</mermaid>')
         if (closeIdx >= 0) {
           const body = openMatch[2].slice(0, closeIdx)
-          html += Mermaid_DA01.render(attrs, body)
+          html += withSourceLine(mermaidStartLine, Mermaid_DA01.render(attrs, body))
           i++
           continue
         }
@@ -584,12 +609,13 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         bodyLines.push(lines[i])
         i++
       }
-      html += Mermaid_DA01.render(attrs, bodyLines.join('\n'))
+      html += withSourceLine(mermaidStartLine, Mermaid_DA01.render(attrs, bodyLines.join('\n')))
       continue
     }
 
     if (/^```/.test(line)) {
       const lang = line.replace(/^`+/, '').trim() || 'text'
+      const codeStartLine = i
       i++
       const codeLines: string[] = []
       while (i < lines.length && !/^```/.test(lines[i])) {
@@ -607,12 +633,13 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         const body = indent + hl || '&nbsp;'
         codeInner += `<section leaf="" style="white-space:nowrap">${body}</section>`
       }
-      html += `<section data-lang="${esc(lang)}" style="white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:24px 0;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</section>`
+      html += withSourceLine(codeStartLine, `<section data-lang="${esc(lang)}" style="white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgb(30,30,46);color:rgb(205,214,244);padding:14px 16px;border-radius:8px;margin:24px 0;font-size:12.5px;line-height:1.6;font-family:SFMono-Regular,Consolas,Monaco,monospace">${codeInner}</section>`)
       continue
     }
 
     // <table> 扩展标签（优先于原生表格解析）
     if (/^<table\b/.test(line)) {
+      const tableExtStartLine = i
       const openMatch = line.match(/^<table\b([^>]*)>/)
       const attrs = parseAttrs(openMatch ? openMatch[1] : '')
       i++
@@ -623,12 +650,13 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         i++
       }
       i++ // 跳过 </table>
-      html += Table_DA01.render(attrs, body.trim(), t)
+      html += withSourceLine(tableExtStartLine, Table_DA01.render(attrs, body.trim(), t))
       continue
     }
 
     // 表格
     if (line.indexOf('|') >= 0 && i + 1 < lines.length && /\|[\s-:]+\|/.test(lines[i + 1])) {
+      const tableStartLine = i
       // 先掐掉首尾装饰性管道再 split，这样中间的空格会原样保留为 ''
       let headerLine = line.trim()
       if (headerLine.startsWith('|')) headerLine = headerLine.slice(1)
@@ -651,7 +679,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
         rows.push(cells)
         i++
       }
-      html += `<section style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:20px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`
+      html += withSourceLine(tableStartLine, `<section style="margin:24px 0px;box-shadow:rgba(15,23,42,0.05) 0px 10px 24px;border-radius:14px;border:1px solid rgba(229,231,235,0.9);overflow:hidden;background:linear-gradient(135deg,rgb(248,250,252) 0%,rgb(238,244,251) 100%)"><section style="padding:20px 20px;background:rgba(255,255,255,0.92)"><section class="tableWrapper" style="width:100%"><table style="border:0px;border-collapse:collapse;table-layout:fixed;min-width:115px;width:100%"><thead><tr>`)
       headers.forEach((h, hi) => {
         const al: Alignment = alignments[hi] || 'left'
         html += `<td valign="top" align="${al === 'center' ? 'center' : al === 'right' ? 'right' : 'left'}" style="vertical-align:top;border:0px;padding:0px;text-align:${al};font-size:13px;font-weight:700;color:rgb(51,65,85)">${inlineFormat(h, t, formulaMap)}</td>`
@@ -671,7 +699,8 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // 无序列表
     if (/^[-*+]\s/.test(line)) {
-      html += `<section style="margin:24px 0px;padding-left:24px">`
+      const ulStartLine = i
+      html += withSourceLine(ulStartLine, `<section style="margin:24px 0px;padding-left:24px">`)
       while (i < lines.length && /^[-*+]\s/.test(lines[i])) {
         const li = lines[i].replace(/^[-*+]\s/, '')
         const cb = li.match(/^\[([ x])\]\s*(.*)/)
@@ -696,9 +725,10 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
 
     // 有序列表
     if (/^\d+\.\s/.test(line)) {
+      const olStartLine = i
       const numMatch = lines[i].match(/^(\d+)\.\s/)
       let idx = numMatch ? parseInt(numMatch[1], 10) : 1
-      html += `<section style="margin:10px 0px;padding-left:24px">`
+      html += withSourceLine(olStartLine, `<section style="margin:10px 0px;padding-left:24px">`)
       while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
         const content = lines[i].replace(/^\d+\.\s/, '')
         html += `<section style="margin:5px 0px;display:flex;align-items:flex-start;gap:6px"><span style="color:rgb(148,163,184);font-weight:700;flex-shrink:0;min-width:20px">${idx}.</span><span style="word-break:break-word;overflow-wrap:break-word;min-width:0">${inlineFormat(content, t, formulaMap)}</span></section>`
@@ -715,9 +745,9 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       const [, alt, src, size] = imgMatch
       if (size) {
         const parts = size.split(/\s+/)
-        html += `<section style="max-height:${parts[1] || '250px'};overflow-y:auto;border-radius:8px;margin:24px 0px"><img src="${esc(src)}" alt="${esc(alt)}" style="width:${parts[0] || '100%'};display:block"></section>`
+        html += withSourceLine(i, `<section style="max-height:${parts[1] || '250px'};overflow-y:auto;border-radius:8px;margin:24px 0px"><img src="${esc(src)}" alt="${esc(alt)}" style="width:${parts[0] || '100%'};display:block"></section>`)
       } else {
-        html += `<img src="${esc(src)}" alt="${esc(alt)}" style="max-width:100%;border-radius:6px;margin:24px 0px;display:block">`
+        html += withSourceLine(i, `<img src="${esc(src)}" alt="${esc(alt)}" style="max-width:100%;border-radius:6px;margin:24px 0px;display:block">`)
       }
       i++
       continue
@@ -726,7 +756,7 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     // <chart>
     if (/^<chart\b/.test(line.trim())) {
       const attrs = parseAttrs(line.trim())
-      html += Chart_DA01.render(attrs, '', t)
+      html += withSourceLine(i, Chart_DA01.render(attrs, '', t))
       i++
       continue
     }
@@ -734,14 +764,14 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     // <img>
     if (/^<img\s/.test(line.trim())) {
       const attrs = parseAttrs(line)
-      html += Img_DA01.render(attrs, '', t)
+      html += withSourceLine(i, Img_DA01.render(attrs, '', t))
       i++
       continue
     }
 
     // 普通段落
     const ps = paragraphStyle ?? { fontSize: 16, lineHeight: 1.85, fontWeight: '400', margin: 24 }
-    html += `<section style="margin:0px 0px ${ps.margin}px"><p style="margin:0px;font-size:${ps.fontSize}px;color:var(--text-primary);line-height:${ps.lineHeight};font-weight:${ps.fontWeight};text-align:justify;overflow-wrap:break-word;word-break:break-all">${inlineFormat(line, t, formulaMap)}</p></section>`
+    html += withSourceLine(i, `<section style="margin:0px 0px ${ps.margin}px"><p style="margin:0px;font-size:${ps.fontSize}px;color:var(--text-primary);line-height:${ps.lineHeight};font-weight:${ps.fontWeight};text-align:justify;overflow-wrap:break-word;word-break:break-all">${inlineFormat(line, t, formulaMap)}</p></section>`)
     i++
   }
 

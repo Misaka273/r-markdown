@@ -18,6 +18,10 @@ const props = defineProps<{
   isMobile: boolean
 }>()
 
+const emit = defineEmits<{
+  'click-line': [lineNo: number]
+}>()
+
 const previewRef = ref<HTMLElement>()
 const scrollContainerRef = ref<HTMLElement>()
 const saving = ref(false)
@@ -49,6 +53,21 @@ function showToast(msg: string) {
   toastTimer = setTimeout(() => {
     toastVisible.value = false
   }, 1500)
+}
+
+function onPreviewClick(event: MouseEvent) {
+  let el = event.target as HTMLElement | null
+  while (el && el !== previewRef.value) {
+    const line = el.getAttribute('data-source-line')
+    if (line !== null) {
+      const lineNo = parseInt(line, 10)
+      if (!isNaN(lineNo)) {
+        emit('click-line', lineNo)
+        return
+      }
+    }
+    el = el.parentElement
+  }
 }
 
 async function updateContent() {
@@ -287,6 +306,7 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
     >
       <div
         ref="previewRef"
+        @click="onPreviewClick"
         style="
           padding: 18px;
           color: #333;
