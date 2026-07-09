@@ -668,15 +668,28 @@ defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineS
 }
 
 .editor-container :deep(.cm-locate-flash) {
-  animation: locate-flash 3s ease-out;
+  animation: locate-flash-light 3s ease-out;
 }
 
-@keyframes locate-flash {
+[data-theme='dark'] .editor-container :deep(.cm-locate-flash) {
+  animation: locate-flash-dark 3s ease-out;
+}
+
+@keyframes locate-flash-light {
   from {
     background-color: rgba(59, 130, 246, 0.15);
   }
   to {
     background-color: rgba(59, 130, 246, 0.35);
+  }
+}
+
+@keyframes locate-flash-dark {
+  from {
+    background-color: rgba(253, 244, 227, 0.2);
+  }
+  to {
+    background-color: rgba(253, 244, 227, 0.4);
   }
 }
 </style>
