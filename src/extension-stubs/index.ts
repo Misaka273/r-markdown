@@ -47,6 +47,7 @@ import { Row_DA01 } from './Row_DA01'
 import { Text_DA01 } from './Text_DA01'
 import { Title_DA01 } from './Title_DA01'
 import { Title_DA02 } from './Title_DA02'
+import { Html_DA01 } from './Html_DA01'
 
 // 名称别名（与 extension/index.ts 导入名一致）
 export const CTA_DA01 = Cta_DA01
@@ -61,6 +62,7 @@ export const components: ComponentDef[] = [
   { id: 'Row_DA01', name: '横向布局', tag: 'row', render: Row_DA01.render },
   { id: 'Text_DA01', name: '文本样式', tag: 'text', render: Text_DA01.render },
   { id: 'PTitle_DA01', name: '段落标题', tag: 'p-title', render: PTitle_DA01.render },
+  { id: 'Html_DA01', name: 'HTML', tag: 'html', render: Html_DA01.render },
   { id: 'Breaking_DA01', name: '突发卡片', tag: 'breaking', render: Breaking_DA01.render },
   { id: 'Steps_DA01', name: '步骤流', tag: 'steps', render: Steps_DA01.render },
   { id: 'Steps_DA02', name: '步骤流', tag: 'steps', render: Steps_DA02.render },
@@ -88,4 +90,4 @@ export const tagMap = Object.fromEntries(components.map((c) => [c.tag, c]))
 export { Title_DA01, Title_DA02, ReadingPath_DA01, Column_DA01, Container_DA01, Row_DA01, Text_DA01, Breaking_DA01 }
 export { Steps_DA01, Steps_DA02, CaseFlow_DA01, Compare_DA01, Compare_DA02 }
 export { Badges_DA01, Statement_DA01, Lead_DA01, Engage_DA01, Engage_DA02 }
-export { Timeline_DA01, Slider_DA01, Img_DA01, Chart_DA01, Mermaid_DA01, Table_DA01 }
+export { Timeline_DA01, Slider_DA01, Img_DA01, Chart_DA01, Mermaid_DA01, Table_DA01, Html_DA01 }
