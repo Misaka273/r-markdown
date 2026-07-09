@@ -57,78 +57,9 @@ const DIGEST_MAX = 120
 function extractDigest(content: string): string {
   let result = ''
 
+  // 1. 优先从 <title> 组件提取
   const titleMatch = content.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)
-  if (!titleMatch) {
-    // 无 title 组件：尝试 breaking 组件
-    const breakingMatch = content.match(/<breaking\b[^>]*>([\s\S]*?)<\/breaking>/i)
-    if (breakingMatch) {
-      const bTagStr = breakingMatch[0]
-      const bBody = (breakingMatch[1] || '').trim()
-      const extractAttr = (name: string): string => {
-        const m = bTagStr.match(new RegExp(`${name}="([^"]*)"`, 'i'))
-        return m ? m[1] : ''
-      }
-      const bBadge = extractAttr('badge')
-      const bTitle = extractAttr('title')
-      const bSubtitle = extractAttr('subtitle')
-      const bChips = extractAttr('chips')
-      const bParts: string[] = []
-
-      // badge + title
-      if (bBadge && bTitle) {
-        bParts.push(`${bBadge} · ${bTitle}`)
-      } else if (bTitle) {
-        bParts.push(bTitle)
-      } else if (bBadge) {
-        bParts.push(bBadge)
-      }
-
-      // subtitle：用句号接在后面
-      if (bSubtitle) {
-        if (bParts.length > 0) {
-          bParts[bParts.length - 1] += '。' + bSubtitle
-        } else {
-          bParts.push(bSubtitle)
-        }
-      }
-
-      // 正文内容：去 markdown 标记后用句号接在后面
-      if (bBody) {
-        const bodyText = bBody
-          .replace(/[#*`~>\[\]!()|\\{}<>\-+=_:;'",.\s]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim()
-        if (bodyText) {
-          if (bParts.length > 0) {
-            bParts[bParts.length - 1] += '。' + bodyText
-          } else {
-            bParts.push(bodyText)
-          }
-        }
-      }
-
-      // chips：| 分隔 → #tag1 #tag2
-      if (bChips) {
-        const tags = bChips
-          .split('|')
-          .map((t) => `#${t.trim()}`)
-          .filter(Boolean)
-          .join(' ')
-        if (tags) {
-          if (bParts.length > 0) {
-            bParts[bParts.length - 1] += '。' + tags
-          } else {
-            bParts.push(tags)
-          }
-        }
-      }
-
-      result = bParts.join(' — ')
-    } else {
-      // 都无：去除 markdown 标记符
-      result = content.replace(/[#*`~>\[\]!()|\\{}<>\-+=_:;'",.\s]/g, '').replace(/\s+/g, ' ')
-    }
-  } else {
+  if (titleMatch) {
     const tagStr = titleMatch[0]
     const inner = (titleMatch[1] || '').trim()
 
@@ -140,7 +71,6 @@ function extractDigest(content: string): string {
     const badge = extractAttr('badge')
     const subtitle = extractAttr('subtitle')
     const chips = extractAttr('chips')
-
     const parts: string[] = []
 
     if (badge && inner) {
@@ -175,6 +105,80 @@ function extractDigest(content: string): string {
     }
 
     result = parts.join(' — ')
+    if (!result) {
+      result = inner
+    }
+  } else {
+    // 2. 其次从 <breaking> 组件提取
+    const breakingMatch = content.match(/<breaking\b[^>]*>([\s\S]*?)<\/breaking>/i)
+    if (breakingMatch) {
+      const bTagStr = breakingMatch[0]
+      const bBody = (breakingMatch[1] || '').trim()
+      const extractAttr = (name: string): string => {
+        const m = bTagStr.match(new RegExp(`${name}="([^"]*)"`, 'i'))
+        return m ? m[1] : ''
+      }
+      const bBadge = extractAttr('badge')
+      const bTitle = extractAttr('title')
+      const bSubtitle = extractAttr('subtitle')
+      const bChips = extractAttr('chips')
+      const bParts: string[] = []
+
+      if (bBadge && bTitle) {
+        bParts.push(`${bBadge} · ${bTitle}`)
+      } else if (bTitle) {
+        bParts.push(bTitle)
+      } else if (bBadge) {
+        bParts.push(bBadge)
+      }
+
+      if (bSubtitle) {
+        if (bParts.length > 0) {
+          bParts[bParts.length - 1] += '。' + bSubtitle
+        } else {
+          bParts.push(bSubtitle)
+        }
+      }
+
+      if (bBody) {
+        const bodyText = bBody
+          .replace(/[#*`~>\[\]!()|\\{}<>\-+=_:;'",.\s]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+        if (bodyText) {
+          if (bParts.length > 0) {
+            bParts[bParts.length - 1] += '。' + bodyText
+          } else {
+            bParts.push(bodyText)
+          }
+        }
+      }
+
+      if (bChips) {
+        const tags = bChips
+          .split('|')
+          .map((t) => `#${t.trim()}`)
+          .filter(Boolean)
+          .join(' ')
+        if (tags) {
+          if (bParts.length > 0) {
+            bParts[bParts.length - 1] += '。' + tags
+          } else {
+            bParts.push(tags)
+          }
+        }
+      }
+
+      result = bParts.join(' — ')
+    } else {
+      // 3. 无 title/breaking 组件：取文章正文内容
+      // 去掉标签和 markdown 标记，保留纯文本
+      result = content
+        .replace(/<[^>]*>/g, '')
+        .replace(/[#*`~>\[\]!()|\\{}\-+=_:;'",]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }
   }
 
   if (result.length > DIGEST_MAX) {
