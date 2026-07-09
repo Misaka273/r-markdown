@@ -11,7 +11,7 @@ import {
   ViewUpdate,
   WidgetType,
 } from '@codemirror/view'
-import { EditorState, RangeSetBuilder } from '@codemirror/state'
+import { EditorState, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state'
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
@@ -26,6 +26,30 @@ import { lineNumbers, highlightActiveLine, highlightActiveLineGutter } from '@co
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete'
 import { rectangularSelection } from '@codemirror/view'
+
+// ── 预览点击定位高亮 ──
+const highlightLineEffect = StateEffect.define<number>()
+const highlightLineMark = Decoration.mark({ class: 'cm-locate-flash' })
+
+const highlightLineField = StateField.define({
+  create() {
+    return Decoration.none
+  },
+  update(decos, tr) {
+    for (const e of tr.effects) {
+      if (e.is(highlightLineEffect)) {
+        const lineNo = e.value
+        if (lineNo <= 0) return Decoration.none
+        const doc = tr.state.doc
+        if (lineNo > doc.lines) return Decoration.none
+        const line = doc.line(lineNo)
+        return Decoration.set([highlightLineMark.range(line.from, line.to)])
+      }
+    }
+    return decos.map(tr.changes)
+  },
+  provide: (f) => EditorView.decorations.from(f),
+})
 
 const props = defineProps<{
   modelValue: string
@@ -55,6 +79,9 @@ const emit = defineEmits<{
 const editorRef = ref<HTMLDivElement>()
 const { colors } = useTheme()
 let view: EditorView | null = null
+
+// 程序化滚动标记：scrollToLineAndHighlight 等主动滚动时置 true，避免触发双向同步
+let isProgrammaticScroll = false
 
 // ── 光标位置状态 ──
 const isAtLineStart = ref(false)
@@ -455,6 +482,7 @@ onMounted(async () => {
       updateListener,
       EditorView.lineWrapping,
       collapseBase64,
+      highlightLineField,
     ],
   })
 
@@ -465,6 +493,7 @@ onMounted(async () => {
 
   // 滚动同步
   view.scrollDOM.addEventListener('scroll', () => {
+    if (isProgrammaticScroll) return
     const el = view!.scrollDOM
     const maxScroll = el.scrollHeight - el.clientHeight
     if (maxScroll > 0) {
@@ -573,7 +602,33 @@ function insertAtCursor(text: string) {
   })
 }
 
-defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineSelection, isInsideTag, applyInlineFormat })
+function scrollToLineAndHighlight(lineNo: number) {
+  if (!view) return
+  const lines = view.state.doc.lines
+  const targetLine = Math.min(Math.max(1, lineNo), lines)
+  const line = view.state.doc.line(targetLine)
+
+  isProgrammaticScroll = true
+  view.dispatch({
+    effects: [
+      highlightLineEffect.of(targetLine),
+      EditorView.scrollIntoView(line.from, { y: 'center' }),
+    ],
+  })
+
+  // scrollIntoView 使用平滑滚动动画（约 120-150ms），动画结束后恢复标记
+  setTimeout(() => {
+    isProgrammaticScroll = false
+  }, 200)
+
+  setTimeout(() => {
+    if (view) {
+      view.dispatch({ effects: highlightLineEffect.of(-1) })
+    }
+  }, 3000)
+}
+
+defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineSelection, isInsideTag, applyInlineFormat, scrollToLineAndHighlight })
 </script>
 
 <template>
@@ -610,5 +665,18 @@ defineExpose({ scrollTo, replaceRange, insertAtCursor, isAtLineStart, hasInlineS
   background: var(--bg-secondary);
   white-space: nowrap;
   cursor: default;
+}
+
+.editor-container :deep(.cm-locate-flash) {
+  animation: locate-flash 3s ease-out;
+}
+
+@keyframes locate-flash {
+  from {
+    background-color: rgba(59, 130, 246, 0.15);
+  }
+  to {
+    background-color: rgba(59, 130, 246, 0.35);
+  }
 }
 </style>
