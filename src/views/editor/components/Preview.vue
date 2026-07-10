@@ -8,6 +8,7 @@ import { getSetting } from '@/config/settings'
 import { paraFontSize, paraLineHeight, paraFontWeight, paraMargin } from '@/composables/useParagraphSettings'
 import { useMermaid } from '@/composables/useMermaid'
 import Toast from '@/components/Toast.vue'
+import GoogleAdSlot from '@/components/ad/GoogleAdSlot.vue'
 
 const { isDark } = useDarkMode()
 const { renderAll } = useMermaid()
@@ -317,6 +318,7 @@ defineExpose({ copyRichText, copyHTML, saveAsImage })
           background-color: transparent;
         "
       ></div>
+      <GoogleAdSlot client-id="ca-pub-3257624504761832" slot-id="1798715677" format="infoflow" />
     </div>
   </div>
   <Transition name="hint-fade">
