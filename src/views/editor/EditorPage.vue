@@ -19,7 +19,7 @@ import {
   Underline, Strikethrough, Bold, Italic,
   Code2, Superscript, Subscript, RemoveFormatting,
   Save, SquareBottomDashedScissors, CheckCircle,
-  Download, Copy, FileText, CircleCheck, Minus, Braces,
+  Download, Copy, FileText, CircleCheck, Minus,
   Smartphone, SquarePen, CircleQuestionMark,
   ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send
 } from 'lucide-vue-next'
