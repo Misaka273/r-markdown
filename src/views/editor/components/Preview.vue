@@ -98,7 +98,12 @@ async function updateContent() {
     fontWeight: paraFontWeight.value,
     margin: paraMargin.value,
   }
-  el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors, ps)
+  try {
+    el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors, ps)
+  } catch {
+    el.innerHTML = `<div style="color:var(--text-muted);padding:40px 20px;text-align:center;font-size:14px">预览渲染失败，请检查数学公式或刷新重试</div>`
+    return
+  }
   await nextTick()
 
   // 3. 恢复未变化的已渲染 mermaid 块，避免闪烁

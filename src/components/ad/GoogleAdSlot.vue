@@ -9,14 +9,32 @@ const props = withDefaults(defineProps<{
   format: 'infoflow',
 })
 
+const isConfigured = computed(() => props.clientId && props.slotId)
+
 const containerRef = ref<HTMLElement>()
 const loaded = ref(false)
 let observer: IntersectionObserver | null = null
 let idleCallbackId: number | null = null
 
-const isConfigured = computed(() => props.clientId && props.slotId)
+const ADSCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${props.clientId}`
 
-function loadAd(): void {
+function ensureAdScript(): Promise<void> {
+  return new Promise((resolve) => {
+    if (document.querySelector(`script[src="${ADSCRIPT_URL}"]`)) {
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = ADSCRIPT_URL
+    script.async = true
+    script.crossOrigin = 'anonymous'
+    script.onload = () => resolve()
+    script.onerror = () => resolve()
+    document.head.appendChild(script)
+  })
+}
+
+async function loadAd(): Promise<void> {
   if (loaded.value || !containerRef.value) return
 
   const ins = document.createElement('ins')
@@ -32,6 +50,8 @@ function loadAd(): void {
   containerRef.value.innerHTML = ''
   containerRef.value.appendChild(ins)
 
+  await ensureAdScript()
+
   idleCallbackId = requestIdleCallback(() => {
     try {
       ;(window as any).adsbygoogle?.push?.({})
@@ -43,7 +63,7 @@ function loadAd(): void {
 }
 
 onMounted(() => {
-  if (!containerRef.value) return
+  if (!isConfigured.value || !containerRef.value) return
 
   observer = new IntersectionObserver(
     (entries) => {

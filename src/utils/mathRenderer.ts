@@ -1,5 +1,5 @@
 /**
- * MathJax SVG 渲染器 —— 从 CDN 懒加载 tex-svg，输出自包含 SVG（微信编辑器兼容）
+ * MathJax SVG 渲染器 —— 本地加载 tex-svg，输出自包含 SVG（微信编辑器兼容）
  */
 
 let mathJaxReady: Promise<void> | null = null
@@ -24,7 +24,7 @@ function loadMathJax(): Promise<void> {
       return
     }
     const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js'
+    script.src = '/mathjax/tex-svg.js'
     script.onload = () => {
       const check = setInterval(() => {
         if ((window as any).MathJax?.startup?.adaptor) {
@@ -53,8 +53,8 @@ export function preloadMathJax(): void {
  * - 保留 currentColor 让 SVG 继承父级文字颜色（亮色/暗色自适应）
  */
 export async function renderMath(formula: string, displayMode: boolean = false): Promise<string> {
-  await loadMathJax()
   try {
+    await loadMathJax()
     const MathJax = (window as any).MathJax
     const node = MathJax.tex2svg(formula, { display: displayMode })
     const adaptor = MathJax.startup.adaptor
