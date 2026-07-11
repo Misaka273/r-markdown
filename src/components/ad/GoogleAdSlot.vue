@@ -14,7 +14,6 @@ const isConfigured = computed(() => props.clientId && props.slotId)
 const containerRef = ref<HTMLElement>()
 const loaded = ref(false)
 let observer: IntersectionObserver | null = null
-let idleCallbackId: number | null = null
 
 const ADSCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${props.clientId}`
 
@@ -50,16 +49,11 @@ async function loadAd(): Promise<void> {
   containerRef.value.innerHTML = ''
   containerRef.value.appendChild(ins)
 
-  await ensureAdScript()
-
-  idleCallbackId = requestIdleCallback(() => {
-    try {
-      ;(window as any).adsbygoogle?.push?.({})
-    } catch {
-      // AdSense 未加载时静默忽略
-    }
-  })
+  // 标准 AdSense 模式：脚本加载前 push 到队列，脚本加载后自动处理
+  ;((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
   loaded.value = true
+
+  await ensureAdScript()
 }
 
 onMounted(() => {
@@ -79,7 +73,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   observer?.disconnect()
-  if (idleCallbackId !== null) cancelIdleCallback(idleCallbackId)
 })
 </script>
 
