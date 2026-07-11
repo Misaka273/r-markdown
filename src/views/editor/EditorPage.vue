@@ -19,7 +19,7 @@ import {
   Underline, Strikethrough, Bold, Italic,
   Code2, Superscript, Subscript, RemoveFormatting,
   Save, SquareBottomDashedScissors, CheckCircle,
-  Download, Copy, FileText, CircleCheck,
+  Download, Copy, FileText, CircleCheck, Minus, Braces,
   Smartphone, SquarePen, CircleQuestionMark,
   ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send
 } from 'lucide-vue-next'
@@ -42,6 +42,7 @@ const formatIcons: Record<string, any> = {
 }
 
 const markdownInsertOptions = [
+  { label: '分割线', display: '---', syntax: '\n---\n', icon: Minus },
   { label: '有序列表', display: '1. 2. 3.', syntax: '1. \n2. \n3. \n', icon: ListOrdered },
   { label: '无序列表', display: '-  -  -', syntax: '- \n- \n- ', icon: List },
   { label: '引用', display: '> 引用文字', syntax: '> ', icon: Quote },
@@ -49,7 +50,7 @@ const markdownInsertOptions = [
   { label: '脚注', display: '[文字](url "标题")', syntax: '[脚注文字](url "脚注描述")', icon: StickyNote },
   { label: '任务列表', display: '☑ 任务1  ☐ 任务2', syntax: '- [x] 任务1\n- [ ] 任务2', icon: ListChecks },
   { label: '行内代码', display: '`code`', syntax: '``', icon: Code2 },
-  { label: '代码块', display: '``` ... ```', syntax: '```\n\n```', icon: Code2 },
+  { label: '代码块', display: '``` ... ```', syntax: '```\n\n```', icon: Braces },
   { label: '脚注', display: '[文字](url "标题")', syntax: '[脚注文字](url "脚注描述")', icon: StickyNote },
   { label: '限高图', display: '![图](url)[w h]', syntax: '![图片描述](https://robocopmao.github.io/r-markdown/empty.webp)[100% 100%]', icon: Crop },
   { label: '横向多图', display: '<图1, 图2>', syntax: '<![图1描述](https://robocopmao.github.io/r-markdown/empty.webp),![图2描述](https://robocopmao.github.io/r-markdown/empty.webp)>', icon: Images },
@@ -1663,7 +1664,7 @@ onBeforeUnmount(() => {
             <span class="relative inline-flex items-center group">
               <CircleQuestionMark :size="14" />
               <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-45 px-3 py-2 rounded-lg bg-white text-[#333] dark:bg-[#1a1a1a] dark:text-white text-[11px] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 shadow-lg border border-[#e5e5e5] dark:border-white/10 pointer-events-none">
-                选中非标签内文字后可加样式<br>本地/图床/组件：仅空行可点击<br>解析：选中组件标签后可点击。
+                选中非标签内文字后可加样式<br>基础语法/临时/长期/图床/组件：仅空行可点击<br>解析：选中组件标签后可点击。
               </span>
             </span>
           </span>
