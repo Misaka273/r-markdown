@@ -1756,7 +1756,7 @@ onBeforeUnmount(() => {
                     @click="editorRef?.isAtLineStart && insertContainer()"
                   >
                     <Package :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
-                    <span class="text-[#333] dark:text-white font-medium">容器</span>
+                    <span class="text-[#333] dark:text-white font-medium">块容器</span>
                     <span class="text-[#999] dark:text-white/40 ml-auto">通用包裹</span>
                   </div>
                   <!-- 文本 -->
