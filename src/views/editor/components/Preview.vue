@@ -11,7 +11,6 @@ import Toast from '@/components/Toast.vue'
 import GoogleAdSlot from '@/components/ad/GoogleAdSlot.vue'
 
 const isTauri = import.meta.env.VITE_TAURI === 'true';
-
 const { isDark } = useDarkMode()
 const { renderAll } = useMermaid()
 
@@ -236,7 +235,7 @@ async function saveAsImage() {
     const dateStr = new Date().toISOString().slice(0, 10)
 
     // 桌面端（Tauri）：使用原生 save dialog 让用户选择保存路径
-    if ('__TAURI_INTERNALS__' in window) {
+    if (isTauri) {
       try {
         const [{ save }, { writeFile }] = await Promise.all([
           import('@tauri-apps/plugin-dialog'),

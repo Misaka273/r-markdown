@@ -1425,19 +1425,19 @@ onBeforeUnmount(() => {
           @select="(action: string) => onDropdownSelect('export', action)"
         />
         <button
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
-          @click="handleCopyRichText"
-        >
-          <Copy :size="14" />
-          复制到公众号
-        </button>
-        <button
           v-if="isTauri"
           class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-[0.97]"
           @click="handlePublishToWechat"
         >
           <Send :size="14" />
           存到公众号
+        </button>
+        <button
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-[13px] font-medium cursor-pointer transition-all duration-150 bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)] active:scale-[0.97]"
+          @click="handleCopyRichText"
+        >
+          <Copy :size="14" />
+          复制到公众号
         </button>
         <!-- 移动端：下拉菜单 -->
         <MobileActionsMenu

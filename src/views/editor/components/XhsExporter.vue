@@ -19,6 +19,7 @@ import BaseDialog from '@/components/BaseDialog.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { Bolt } from 'lucide-vue-next'
 
+const isTauri = import.meta.env.VITE_TAURI === 'true';
 const { isDark } = useDarkMode()
 
 // 图片加载失败时的占位（透明 1px），避免一张坏图把整次渲染拖崩
@@ -331,7 +332,7 @@ function fileName(idx: number): string {
 
 async function triggerDownload(dataUrl: string, name: string): Promise<boolean> {
   // 桌面端（Tauri）：使用原生 save dialog
-  if ('__TAURI_INTERNALS__' in window) {
+  if (isTauri) {
     try {
       const [{ save }, { writeFile }] = await Promise.all([
         import('@tauri-apps/plugin-dialog'),
@@ -381,7 +382,7 @@ async function downloadAll() {
   busy.value = true
   try {
     // 桌面端（Tauri）：JSZip 打包 → 单次原生 save dialog
-    if ('__TAURI_INTERNALS__' in window) {
+    if (isTauri) {
       const JSZip = (await import('jszip')).default
       const zip = new JSZip()
       for (let i = 0; i < cards.value.length; i++) {
