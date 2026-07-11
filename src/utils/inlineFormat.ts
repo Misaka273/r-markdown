@@ -115,6 +115,48 @@ export function inlineFormat(text: string, t: ThemeColors, formulaMap?: Map<stri
     /\[([^\]]+)\]\(([^)\s]+)\)/g,
     (_m, p1: string, p2: string) => `<a href="${p2}" style="color:${t.accent}">${leaf(p1)}</a>`,
   )
+  // <text ...>content</text> — 行内文本样式
+  text = text.replace(
+    /<text\b([^>]*)>([\s\S]*?)<\/text>/g,
+    (_m, attrsStr: string, body: string) => {
+      const parseAttrs = (s: string): Record<string, string> => {
+        const result: Record<string, string> = {}
+        const re = /([\w-]+)\s*=\s*"([^"]*)"/g
+        let m
+        while ((m = re.exec(s)) !== null) {
+          result[m[1]] = m[2]
+        }
+        return result
+      }
+      const attrs = parseAttrs(attrsStr)
+      const cssMap: [string, string][] = [
+        ['color', 'color'],
+        ['size', 'font-size'],
+        ['weight', 'font-weight'],
+        ['style', 'font-style'],
+        ['height', 'line-height'],
+        ['align', 'text-align'],
+        ['decoration', 'text-decoration'],
+        ['spacing', 'letter-spacing'],
+        ['transform', 'text-transform'],
+        ['bg', 'background'],
+      ]
+      const styles: string[] = []
+      let hasBlock = false
+      for (const [attrKey, cssKey] of cssMap) {
+        const val = attrs[attrKey]
+        if (val) {
+          styles.push(`${cssKey}:${val}`)
+          if (attrKey === 'align') hasBlock = true
+        }
+      }
+      if (hasBlock) {
+        styles.push('display:block', 'width:100%')
+      }
+      const styleStr = styles.length ? ` style="${styles.join(';')}"` : ''
+      return `<span${styleStr}>${body}</span>`
+    },
+  )
   // 还原行内代码占位符
   text = text.replace(/\x00CODE_(\d+)\x00/g, (_m, p1: string) => codeStore[parseInt(p1)] || _m)
   return text
