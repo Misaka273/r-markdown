@@ -27,7 +27,7 @@ const isTauri = import.meta.env.VITE_TAURI === 'true'
 const { colors } = useTheme()
 
 // ── 设置 tab ──
-const settingsTab = ref(isTauri ? 'basic' : 'github')
+const settingsTab = ref('basic')
 
 // 当对话框打开时，若指定了 initialTab 则自动切换
 watch(() => props.visible, (isVisible) => {
@@ -112,6 +112,10 @@ function saveCompressQuality(val: number) {
   compressQuality.value = val
   setSetting('compressQuality', val)
 }
+
+// ── Minimap 缩略图 ──
+const minimapEnabled = ref(getSetting<boolean>('minimapEnabled'))
+watch(minimapEnabled, (val) => setSetting('minimapEnabled', val))
 
 // ── 普通段落设置（使用共享 ref，变更时预览自动响应）──
 function saveParaFontSize(val: number) { paraFontSize.value = val }
@@ -460,6 +464,31 @@ async function doDownloadUpdate() {
             当前间隔：{{ autoSaveInterval }}s（停止输入后触发保存）
           </p>
         </div>
+      </section>
+
+      <!-- Minimap 缩略图 -->
+      <section class="mt-4 pt-4 border-t border-[#f0f0f0] dark:border-[#333]">
+        <h3 class="text-[13px] font-semibold text-[#1a1a1a] dark:text-[#e5e5e5] mb-3">
+          预览缩略图
+        </h3>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[12px] text-[#666] dark:text-[#999]">在预览区右侧显示文档全貌缩略图</span>
+          <button
+            class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors"
+            :class="minimapEnabled ? 'bg-[var(--accent)]' : 'bg-[#ccc] dark:bg-[#555]'"
+            @click="minimapEnabled = !minimapEnabled"
+            role="switch"
+            :aria-checked="minimapEnabled"
+          >
+            <span
+              class="inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
+              :class="minimapEnabled ? 'translate-x-[18px]' : 'translate-x-[2px]'"
+            />
+          </button>
+        </div>
+        <p class="text-[11px] text-[#999] dark:text-[#666]">
+          开启后可在预览区右侧看到文档全貌缩略图，点击可快速跳转
+        </p>
       </section>
     </template>
 

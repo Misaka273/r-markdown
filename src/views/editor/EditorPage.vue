@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { getSetting } from '@/config/settings'
+import { useSetting } from '@/composables/useSetting'
 import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { uploadToGitHub } from '@/services/githubUploader'
@@ -144,6 +145,7 @@ function insertStack() {
 }
 
 import Preview from './components/Preview.vue'
+import Minimap from './components/Minimap.vue'
 import ThemePicker from './components/ThemePicker.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import Dropdown from './components/Dropdown.vue'
@@ -341,6 +343,12 @@ onBeforeUnmount(() => {
 // ── 拖动调整宽度 ──
 const previewWidth = ref(430)
 const isDragging = ref(false)
+
+// ── Minimap 缩略图 ──
+const minimapEnabled = useSetting<boolean>('minimapEnabled')
+const minimapScrollRatio = ref(0)
+const minimapViewportRatio = ref(0)
+
 let startX = 0
 let startWidth = 0
 
@@ -1400,6 +1408,8 @@ function handlePreviewScroll(ratio: number) {
 }
 
 let previewScrollEl: HTMLElement | null = null
+let previewObserver: MutationObserver | null = null
+
 function onPreviewScroll() {
   if (isFlushing) return
   if (!previewScrollEl) previewScrollEl = document.querySelector('.preview-scroll')
@@ -1412,15 +1422,36 @@ function onPreviewScroll() {
       nearBottom.value = ratio > 0.85
     }
   }
+  // 更新 minimap 滚动状态
+  minimapScrollRatio.value = maxScroll > 0 ? previewScrollEl.scrollTop / maxScroll : 0
+  minimapViewportRatio.value = previewScrollEl.scrollHeight > 0 ? previewScrollEl.clientHeight / previewScrollEl.scrollHeight : 1
 }
 
 onMounted(() => {
   previewScrollEl = document.querySelector('.preview-scroll')
-  previewScrollEl?.addEventListener('scroll', onPreviewScroll, { passive: true })
+  if (previewScrollEl) {
+    previewScrollEl.addEventListener('scroll', onPreviewScroll, { passive: true })
+    // MutationObserver 监听 Preview 内容 DOM 变更，渲染完成后自动更新指示器
+    previewObserver = new MutationObserver(() => {
+      requestAnimationFrame(() => onPreviewScroll())
+    })
+    previewObserver.observe(previewScrollEl, { childList: true, subtree: true })
+    // 初始加载兜底：renderAll 的 setTimeout 300ms 后才完成 mermaid 渲染
+    requestAnimationFrame(() => onPreviewScroll())
+    setTimeout(() => onPreviewScroll(), 350)
+  }
 })
 onBeforeUnmount(() => {
   previewScrollEl?.removeEventListener('scroll', onPreviewScroll)
+  previewObserver?.disconnect()
 })
+
+function onMinimapNavigate(ratio: number) {
+  const el = previewScrollEl
+  if (!el) return
+  const maxScroll = el.scrollHeight - el.clientHeight
+  el.scrollTop = ratio * maxScroll
+}
 </script>
 
 <template>
@@ -1994,6 +2025,17 @@ onBeforeUnmount(() => {
       >
         <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" :is-mobile="isMobile" @click-line="onPreviewClickLine" />
       </div>
+
+      <!-- Minimap -->
+      <Minimap
+        v-if="minimapEnabled && !isMobile"
+        :markdown="resolvedMarkdown"
+        :colors="colors"
+        :scroll-ratio="minimapScrollRatio"
+        :viewport-ratio="minimapViewportRatio"
+        :preview-width="previewWidth"
+        @navigate="onMinimapNavigate"
+      />
       </div>
     </div>
   </div>

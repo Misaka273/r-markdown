@@ -42,6 +42,7 @@ const componentCategoryMap: Record<string, string> = {
   Timeline_DA01: 'layout',
   Row_DA01: 'layout', Column_DA01: 'layout',
   Container_DA01: 'layout',
+  Stack_DA01: 'layout', Positioned_DA01: 'layout',
   Text_DA01: 'content',
   Chart_DA01: 'other',
   CTA_DA01: 'interactive',

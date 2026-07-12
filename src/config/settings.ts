@@ -78,6 +78,7 @@ export function getSetting<T = unknown>(key: string): T {
 export function setSetting(key: string, value: unknown): void {
   const storageKey = PREFIX + key
   localStorage.setItem(storageKey, JSON.stringify(value))
+  window.dispatchEvent(new CustomEvent('setting-changed', { detail: { key, value } }))
   syncToDisk()
 }
 
