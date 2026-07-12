@@ -21,7 +21,7 @@ import {
   Save, SquareBottomDashedScissors, CheckCircle,
   Download, Copy, FileText, CircleCheck, Minus,
   Smartphone, SquarePen, CircleQuestionMark,
-  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send, Package, Columns2, Rows2, Box, Type
+  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send, Package, Columns2, Rows2, Box, Type, Layers
 } from 'lucide-vue-next'
 import { putImage, getDataURL, cleanupImages } from '@/utils/imageDB'
 
@@ -132,6 +132,15 @@ function insertContainer() {
 function insertText() {
   if (!editorRef.value) return
   editorRef.value.insertAtCursor('<text>文字</text>')
+}
+
+function insertStack() {
+  if (!editorRef.value) return
+  const template = `<stack width="750px" ratio="16/9">
+<positioned top="0" left="0" width="100%" height="100%">背景层</positioned>
+<positioned top="40px" left="5%" width="90%">前景层</positioned>
+</stack>`
+  editorRef.value.insertAtCursor('\n' + template + '\n')
 }
 
 import Preview from './components/Preview.vue'
@@ -1748,6 +1757,16 @@ onBeforeUnmount(() => {
                         {{ rowGridHovered }} 行纵向堆叠
                       </div>
                     </div>
+                  </div>
+                  <!-- 层叠 -->
+                  <div
+                    class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-white/5 transition-colors duration-75"
+                    :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
+                    @click="editorRef?.isAtLineStart && insertStack()"
+                  >
+                    <Layers :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                    <span class="text-[#333] dark:text-white font-medium">层叠</span>
+                    <span class="text-[#999] dark:text-white/40 ml-auto">多层叠加</span>
                   </div>
                   <!-- 容器 -->
                   <div

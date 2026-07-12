@@ -34,6 +34,8 @@ import { Column_DA01 } from '@/extension/Column_DA01'
 import { Container_DA01 } from '@/extension/Container_DA01'
 import { Text_DA01 } from '@/extension/Text_DA01'
 import { Html_DA01 } from '@/extension/Html_DA01'
+import { Stack_DA01 } from '@/extension/Stack_DA01'
+import { Positioned_DA01 } from '@/extension/Positioned_DA01'
 
 // 语法高亮配色（one-dark 风，配深色代码块底）。把 highlight.js 的 class 转成内联颜色，
 // 这样预览和粘贴到公众号都能直接显示（不依赖外部样式表）。
@@ -375,6 +377,92 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     return { html: Html_DA01.render(attrs, body, t), next: j }
   }
 
+  /**
+   * <stack> — 层叠舞台容器，递归解析内部 Markdown
+   * 自身可嵌套（depth<4），内部 Positioned 表达式随后由主循环匹配
+   */
+  function parseStackTag(startIdx: number): { html: string; next: number } {
+    const line = lines[startIdx]
+    const re = /<stack\b([^>]*)>/
+    const m = line.match(re)
+    if (!m) return { html: line, next: startIdx + 1 }
+
+    const attrs = parseAttrs(m[1])
+
+    // 单行模式：<stack ...>content</stack>
+    if (/<\/stack>\s*$/.test(line)) {
+      const bodyText = line.replace(re, '').replace(/<\/stack>\s*$/, '').trim()
+      const bodyHtml = bodyText
+        ? parseMarkdown(bodyText, t, formulaMap, paragraphStyle, depth + 1, startIdx + lineOffset)
+        : ''
+      return { html: Stack_DA01.render(attrs, bodyHtml, t), next: startIdx + 1 }
+    }
+
+    // 多行模式：收集直到 </stack>
+    let j = startIdx + 1
+    let bodyDepth = 1
+    const bodyLines: string[] = []
+    while (j < lines.length && bodyDepth > 0) {
+      if (/<stack\b/.test(lines[j])) bodyDepth++
+      if (/^<\/stack>/.test(lines[j])) {
+        bodyDepth--
+        if (bodyDepth === 0) { j++; break }
+      }
+      bodyLines.push(lines[j])
+      j++
+    }
+
+    // 递归解析 body 内的 Markdown + 扩展组件
+    const bodyText = bodyLines.join('\n').trim()
+    const bodyHtml = bodyText
+      ? parseMarkdown(bodyText, t, formulaMap, paragraphStyle, depth + 1, startIdx + 1 + lineOffset)
+      : ''
+    return { html: Stack_DA01.render(attrs, bodyHtml, t), next: j }
+  }
+
+  /**
+   * <positioned> — 定位子层（只能在 Stack 内使用）
+   * content 递归解析 Markdown
+   */
+  function parsePositionedTag(startIdx: number): { html: string; next: number } {
+    const line = lines[startIdx]
+    const re = /<positioned\b([^>]*)>/
+    const m = line.match(re)
+    if (!m) return { html: line, next: startIdx + 1 }
+
+    const attrs = parseAttrs(m[1])
+
+    // 单行模式
+    if (/<\/positioned>\s*$/.test(line)) {
+      const bodyText = line.replace(re, '').replace(/<\/positioned>\s*$/, '').trim()
+      const bodyHtml = bodyText
+        ? parseMarkdown(bodyText, t, formulaMap, paragraphStyle, depth + 1, startIdx + lineOffset)
+        : ''
+      return { html: Positioned_DA01.render(attrs, bodyHtml, t), next: startIdx + 1 }
+    }
+
+    // 多行模式：收集直到 </positioned>
+    let j = startIdx + 1
+    let bodyDepth = 1
+    const bodyLines: string[] = []
+    while (j < lines.length && bodyDepth > 0) {
+      if (/<positioned\b/.test(lines[j])) bodyDepth++
+      if (/^<\/positioned>/.test(lines[j])) {
+        bodyDepth--
+        if (bodyDepth === 0) { j++; break }
+      }
+      bodyLines.push(lines[j])
+      j++
+    }
+
+    // 递归解析 body
+    const bodyText = bodyLines.join('\n').trim()
+    const bodyHtml = bodyText
+      ? parseMarkdown(bodyText, t, formulaMap, paragraphStyle, depth + 1, startIdx + 1 + lineOffset)
+      : ''
+    return { html: Positioned_DA01.render(attrs, bodyHtml, t), next: j }
+  }
+
   while (i < lines.length) {
     const line = lines[i]
 
@@ -411,6 +499,24 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
       const htmlStartLine = i
       const r = parseHtmlTag(i)
       html += withSourceLine(htmlStartLine, r.html)
+      i = r.next
+      continue
+    }
+
+    // <stack> — 层叠舞台容器
+    if (/^<stack\b/.test(line)) {
+      const stackStartLine = i
+      const r = parseStackTag(i)
+      html += withSourceLine(stackStartLine, r.html)
+      i = r.next
+      continue
+    }
+
+    // <positioned> — 定位子层（需在 stack 内）
+    if (/^<positioned\b/.test(line)) {
+      const posStartLine = i
+      const r = parsePositionedTag(i)
+      html += withSourceLine(posStartLine, r.html)
       i = r.next
       continue
     }
