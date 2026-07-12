@@ -137,8 +137,8 @@ function insertText() {
 function insertStack() {
   if (!editorRef.value) return
   const template = `<stack width="750px" ratio="16/9">
-<positioned top="0" left="0" width="100%" height="100%">背景层</positioned>
-<positioned top="40px" left="5%" width="90%">前景层</positioned>
+<positioned top="0" left="0" width="100%" height="100%" z-index="0">背景层</positioned>
+<positioned top="40px" left="5%" width="90%" z-index="1">前景层</positioned>
 </stack>`
   editorRef.value.insertAtCursor('\n' + template + '\n')
 }

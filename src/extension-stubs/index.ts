@@ -48,6 +48,8 @@ import { Text_DA01 } from './Text_DA01'
 import { Title_DA01 } from './Title_DA01'
 import { Title_DA02 } from './Title_DA02'
 import { Html_DA01 } from './Html_DA01'
+import { Stack_DA01 } from './Stack_DA01'
+import { Positioned_DA01 } from './Positioned_DA01'
 
 // 名称别名（与 extension/index.ts 导入名一致）
 export const CTA_DA01 = Cta_DA01
