@@ -130,6 +130,14 @@ function insertContainer() {
   editorRef.value.insertAtCursor('\n' + template + '\n')
 }
 
+function insertHtmlContainer() {
+  if (!editorRef.value) return
+  const template = `<html>
+符合微信公众号编辑器的html
+</html>`
+  editorRef.value.insertAtCursor('\n' + template + '\n')
+}
+
 function insertText() {
   if (!editorRef.value) return
   editorRef.value.insertAtCursor('<text>文字</text>')
@@ -1818,6 +1826,16 @@ function onMinimapNavigate(ratio: number) {
                     <Type :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
                     <span class="text-[#333] dark:text-white font-medium">文本</span>
                     <span class="text-[#999] dark:text-white/40 ml-auto">样式文字</span>
+                  </div>
+                    <!-- HTML 容器 -->
+                  <div
+                     class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-white/5 transition-colors duration-75"
+                     :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
+                     @click="editorRef?.isAtLineStart && insertHtmlContainer()"
+                  >
+                    <Code2 :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                    <span class="text-[#333] dark:text-white font-medium">HTML 容器</span>
+                    <span class="text-[#999] dark:text-white/40 ml-auto">内联样式</span>
                   </div>
                 </span>
               </span>
