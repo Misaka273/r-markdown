@@ -1,0 +1,9 @@
+/**
+ * Stub for Stack_DA01
+ *
+ * This stub is used when the private extension submodule is not available.
+ * It prevents build errors for users without access to the extension repository.
+ */
+export const Stack_DA01 = {
+  render: (_attrs: Record<string, string>, _body: string, _t?: unknown): string => '',
+}

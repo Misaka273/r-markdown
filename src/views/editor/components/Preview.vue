@@ -129,6 +129,7 @@ async function updateContent() {
   mermaidTimer = setTimeout(async () => {
     await renderAll(el)
   }, 300)
+  await nextTick()
 }
 
 watch(

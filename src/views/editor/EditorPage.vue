@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { useTheme } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { getSetting } from '@/config/settings'
+import { useSetting } from '@/composables/useSetting'
 import { useAutoUpdater, autoUpdatePending, autoUpdateRid, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
 import { uploadToGitHub } from '@/services/githubUploader'
@@ -21,7 +22,7 @@ import {
   Save, SquareBottomDashedScissors, CheckCircle,
   Download, Copy, FileText, CircleCheck, Minus,
   Smartphone, SquarePen, CircleQuestionMark,
-  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send
+  ImagePlus, Link, List, ListOrdered, Quote, StickyNote, ListChecks, Images, Crop, Table, Send, Package, Columns2, Rows2, Box, Type, Layers
 } from 'lucide-vue-next'
 import { putImage, getDataURL, cleanupImages } from '@/utils/imageDB'
 
@@ -51,7 +52,6 @@ const markdownInsertOptions = [
   { label: '任务列表', display: '☑ 任务1  ☐ 任务2', syntax: '- [x] 任务1\n- [ ] 任务2', icon: ListChecks },
   { label: '行内代码', display: '`code`', syntax: '``', icon: Code2 },
   { label: '代码块', display: '``` ... ```', syntax: '```\n\n```', icon: Braces },
-  { label: '脚注', display: '[文字](url "标题")', syntax: '[脚注文字](url "脚注描述")', icon: StickyNote },
   { label: '限高图', display: '![图](url)[w h]', syntax: '![图片描述](https://robocopmao.github.io/r-markdown/empty.webp)[100% 100%]', icon: Crop },
   { label: '横向多图', display: '<图1, 图2>', syntax: '<![图1描述](https://robocopmao.github.io/r-markdown/empty.webp),![图2描述](https://robocopmao.github.io/r-markdown/empty.webp)>', icon: Images },
   { label: '表格', display: '', syntax: '', icon: Table, table: true },
@@ -85,7 +85,75 @@ function isGridCellActive(i: number) {
   return rows <= tableGridHovered.value.rows && cols <= tableGridHovered.value.cols
 }
 
+// ── 布局快速插入（Row/Column）──
+const MAX_COLS = 6
+const MAX_ROWS = 3
+const colGridHovered = ref(0)
+const rowGridHovered = ref(0)
+
+function isColCellActive(i: number) {
+  return i <= colGridHovered.value
+}
+
+function isRowCellActive(i: number) {
+  return i <= rowGridHovered.value
+}
+
+function insertColumnLayout(cols: number) {
+  if (!editorRef.value || cols < 1 || cols > MAX_COLS) return
+  const colBlocks = Array.from({ length: cols }, () => '<column flex="1">\n内容\n</column>').join('\n')
+  const template = `<row gap="16px">\n${colBlocks}\n</row>`
+  editorRef.value.insertAtCursor('\n' + template + '\n')
+}
+
+function insertColumnStack(cols: number) {
+  if (!editorRef.value || cols < 1 || cols > MAX_COLS) return
+  const colBlocks = Array.from({ length: cols }, (_, i) =>
+    `<column flex="1">\n第 ${i + 1} 列内容\n</column>`
+  ).join('\n')
+  editorRef.value.insertAtCursor('\n' + colBlocks + '\n')
+}
+
+function insertRowStack(rows: number) {
+  if (!editorRef.value || rows < 1 || rows > MAX_ROWS) return
+  const rowBlocks = Array.from({ length: rows }, (_, i) =>
+    `<row gap="16px">\n第 ${i + 1} 行内容\n</row>`
+  ).join('\n')
+  editorRef.value.insertAtCursor('\n' + rowBlocks + '\n')
+}
+
+function insertContainer() {
+  if (!editorRef.value) return
+  const template = `<container>
+内容
+</container>`
+  editorRef.value.insertAtCursor('\n' + template + '\n')
+}
+
+function insertHtmlContainer() {
+  if (!editorRef.value) return
+  const template = `<html>
+符合微信公众号编辑器的html
+</html>`
+  editorRef.value.insertAtCursor('\n' + template + '\n')
+}
+
+function insertText() {
+  if (!editorRef.value) return
+  editorRef.value.insertAtCursor('<text>文字</text>')
+}
+
+function insertStack() {
+  if (!editorRef.value) return
+  const template = `<stack width="750px" ratio="16/9">
+<positioned top="0" left="0" width="100%" height="100%" z-index="0">背景层</positioned>
+<positioned top="40px" left="5%" width="90%" z-index="1">前景层</positioned>
+</stack>`
+  editorRef.value.insertAtCursor('\n' + template + '\n')
+}
+
 import Preview from './components/Preview.vue'
+import Minimap from './components/Minimap.vue'
 import ThemePicker from './components/ThemePicker.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import Dropdown from './components/Dropdown.vue'
@@ -283,6 +351,12 @@ onBeforeUnmount(() => {
 // ── 拖动调整宽度 ──
 const previewWidth = ref(430)
 const isDragging = ref(false)
+
+// ── Minimap 缩略图 ──
+const minimapEnabled = useSetting<boolean>('minimapEnabled')
+const minimapScrollRatio = ref(0)
+const minimapViewportRatio = ref(0)
+
 let startX = 0
 let startWidth = 0
 
@@ -1342,6 +1416,8 @@ function handlePreviewScroll(ratio: number) {
 }
 
 let previewScrollEl: HTMLElement | null = null
+let previewObserver: MutationObserver | null = null
+
 function onPreviewScroll() {
   if (isFlushing) return
   if (!previewScrollEl) previewScrollEl = document.querySelector('.preview-scroll')
@@ -1354,15 +1430,36 @@ function onPreviewScroll() {
       nearBottom.value = ratio > 0.85
     }
   }
+  // 更新 minimap 滚动状态
+  minimapScrollRatio.value = maxScroll > 0 ? previewScrollEl.scrollTop / maxScroll : 0
+  minimapViewportRatio.value = previewScrollEl.scrollHeight > 0 ? previewScrollEl.clientHeight / previewScrollEl.scrollHeight : 1
 }
 
 onMounted(() => {
   previewScrollEl = document.querySelector('.preview-scroll')
-  previewScrollEl?.addEventListener('scroll', onPreviewScroll, { passive: true })
+  if (previewScrollEl) {
+    previewScrollEl.addEventListener('scroll', onPreviewScroll, { passive: true })
+    // MutationObserver 监听 Preview 内容 DOM 变更，渲染完成后自动更新指示器
+    previewObserver = new MutationObserver(() => {
+      requestAnimationFrame(() => onPreviewScroll())
+    })
+    previewObserver.observe(previewScrollEl, { childList: true, subtree: true })
+    // 初始加载兜底：renderAll 的 setTimeout 300ms 后才完成 mermaid 渲染
+    requestAnimationFrame(() => onPreviewScroll())
+    setTimeout(() => onPreviewScroll(), 350)
+  }
 })
 onBeforeUnmount(() => {
   previewScrollEl?.removeEventListener('scroll', onPreviewScroll)
+  previewObserver?.disconnect()
 })
+
+function onMinimapNavigate(ratio: number) {
+  const el = previewScrollEl
+  if (!el) return
+  const maxScroll = el.scrollHeight - el.clientHeight
+  el.scrollTop = ratio * maxScroll
+}
 </script>
 
 <template>
@@ -1593,6 +1690,155 @@ onBeforeUnmount(() => {
                   </template>
                 </span>
               </span>
+              <!-- 容器/布局 -->
+              <span class="relative inline-flex items-center group">
+                <button
+                  class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
+                  :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
+                  :disabled="!editorRef?.isAtLineStart"
+                >
+                  <Box :size="14" class="w-3.5 h-3.5" :style="{ color: colors.accent }" />
+                  <span>容器</span>
+                </button>
+                <span
+                  class="absolute top-full left-0 mt-0.5 py-1 min-w-[100px] rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-[#e5e5e5] dark:border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50"
+                  :class="!editorRef?.isAtLineStart ? 'pointer-events-none' : ''"
+                >
+                  <!-- 列 -->
+                  <div
+                    class="relative"
+                    :class="editorRef?.isAtLineStart ? 'group/col' : 'cursor-not-allowed opacity-40'"
+                  >
+                    <div class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap">
+                      <Columns2 :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                      <span class="text-[#333] dark:text-white font-medium">列</span>
+                      <span class="text-[#999] dark:text-white/40 ml-auto">水平分栏</span>
+                    </div>
+                    <div
+                      class="absolute left-full top-0 ml-1 p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-[#e5e5e5] dark:border-white/10 opacity-0 invisible group-hover/col:opacity-100 group-hover/col:visible transition-all duration-150 z-50"
+                      :class="!editorRef?.isAtLineStart ? 'pointer-events-none' : ''"
+                    >
+                      <div class="flex gap-0.5">
+                        <button
+                          v-for="i in MAX_COLS"
+                          :key="i"
+                          class="w-[28px] h-[28px] rounded-[3px] border cursor-pointer transition-colors duration-75"
+                          :class="isColCellActive(i) ? '' : 'border-[#d0d0d0] dark:border-white/15 bg-transparent'"
+                          :style="isColCellActive(i) ? { borderColor: colors.accent, backgroundColor: colors.accent + '20' } : {}"
+                          :disabled="!editorRef?.isAtLineStart"
+                          @mousemove="editorRef?.isAtLineStart && (colGridHovered = i)"
+                          @click="editorRef?.isAtLineStart && insertColumnLayout(colGridHovered)"
+                        />
+                      </div>
+                      <div class="text-center text-[11px] text-[#666] dark:text-white/50 mt-1.5 leading-none">
+                        {{ colGridHovered }} 列均分
+                      </div>
+                    </div>
+                  </div>
+                  <!-- 列（独立，无 Row 包裹） -->
+                  <div
+                    class="relative"
+                    :class="editorRef?.isAtLineStart ? 'group/colstack' : 'cursor-not-allowed opacity-40'"
+                  >
+                    <div class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap">
+                      <Columns2 :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                      <span class="text-[#333] dark:text-white font-medium">列堆叠</span>
+                      <span class="text-[#999] dark:text-white/40 ml-auto">独立排列</span>
+                    </div>
+                    <div
+                      class="absolute left-full top-0 ml-1 p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-[#e5e5e5] dark:border-white/10 opacity-0 invisible group-hover/colstack:opacity-100 group-hover/colstack:visible transition-all duration-150 z-50"
+                      :class="!editorRef?.isAtLineStart ? 'pointer-events-none' : ''"
+                    >
+                      <div class="flex gap-0.5">
+                        <button
+                          v-for="i in MAX_COLS"
+                          :key="i"
+                          class="w-[28px] h-[28px] rounded-[3px] border cursor-pointer transition-colors duration-75"
+                          :class="isColCellActive(i) ? '' : 'border-[#d0d0d0] dark:border-white/15 bg-transparent'"
+                          :style="isColCellActive(i) ? { borderColor: colors.accent, backgroundColor: colors.accent + '20' } : {}"
+                          :disabled="!editorRef?.isAtLineStart"
+                          @mousemove="editorRef?.isAtLineStart && (colGridHovered = i)"
+                          @click="editorRef?.isAtLineStart && insertColumnStack(colGridHovered)"
+                        />
+                      </div>
+                      <div class="text-center text-[11px] text-[#666] dark:text-white/50 mt-1.5 leading-none">
+                        {{ colGridHovered }} 列独立
+                      </div>
+                    </div>
+                  </div>
+                  <!-- 行 -->
+                  <div
+                    class="relative"
+                    :class="editorRef?.isAtLineStart ? 'group/row' : 'cursor-not-allowed opacity-40'"
+                  >
+                    <div class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap">
+                      <Rows2 :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                      <span class="text-[#333] dark:text-white font-medium">行</span>
+                      <span class="text-[#999] dark:text-white/40 ml-auto">纵向堆叠</span>
+                    </div>
+                    <div
+                      class="absolute left-full top-0 ml-1 p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-[#e5e5e5] dark:border-white/10 opacity-0 invisible group-hover/row:opacity-100 group-hover/row:visible transition-all duration-150 z-50"
+                      :class="!editorRef?.isAtLineStart ? 'pointer-events-none' : ''"
+                    >
+                      <div class="flex flex-col gap-1">
+                        <button
+                          v-for="i in MAX_ROWS"
+                          :key="i"
+                          class="w-[80px] h-[20px] rounded-[3px] border cursor-pointer transition-colors duration-75"
+                          :class="isRowCellActive(i) ? '' : 'border-[#d0d0d0] dark:border-white/15 bg-transparent'"
+                          :style="isRowCellActive(i) ? { borderColor: colors.accent, backgroundColor: colors.accent + '20' } : {}"
+                          :disabled="!editorRef?.isAtLineStart"
+                          @mousemove="editorRef?.isAtLineStart && (rowGridHovered = i)"
+                          @click="editorRef?.isAtLineStart && insertRowStack(rowGridHovered)"
+                        />
+                      </div>
+                      <div class="text-center text-[11px] text-[#666] dark:text-white/50 mt-1.5 leading-none">
+                        {{ rowGridHovered }} 行纵向堆叠
+                      </div>
+                    </div>
+                  </div>
+                  <!-- 层叠 -->
+                  <div
+                    class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-white/5 transition-colors duration-75"
+                    :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
+                    @click="editorRef?.isAtLineStart && insertStack()"
+                  >
+                    <Layers :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                    <span class="text-[#333] dark:text-white font-medium">层叠</span>
+                    <span class="text-[#999] dark:text-white/40 ml-auto">多层叠加</span>
+                  </div>
+                  <!-- 容器 -->
+                  <div
+                    class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-white/5 transition-colors duration-75"
+                    :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
+                    @click="editorRef?.isAtLineStart && insertContainer()"
+                  >
+                    <Package :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                    <span class="text-[#333] dark:text-white font-medium">块容器</span>
+                    <span class="text-[#999] dark:text-white/40 ml-auto">通用包裹</span>
+                  </div>
+                  <!-- 文本 -->
+                  <div
+                    class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-white/5 transition-colors duration-75"
+                    :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
+                    @click="editorRef?.isAtLineStart && insertText()"
+                  >
+                    <Type :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                    <span class="text-[#333] dark:text-white font-medium">文本</span>
+                    <span class="text-[#999] dark:text-white/40 ml-auto">样式文字</span>
+                  </div>
+                    <!-- HTML 容器 -->
+                  <div
+                     class="flex items-center gap-2 px-3 py-1.5 text-[11px] leading-none whitespace-nowrap cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-white/5 transition-colors duration-75"
+                     :class="!editorRef?.isAtLineStart ? 'cursor-not-allowed opacity-40' : ''"
+                     @click="editorRef?.isAtLineStart && insertHtmlContainer()"
+                  >
+                    <Code2 :size="14" class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.accent }" />
+                    <span class="text-[#333] dark:text-white font-medium">HTML 容器</span>
+                    <span class="text-[#999] dark:text-white/40 ml-auto">内联样式</span>
+                  </div>
+                </span>
+              </span>
               <button
                 class="inline-flex items-center gap-1 h-7 px-2 rounded-[5px] border-none bg-transparent transition-all duration-150 panel-action-btn text-[11px] font-medium"
                 :class="editorRef?.isAtLineStart ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'"
@@ -1797,6 +2043,17 @@ onBeforeUnmount(() => {
       >
         <Preview ref="previewRef" :markdown="resolvedMarkdown" :colors="colors" :is-mobile="isMobile" @click-line="onPreviewClickLine" />
       </div>
+
+      <!-- Minimap -->
+      <Minimap
+        v-if="minimapEnabled && !isMobile"
+        :markdown="resolvedMarkdown"
+        :colors="colors"
+        :scroll-ratio="minimapScrollRatio"
+        :viewport-ratio="minimapViewportRatio"
+        :preview-width="previewWidth"
+        @navigate="onMinimapNavigate"
+      />
       </div>
     </div>
   </div>

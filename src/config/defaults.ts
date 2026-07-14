@@ -49,4 +49,6 @@ export const DEFAULT_SETTINGS: Record<string, SettingDef> = {
   wechatAppSecret: { default: '' },
   /** 公众号默认作者名 */
   wechatDefaultAuthor: { default: '' },
+  /** 预览区 minimap 缩略图开关 */
+  minimapEnabled: { default: false },
 }
