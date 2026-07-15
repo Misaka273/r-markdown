@@ -24,7 +24,7 @@ function loadMathJax(): Promise<void> {
       return
     }
     const script = document.createElement('script')
-    script.src = '/mathjax/tex-svg.js'
+    script.src = import.meta.env.BASE_URL + 'mathjax/tex-svg.js'
     script.onload = () => {
       const check = setInterval(() => {
         if ((window as any).MathJax?.startup?.adaptor) {
