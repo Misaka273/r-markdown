@@ -155,6 +155,7 @@ export interface ParagraphStyle {
   lineHeight: number
   fontWeight: string
   margin: number
+  indent: string
 }
 
 /**
@@ -1088,8 +1089,8 @@ export function parseMarkdown(md: string, t: ThemeColors, formulaMap?: Map<strin
     }
 
     // 普通段落
-    const ps = paragraphStyle ?? { fontSize: 16, lineHeight: 1.85, fontWeight: '400', margin: 24 }
-    html += withSourceLine(i, `<section style="margin:0px 0px ${ps.margin}px"><p style="margin:0px;font-size:${ps.fontSize}px;color:var(--text-primary);line-height:${ps.lineHeight};font-weight:${ps.fontWeight};text-align:justify;overflow-wrap:break-word;word-break:break-all">${inlineFormat(line, t, formulaMap)}</p></section>`)
+    const ps = paragraphStyle ?? { fontSize: 16, lineHeight: 1.85, fontWeight: '400', margin: 24, indent: '' }
+    html += withSourceLine(i, `<section style="margin:0px 0px ${ps.margin}px"><p style="margin:0px;font-size:${ps.fontSize}px;color:var(--text-primary);line-height:${ps.lineHeight};font-weight:${ps.fontWeight};text-align:justify;overflow-wrap:break-word;word-break:break-all;text-indent:${ps.indent || '0'}">${inlineFormat(line, t, formulaMap)}</p></section>`)
     i++
   }
 

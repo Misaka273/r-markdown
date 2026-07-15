@@ -5,7 +5,7 @@ import type { ThemeColors } from '@/composables/useTheme'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { parseMarkdownAsync, type ParagraphStyle } from '@/utils/markdownParser'
 import { getSetting } from '@/config/settings'
-import { paraFontSize, paraLineHeight, paraFontWeight, paraMargin } from '@/composables/useParagraphSettings'
+import { paraFontSize, paraLineHeight, paraFontWeight, paraMargin, paraIndent } from '@/composables/useParagraphSettings'
 import { useMermaid } from '@/composables/useMermaid'
 import Toast from '@/components/Toast.vue'
 
@@ -97,6 +97,7 @@ async function updateContent() {
     lineHeight: paraLineHeight.value,
     fontWeight: paraFontWeight.value,
     margin: paraMargin.value,
+    indent: paraIndent.value,
   }
   try {
     el.innerHTML = await parseMarkdownAsync(props.markdown, props.colors, ps)
