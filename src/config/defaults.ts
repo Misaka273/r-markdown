@@ -43,6 +43,8 @@ export const DEFAULT_SETTINGS: Record<string, SettingDef> = {
   paraFontWeight: { default: '400' },
   /** 普通段落间距（下方 margin，px） */
   paraMargin: { default: 24 },
+  /** 普通段落首行缩进，支持 px/em/rem，如 "2em"，空字符串表示不缩进 */
+  paraIndent: { default: '' },
   /** 公众号 AppID */
   wechatAppId: { default: '' },
   /** 公众号 AppSecret */

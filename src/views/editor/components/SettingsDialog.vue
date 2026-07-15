@@ -6,7 +6,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { getSetting, setSetting } from '@/config/settings'
 import { autoUpdateEnabled, autoUpdatePending, autoUpdateRid, checkForUpdates, downloadUpdateWithRid, type UpdateInfo } from '@/composables/useAutoUpdater'
 import { autoSaveEnabled, autoSaveInterval } from '@/composables/useEditorSettings'
-import { paraFontSize, paraLineHeight, paraFontWeight, paraMargin } from '@/composables/useParagraphSettings'
+import { paraFontSize, paraLineHeight, paraFontWeight, paraMargin, paraIndent } from '@/composables/useParagraphSettings'
 import { testConnection } from '@/services/githubUploader'
 import { useTheme } from '@/composables/useTheme'
 import ImageCacheDialog from './ImageCacheDialog.vue'
@@ -122,12 +122,14 @@ function saveParaFontSize(val: number) { paraFontSize.value = val }
 function saveParaLineHeight(val: number) { paraLineHeight.value = val }
 function saveParaFontWeight(val: string) { paraFontWeight.value = val }
 function saveParaMargin(val: number) { paraMargin.value = val }
+function saveParaIndent(val: string) { paraIndent.value = val }
 
 function resetParaDefaults() {
   saveParaFontSize(16)
   saveParaLineHeight(1.85)
   saveParaFontWeight('400')
   saveParaMargin(24)
+  saveParaIndent('')
 }
 
 async function handleTestConnection() {
@@ -413,6 +415,21 @@ async function doDownloadUpdate() {
             <span>8px</span>
             <span>48px</span>
           </div>
+        </div>
+
+        <!-- 首行缩进 -->
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-[12px] text-[#666] dark:text-[#999]">首行缩进</label>
+            <span v-if="paraIndent" class="text-[12px] font-medium tabular-nums text-[var(--accent)]">{{ paraIndent }}</span>
+          </div>
+          <input
+            type="text"
+            :value="paraIndent"
+            placeholder="如 2em（不填则不缩进）"
+            class="w-full rounded-lg border border-[#e5e5e5] bg-white px-3 py-1.5 text-[12px] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#bbb] focus:border-[var(--accent)] dark:border-[#444] dark:bg-[#2a2a2a] dark:text-[#e5e5e5] dark:placeholder:text-[#666]"
+            @input="saveParaIndent(($event.target as HTMLInputElement).value)"
+          />
         </div>
       </section>
 
